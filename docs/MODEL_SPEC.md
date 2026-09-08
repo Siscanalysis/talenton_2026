@@ -47,10 +47,10 @@ hours. Marching the 2-D field for years would be unaffordable and would say
 nothing. The two scales are therefore run on their own clocks and reported with
 their own ledgers:
 
-* **Mat timeline** — the whole simulated duration (1 to 6 years),
+* **Mat timeline**: the whole simulated duration (1 to 6 years),
   `dt = 6 h`, cheap 1-D solves per tile. Produces loading, remaining capacity,
   attenuation, breakthrough and the maintenance decisions.
-* **Plume windows** — at the mat states named by `PlumeWindowConfig.sample_years`,
+* **Plume windows**: at the mat states named by `PlumeWindowConfig.sample_years`,
   the 2-D model runs over a few tidal days with the residual flux held at that
   mat state. Produces the maps and the water-column budget.
 
@@ -175,10 +175,10 @@ They are separate fields on `MatTileState` and separate members of
 `DegradationMode`. Reading every performance loss as chemical saturation is the
 specific failure this design prevents.
 
-**1. Saturation and breakthrough** — capacity consumed; `q -> q_max` from the
+**1. Saturation and breakthrough**: capacity consumed; `q -> q_max` from the
 sediment face upward, and `J_out` rises toward `J_bare`.
 
-**2. Fouling and pore blockage** — `fouling_index f` in `[0, 1]`:
+**2. Fouling and pore blockage**: `fouling_index f` in `[0, 1]`:
 
 ```
 k_eff     = k     (1 - gamma_k f)
@@ -199,7 +199,7 @@ bypass_fraction = edge_leakage_fraction + fouling_bypass_coupling * f
 
 so the bypassed share of the area emits `J_bare`.
 
-**3. Displacement, burial, erosion, scour, uplift** — physical position.
+**3. Displacement, burial, erosion, scour, uplift**: physical position.
 A displaced tile has `coverage_fraction = 0`: its cells return to the bare flux
 immediately. Burial adds diffusive path,
 
@@ -210,7 +210,7 @@ g_top_buried = 1 / (1/g_top + burial_resistance_s_per_m * burial_depth_m)
 which *reduces* the apparent flux. **Burial can masquerade as success**, and the
 estimator must be able to say so: `AmbiguityFlag.BURIAL` exists for this.
 
-**4. Local damage** — `integrity_index i` in `[0, 1]`. The intact share `i`
+**4. Local damage**: `integrity_index i` in `[0, 1]`. The intact share `i`
 emits the layer's `J_out`; the torn share `1 - i` emits `J_bare`. Damage is
 per tile, so failure is spatially local.
 

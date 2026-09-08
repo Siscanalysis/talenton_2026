@@ -150,7 +150,10 @@ Every euro figure is an assumption. No supplier has been contacted.
 | `src/reactive_seabed_mat/observations/` | Synthetic observations, QC, mat condition, the observation operator |
 | `src/reactive_seabed_mat/estimation/` | Interval estimates of loading, attenuation and condition, from observations only |
 | `src/reactive_seabed_mat/maintenance/` | The three servicing policies and the recommendations they produce |
-| `research/` | European supplier and interface evidence, materials, references, dataset index |
+| `docs/gallery/` | The committed output: every scenario, every map, already generated |
+| `research/` | European supplier and interface evidence, materials, references |
+| `research/datasets/` | Open datasets that back the numbers, how to get them, and the two gaps where nothing exists |
+| `tools/build_gallery.py` | Regenerates `docs/gallery/` from scratch |
 | `tests/` | Contract, layer, transport, observation, estimation, maintenance and integration tests |
 
 **Not built yet**, and listed rather than implied: a design sweep over

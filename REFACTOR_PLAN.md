@@ -143,19 +143,19 @@ reported with its uncertainty, never as a fixed product specification.
 Four probes were run before writing any repository code. They changed the
 design twice, so they are recorded here rather than summarised.
 
-**Probe 1 — FiPy for the 1-D layer: rejected on cost.** A `Grid1D` layer needs
+**Probe 1: FiPy for the 1-D layer: rejected on cost.** A `Grid1D` layer needs
 thousands of steps per tile over a multi-year timeline. FiPy's per-solve
 overhead made an 8-year run exceed seven minutes and time out. The reuse
 decision already assigns *material dynamics* to NumPy/SciPy and *finite-volume
 transport* to FiPy [S06, S25]; a 1-D reactive layer is material dynamics.
 
-**Probe 2 — SciPy banded implicit solve: 0.67 s for 6 simulated years**, and it
+**Probe 2: SciPy banded implicit solve: 0.67 s for 6 simulated years**, and it
 matches a FiPy `Grid1D` solve of the same pure-diffusion case to a maximum
 relative difference of 2.6e-13. FiPy is therefore kept as the 2-D engine *and*
 as the independent cross-check oracle for the layer, which is a stronger
 position than using one solver for both.
 
-**Probe 3 — advection is not optional.** With `D_eff = 2e-10` and a 5 cm layer,
+**Probe 3: advection is not optional.** With `D_eff = 2e-10` and a 5 cm layer,
 a purely diffusive cap already attenuates by a factor of ~2500 and would take
 millennia to saturate: the sorbent would be irrelevant. Porewater advection
 (seepage and tidal pumping) is what a reactive cap is actually designed
@@ -164,7 +164,7 @@ a flux-accounting error: boundary fluxes must be evaluated on the transport
 substep at the new time level, with the same discrete coefficients the matrix
 uses, because sorption moves mass inside a cell and crosses no boundary.
 
-**Probe 4 — the operator split is wrong here, and mass conservation did not
+**Probe 4: the operator split is wrong here, and mass conservation did not
 reveal it.** With `rho_b * Kd / theta ~ 6000`, a split sorption substep drains
 the porewater completely every step. Refining the time step made the answer
 *worse*, not better: breakthrough moved from 4.21 years at `dt = 6 h` to 1.03
@@ -173,7 +173,7 @@ more than the entire bare flux. Throughout, mass was conserved to 1e-14. **A
 conservative scheme can still be a wrong scheme**, and the repository's tests
 must therefore include a refinement check, not only a ledger check.
 
-**Probe 5 — fully implicit coupled solve: adopted.** Eliminating `q^{n+1}`
+**Probe 5: fully implicit coupled solve: adopted.** Eliminating `q^{n+1}`
 analytically makes the sorption exchange linear in `C^{n+1}`, so it becomes a
 diagonal term and a source in the same tridiagonal system:
 
@@ -537,18 +537,18 @@ Found by the audit in already-committed code, including the coordinator's own:
 
 ## 6. Genuinely new work
 
-1. `reactive_layer/column.py` — the 1-D FiPy layer.
-2. `reactive_layer/flux.py` — `J_in`, `J_out`, `J_bare`, attenuation with intervals.
-3. `reactive_layer/degradation.py` — the four independent modes, kept independent.
-4. `coastal_transport/fipy_engine.py` — the 2-D solver (never written).
-5. `coastal_transport/seabed_source.py` — the tile-state to source-flux map.
-6. `estimation/` and `maintenance/` — never written; now estimate a richer state
+1. `reactive_layer/column.py`: the 1-D FiPy layer.
+2. `reactive_layer/flux.py`: `J_in`, `J_out`, `J_bare`, attenuation with intervals.
+3. `reactive_layer/degradation.py`: the four independent modes, kept independent.
+4. `coastal_transport/fipy_engine.py`: the 2-D solver (never written).
+5. `coastal_transport/seabed_source.py`: the tile-state to source-flux map.
+6. `estimation/` and `maintenance/`: never written; now estimate a richer state
    (loading, fouling, integrity, permeability, source flux) and must be able to
    answer `PERFORMANCE_UNCERTAIN` rather than blame saturation for everything.
-7. `optimisation/` — footprint, thickness, loading, layout, overlap, service
+7. `optimisation/`: footprint, thickness, loading, layout, overlap, service
    interval, against the listed objectives and constraints.
-8. `visualization/` and `app/` — the Streamlit demo.
-9. `docs/PRIOR_ART.md` — reactive caps, activated-carbon amendments and
+8. `visualization/` and `app/`: the Streamlit demo.
+9. `docs/PRIOR_ART.md`: reactive caps, activated-carbon amendments and
    permeable reactive barriers already exist. No novelty is claimed for putting
    sorbent in a mat. Differentiation is stated as a hypothesis list.
 10. Methylmercury risk: capping alters sediment redox and can *increase* MeHg

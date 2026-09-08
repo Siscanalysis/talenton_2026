@@ -1,4 +1,4 @@
-# AGENTS.md — how work is split in this repository
+# AGENTS.md: how work is split in this repository
 
 One coordinator owns the shared spine. Everything else is a branch with its own
 owned paths. Agents propose changes to shared files in their handoff; they do
@@ -30,9 +30,9 @@ against the current types.
 |---|---|---|
 | `feat/reactive-layer` | the 1-D reactive layer, tile state, the four degradation modes, service, forecasting | `src/reactive_seabed_mat/reactive_layer/`, `tests/reactive_layer/`, `examples/reactive_layer/`, `docs/handoffs/reactive_layer.md` |
 | `feat/coastal-2d` | the FiPy 2-D engine, the seabed source coupling, geodata adapters | `src/reactive_seabed_mat/coastal_transport/`, `tests/coastal_transport/`, `examples/coastal_transport/`, `docs/handoffs/coastal_2d.md` |
-| `feat/observations` | the synthetic observation generator, QC, the observation operator | `src/reactive_seabed_mat/observations/` except `records.py`, `tests/observations/`, `examples/observations/`, `docs/handoffs/observations.md` |
-| `feat/estimation` | the ensemble estimator and the maintenance policy | `src/reactive_seabed_mat/estimation/`, `src/reactive_seabed_mat/maintenance/`, `tests/estimation/`, `tests/maintenance/`, `docs/handoffs/estimation.md` |
-| `feat/optimisation` | the design sweep over footprint, thickness, loading, layout and servicing | `src/reactive_seabed_mat/optimisation/`, `tests/optimisation/`, `docs/handoffs/optimisation.md` |
+| `feat/observations` | the synthetic observation generator, QC, mat condition, the observation operator | `src/reactive_seabed_mat/observations/` except `records.py`, `tests/observations/`, `examples/observations/`, `docs/handoffs/observations.md` (**merged**) |
+| `feat/estimation` | the estimator and the maintenance policy | `src/reactive_seabed_mat/estimation/`, `src/reactive_seabed_mat/maintenance/`, `tests/maintenance/` (**merged**) |
+| `feat/optimisation` | the design sweep over footprint, thickness, loading, layout and servicing | `src/reactive_seabed_mat/optimisation/`, `tests/optimisation/`, `docs/handoffs/optimisation.md` (**not started**; see `docs/AUDIT.md` section G) |
 | `feat/presentation` | the local app and the offline evidence exports | `app/`, `src/reactive_seabed_mat/visualization/`, `tests/presentation/`, `docs/presentation/`, `docs/handoffs/presentation.md` |
 | `research/sensors` | European supplier and interface evidence, prior art | `research/`, `docs/handoffs/research_sensors.md`, `docs/PRIOR_ART.md` |
 | `feat/ml-extension` | one optional ML experiment, only after integration | `src/reactive_seabed_mat/ml/`, `tests/ml/`, `docs/handoffs/ml_extension.md` |
@@ -91,4 +91,9 @@ These are checked by tests, not by good intentions.
   commands, tests actually executed with their real outcome, assumptions, and
   any dependency or contract request.
 * British English in prose. No em-dashes.
-* Commit complete, tested increments. Do not push to any remote.
+* Commit complete, tested increments.
+* Before publishing anything, run the audit in `docs/AUDIT.md` again: check every
+  documented feature against the code, recompute every quoted number, and verify
+  every citation. The first pass found five features that did not exist and a
+  latent bug that reported 100 % attenuation for a mat that was not there.
+  Decisions go in `docs/AUDIT_DECISIONS.md`, which is authoritative.
