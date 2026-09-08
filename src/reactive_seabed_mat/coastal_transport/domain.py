@@ -1,9 +1,11 @@
-"""Domain, land mask, initial field, prescribed forcing and source schedule.
+"""Domain, land mask, initial field, prescribed forcing and the seabed hotspot.
 
 This module turns the coordinator-owned configuration objects
 (:mod:`reactive_seabed_mat.config`) into the frozen contract objects
-(:mod:`reactive_seabed_mat.contracts`) that :mod:`reactive_seabed_mat.coastal_transport.fipy_engine`
-consumes.  It contains no solver: it only prepares inputs.
+(:mod:`reactive_seabed_mat.contracts`) that
+:mod:`reactive_seabed_mat.coastal_transport.fipy_engine` and
+:mod:`reactive_seabed_mat.coastal_transport.seabed_source` consume.  It contains
+no solver: it only prepares inputs.
 
 Conventions, all SI (see ``src/reactive_seabed_mat/units.py``):
 
@@ -11,11 +13,16 @@ Conventions, all SI (see ``src/reactive_seabed_mat/units.py``):
   order, identical to :meth:`reactive_seabed_mat.contracts.GridSpec.cell_index`
   (flat index ``iy * nx + ix``);
 * ``land_mask[iy, ix] is True`` marks a no-flux cell that holds no water;
-* velocities are depth-averaged, in m s^-1, positive east / positive north.
+* velocities are depth-averaged, in m s^-1, positive east / positive north;
+* an areal flux is on the flux ladder, kg m^-2 s^-1.
 
 Nothing here is a hydrodynamic solution.  The current field is *prescribed*:
 a uniform mean flow, optionally modulated by a single sinusoidal tidal
 constituent.  It is a synthetic demonstration field, labelled as such.
+
+The hotspot is an **authorised contaminated seabed area**, an abstract
+contaminant source.  Nothing in this module locates, simulates or recommends
+the handling of any object on the seabed.
 """
 
 from __future__ import annotations
@@ -23,19 +30,19 @@ from __future__ import annotations
 import hashlib
 import math
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Iterable, Mapping, Sequence
 
 import numpy as np
 
-from ..config import DomainConfig, ForcingConfig, RunConfig, SourceConfig
+from ..config import DomainConfig, ForcingConfig, HotspotConfig, RunConfig
 from ..contracts import (
     Element,
     FieldState,
     Forcing,
     GridSpec,
     ProvenanceLabel,
-    SourceTerm,
+    SeabedHotspot,
     StateOrigin,
 )
 
@@ -46,11 +53,20 @@ __all__ = [
     "forcing_at",
     "forcing_timeline",
     "forcing_signature",
-    "schedule_rate_at",
-    "sources_at",
-    "source_timeline",
+    "mean_velocity_at",
+    "tidal_factor",
+    "assert_tide_resolving",
+    "hotspot_entry_at",
+    "hotspot_cell_mask",
+    "bare_flux",
+    "build_hotspot",
+    "hotspot_area_m2",
+    "DomainBundle",
+    "build_domain",
     "TidalForcingRefused",
     "SYNTHETIC_FORCING_NOTE",
+    "HOTSPOT_DISCRETISATION_NOTE",
+    "NON_TIDE_RESOLVING_AVERAGING",
 ]
 
 
@@ -65,9 +81,32 @@ SYNTHETIC_FORCING_NOTE = (
     "resolution carries no information finer than the prescription itself."
 )
 
-# ASSUMPTION: a cell counts as land when its centre falls inside a configured
-# land rectangle.  Partial coverage is not represented in this version.
-_LAND_RULE_NOTE = "cell centre inside the rectangle (inclusive bounds)"
+# ASSUMPTION: a cell counts as land, or as part of the hotspot, when its centre
+# falls inside the configured rectangle.  Partial coverage of a cell by land is
+# not represented.  Partial coverage of a cell by a *mat tile* is represented,
+# because coverage is the quantity the mat is judged on
+# (see coastal_transport.seabed_source).
+HOTSPOT_DISCRETISATION_NOTE = (
+    "The hotspot is discretised by cell-centre containment, so the gridded "
+    "hotspot area can differ from the configured rectangle area when the "
+    "rectangle does not align with cell boundaries. The gridded area is the "
+    "one every flux and mass number below is computed on."
+)
+
+#: Temporal-averaging labels that cannot resolve a tide.  Used to refuse a
+#: de-tided or daily-mean product for a tide-resolving scenario [S10].
+NON_TIDE_RESOLVING_AVERAGING: frozenset[str] = frozenset(
+    {
+        "daily_mean",
+        "daily",
+        "de_tided",
+        "detided",
+        "monthly_mean",
+        "monthly",
+        "climatology",
+        "residual",
+    }
+)
 
 
 class TidalForcingRefused(ValueError):
@@ -107,11 +146,7 @@ def build_land_mask(domain: DomainConfig, grid: GridSpec | None = None) -> np.nd
     """
     grid = build_grid(domain) if grid is None else grid
     mask = np.zeros((grid.ny, grid.nx), dtype=bool)
-    ix = np.arange(grid.nx)
-    iy = np.arange(grid.ny)
-    xc = grid.origin_x_m + (ix + 0.5) * grid.dx_m
-    yc = grid.origin_y_m + (iy + 0.5) * grid.dy_m
-    xx, yy = np.meshgrid(xc, yc)
+    xx, yy = _cell_centre_grids(grid)
     for rect in domain.land_rectangles:
         x0, y0, x1, y1 = (float(v) for v in rect)
         lo_x, hi_x = min(x0, x1), max(x0, x1)
@@ -120,6 +155,15 @@ def build_land_mask(domain: DomainConfig, grid: GridSpec | None = None) -> np.nd
     if mask.all():
         raise ValueError("the land rectangles cover the whole domain: no water left")
     return mask
+
+
+def _cell_centre_grids(grid: GridSpec) -> tuple[np.ndarray, np.ndarray]:
+    """``(xx, yy)`` cell-centre coordinate arrays, both ``(ny, nx)`` in metres."""
+    ix = np.arange(grid.nx)
+    iy = np.arange(grid.ny)
+    xc = grid.origin_x_m + (ix + 0.5) * grid.dx_m
+    yc = grid.origin_y_m + (iy + 0.5) * grid.dy_m
+    return np.meshgrid(xc, yc)
 
 
 def initial_field_state(
@@ -167,7 +211,11 @@ def initial_field_state(
         values[land_mask] = 0.0
         fields[name] = values
     if time_utc is None:
-        time_utc = config.start_datetime if config is not None else datetime.now().astimezone()
+        time_utc = (
+            config.start_datetime
+            if config is not None
+            else datetime.now(timezone.utc)
+        )
     return FieldState(
         grid=grid,
         time_utc=time_utc,
@@ -216,6 +264,30 @@ def mean_velocity_at(cfg: ForcingConfig, elapsed_s: float) -> tuple[float, float
     raise ValueError(
         f"unknown forcing kind {cfg.kind!r}; supported: 'steady', 'tidal'"
     )
+
+
+def assert_tide_resolving(cfg: ForcingConfig) -> None:
+    """Refuse a de-tided or daily-mean field for a tide-resolving scenario.
+
+    ``ForcingConfig.kind == 'tidal'`` claims the run resolves the tide.  A
+    daily-mean or de-tided product cannot support that claim, so it is refused
+    here rather than quietly averaged away [S10].
+    """
+    if str(cfg.kind).lower() != "tidal":
+        return
+    averaging = str(cfg.temporal_averaging).strip().lower()
+    if averaging in NON_TIDE_RESOLVING_AVERAGING:
+        raise TidalForcingRefused(
+            f"forcing kind 'tidal' needs a tide-resolving field, but the "
+            f"temporal averaging is {cfg.temporal_averaging!r}. A de-tided or "
+            "daily-mean current field cannot stand in for a tidal reversal; "
+            "use an hourly instantaneous product or the synthetic tidal field."
+        )
+    if cfg.tidal_amplitude_m_per_s == 0.0:
+        raise TidalForcingRefused(
+            "forcing kind 'tidal' with zero tidal amplitude does not reverse; "
+            "either set an amplitude or declare kind='steady'"
+        )
 
 
 def forcing_at(
@@ -297,9 +369,9 @@ def forcing_timeline(
 def forcing_signature(forcings: Iterable[Forcing]) -> str:
     """Stable hash of a forcing timeline.
 
-    Two scenarios that claim to share forcing (for example no-mesh versus
-    mesh) must produce the same signature; the arrays themselves are compared
-    in the tests as well.
+    Two runs that claim to share forcing (for example no-mat against mat) must
+    produce the same signature; the arrays themselves are compared in the tests
+    as well, because a hash proves equality only as far as it is trusted.
     """
     digest = hashlib.sha256()
     for forcing in forcings:
@@ -311,88 +383,197 @@ def forcing_signature(forcings: Iterable[Forcing]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Sources
+# The authorised contaminated seabed hotspot
 # ---------------------------------------------------------------------------
 
-def schedule_rate_at(
-    schedule: Sequence, elapsed_s: float, elements: Sequence[str] | None = None
-) -> dict[str, float]:
-    """Piecewise-constant release rate in kg s^-1 at ``elapsed_s``.
+def hotspot_entry_at(cfg: HotspotConfig, elapsed_s: float):
+    """The active :class:`~reactive_seabed_mat.config.HotspotScheduleEntry`.
 
     The active entry is the last one whose ``start_s`` is at or before
-    ``elapsed_s``.  Before the first entry the rate is zero for every element:
-    nothing is released implicitly.
+    ``elapsed_s``.  Before the first entry there is no driving condition at all,
+    which is returned as ``None`` rather than as a silent zero.
     """
     active = None
-    for entry in sorted(schedule, key=lambda item: float(item.start_s)):
+    for entry in sorted(cfg.schedule, key=lambda item: float(item.start_s)):
         if float(entry.start_s) <= float(elapsed_s):
             active = entry
         else:
             break
-    names: list[str] = list(elements) if elements is not None else []
-    if not names:
-        seen: list[str] = []
-        for entry in schedule:
-            for key in entry.rate_kg_per_s:
-                if key not in seen:
-                    seen.append(key)
-        names = seen
-    if active is None:
-        return {name: 0.0 for name in names}
-    rates = {name: float(active.rate_kg_per_s.get(name, 0.0)) for name in names}
-    for name, value in rates.items():
-        if value < 0.0:
-            raise ValueError(
-                f"source rate for {name!r} is negative ({value} kg/s); a negative "
-                "release would be a sink and this model has no destruction term"
-            )
-    return rates
+    return active
 
 
-def sources_at(
-    source_cfg: SourceConfig | Sequence[SourceConfig],
-    elapsed_s: float,
-    elements: Sequence[str] | None = None,
-) -> tuple[SourceTerm, ...]:
-    """The :class:`SourceTerm` list active at ``elapsed_s``."""
-    configs = (source_cfg,) if isinstance(source_cfg, SourceConfig) else tuple(source_cfg)
-    terms = []
-    for cfg in configs:
-        rates = schedule_rate_at(cfg.schedule, elapsed_s, elements)
-        try:
-            label = ProvenanceLabel(cfg.label)
-        except ValueError:  # pragma: no cover - configuration typo guard
-            raise ValueError(
-                f"source label {cfg.label!r} is not a ProvenanceLabel"
-            ) from None
-        terms.append(
-            SourceTerm(
-                source_id=cfg.source_id,
-                x_m=float(cfg.x_m),
-                y_m=float(cfg.y_m),
-                rate_kg_per_s=rates,
-                label=label,
-                description=cfg.description,
-            )
-        )
-    return tuple(terms)
+def hotspot_cell_mask(grid: GridSpec, cfg: HotspotConfig) -> np.ndarray:
+    """``(ny, nx)`` boolean mask of the contaminated seabed cells.
+
+    ``HotspotConfig.x_m`` and ``y_m`` are the **lower-left corner** of the
+    rectangle, matching the way the default configuration places its stations
+    inside the tiles it names.  Containment is by cell centre; see
+    :data:`HOTSPOT_DISCRETISATION_NOTE`.
+    """
+    if cfg.width_m <= 0.0 or cfg.length_m <= 0.0:
+        raise ValueError("hotspot width_m and length_m must be strictly positive")
+    xx, yy = _cell_centre_grids(grid)
+    x0, y0 = float(cfg.x_m), float(cfg.y_m)
+    x1, y1 = x0 + float(cfg.width_m), y0 + float(cfg.length_m)
+    return (xx >= x0) & (xx <= x1) & (yy >= y0) & (yy <= y1)
 
 
-def source_timeline(
-    source_cfg: SourceConfig | Sequence[SourceConfig],
-    n_steps: int,
-    dt_s: float,
-    elements: Sequence[str] | None = None,
+def bare_flux(
+    seepage_velocity_m_per_s: float,
+    film_transfer_m_per_s: float,
+    porewater_kg_per_m3: Mapping[str, float],
     *,
-    stamp_at_step_end: bool = True,
-) -> tuple[tuple[SourceTerm, ...], ...]:
-    """One source list per step, matching :func:`forcing_timeline`."""
-    offset = 1 if stamp_at_step_end else 0
-    return tuple(
-        sources_at(source_cfg, (i + offset) * float(dt_s), elements)
-        for i in range(int(n_steps))
+    bottom_water_kg_per_m3: Mapping[str, float] | None = None,
+    elements: Sequence[str] | None = None,
+    clamp_at_zero: bool = True,
+) -> dict[str, float]:
+    """Uncapped bare-sediment areal flux, ``kg m^-2 s^-1`` per element.
+
+    ``docs/MODEL_SPEC.md`` section 3::
+
+        J_bare = (v + k_film) * (C_sed - C_water)
+
+    With ``C_water = 0`` this reduces to ``(v + k_film) * C_sed``, which is the
+    reference value stored on :class:`SeabedHotspot`.  The bottom-water term is
+    what makes a rising plume genuinely reduce the driving gradient.
+
+    ASSUMPTION: a reversed gradient (``C_water > C_sed``) is clamped to zero
+    rather than modelled as deposition.  The sediment reservoir in this
+    demonstrator is prescribed and never depleted, so a negative source would
+    be a sink with no inventory behind it.  The clamp is reported by the caller,
+    never applied silently.
+    """
+    if seepage_velocity_m_per_s < 0.0:
+        raise ValueError(
+            "seepage velocity is positive upward in this model; a negative "
+            "value would drive water into the sediment and is not supported"
+        )
+    if film_transfer_m_per_s < 0.0:
+        raise ValueError("film transfer coefficient must not be negative")
+    names = list(elements) if elements is not None else list(porewater_kg_per_m3)
+    transfer = float(seepage_velocity_m_per_s) + float(film_transfer_m_per_s)
+    out: dict[str, float] = {}
+    for name in names:
+        c_sed = float(porewater_kg_per_m3.get(name, 0.0))
+        if c_sed < 0.0:
+            raise ValueError(f"sediment porewater for {name!r} is negative ({c_sed})")
+        c_water = 0.0
+        if bottom_water_kg_per_m3 is not None:
+            c_water = float(bottom_water_kg_per_m3.get(name, 0.0))
+        value = transfer * (c_sed - c_water)
+        out[name] = max(value, 0.0) if clamp_at_zero else value
+    return out
+
+
+def build_hotspot(
+    config: RunConfig,
+    *,
+    elapsed_s: float = 0.0,
+    grid: GridSpec | None = None,
+    land_mask: np.ndarray | None = None,
+    elements: Sequence[str] | None = None,
+) -> SeabedHotspot:
+    """The :class:`SeabedHotspot` active at ``elapsed_s`` after the run start.
+
+    Computes the cell indices of the contaminated area and the bare flux
+    ``J_bare = (v + k_film) * C_sed`` per element from the hotspot schedule.
+    The stored bare flux is the **reference** value, evaluated against clean
+    bottom water; the plume-aware value is recomputed per tile in
+    :func:`reactive_seabed_mat.coastal_transport.seabed_source.build_seabed_exchange`.
+
+    Land cells inside the rectangle are excluded (a land cell holds no water and
+    can receive no flux) and the exclusion is stated in the description.
+    """
+    cfg = config.hotspot
+    grid = build_grid(config.domain) if grid is None else grid
+    if land_mask is None:
+        land_mask = build_land_mask(config.domain, grid)
+    land_mask = np.asarray(land_mask, dtype=bool)
+    if land_mask.shape != (grid.ny, grid.nx):
+        raise ValueError(
+            f"land_mask has shape {land_mask.shape}, expected {(grid.ny, grid.nx)}"
+        )
+
+    mask = hotspot_cell_mask(grid, cfg)
+    n_requested = int(mask.sum())
+    n_on_land = int((mask & land_mask).sum())
+    mask &= ~land_mask
+    indices = tuple(int(i) for i in np.flatnonzero(mask.reshape(-1)))
+    if not indices:
+        raise ValueError(
+            f"hotspot {cfg.hotspot_id!r} covers no water cell of the "
+            f"{grid.nx}x{grid.ny} grid; check its position, size and the land "
+            "rectangles"
+        )
+
+    names = tuple(elements) if elements is not None else tuple(config.elements)
+    entry = hotspot_entry_at(cfg, elapsed_s)
+    if entry is None:
+        porewater = {name: 0.0 for name in names}
+        seepage = 0.0
+        schedule_note = (
+            f"No hotspot schedule entry is active at t = {float(elapsed_s):.0f} s, "
+            "so the driving porewater concentration and the seepage velocity "
+            "are zero. Nothing is released implicitly."
+        )
+    else:
+        porewater = {
+            name: float(entry.porewater_kg_per_m3.get(name, 0.0)) for name in names
+        }
+        seepage = float(entry.seepage_velocity_m_per_s)
+        schedule_note = (
+            f"Driving conditions from the schedule entry starting at "
+            f"{float(entry.start_s):.0f} s, read at t = {float(elapsed_s):.0f} s."
+        )
+
+    flux = bare_flux(seepage, float(cfg.film_transfer_m_per_s), porewater,
+                     elements=names)
+
+    try:
+        label = ProvenanceLabel(cfg.label)
+    except ValueError:  # pragma: no cover - configuration typo guard
+        raise ValueError(
+            f"hotspot label {cfg.label!r} is not a ProvenanceLabel; every "
+            "number needs a valid label"
+        ) from None
+
+    description = " ".join(
+        part
+        for part in (
+            cfg.description,
+            schedule_note,
+            HOTSPOT_DISCRETISATION_NOTE,
+            (
+                f"{n_on_land} of {n_requested} cells inside the configured "
+                "rectangle are land and were excluded: a land cell holds no "
+                "water and receives no flux."
+                if n_on_land
+                else ""
+            ),
+        )
+        if part
     )
 
+    return SeabedHotspot(
+        hotspot_id=cfg.hotspot_id,
+        cell_indices=indices,
+        sediment_porewater_kg_per_m3=porewater,
+        bare_flux_kg_per_m2_per_s=flux,
+        seepage_velocity_m_per_s=seepage,
+        film_transfer_m_per_s=float(cfg.film_transfer_m_per_s),
+        label=label,
+        description=description,
+    )
+
+
+def hotspot_area_m2(grid: GridSpec, hotspot: SeabedHotspot) -> float:
+    """Gridded area of the hotspot, which is what every flux is applied to."""
+    return float(hotspot.n_cells) * grid.cell_area_m2
+
+
+# ---------------------------------------------------------------------------
+# Convenience bundle
+# ---------------------------------------------------------------------------
 
 @dataclass(frozen=True, slots=True)
 class DomainBundle:
@@ -401,6 +582,7 @@ class DomainBundle:
     grid: GridSpec
     land_mask: np.ndarray
     field_state: FieldState
+    hotspot: SeabedHotspot
 
     @property
     def water_cells(self) -> int:
@@ -411,9 +593,10 @@ class DomainBundle:
         return int(self.land_mask.sum())
 
 
-def build_domain(config: RunConfig) -> DomainBundle:
-    """Grid, land mask and zero initial field from one :class:`RunConfig`."""
+def build_domain(config: RunConfig, *, elapsed_s: float = 0.0) -> DomainBundle:
+    """Grid, land mask, zero initial field and hotspot from one :class:`RunConfig`."""
     grid = build_grid(config.domain)
     land = build_land_mask(config.domain, grid)
     field = initial_field_state(config, grid=grid, land_mask=land)
-    return DomainBundle(grid=grid, land_mask=land, field_state=field)
+    hotspot = build_hotspot(config, elapsed_s=elapsed_s, grid=grid, land_mask=land)
+    return DomainBundle(grid=grid, land_mask=land, field_state=field, hotspot=hotspot)
