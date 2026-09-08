@@ -69,8 +69,25 @@ def _tile(nz: int = 40, **overrides) -> MatTileState:
     return MatTileState(**kwargs)
 
 
-def test_contract_version_marks_the_mat_concept():
-    assert CONTRACT_VERSION == "0.2.0-frozen-mat"
+def test_contract_version_marks_the_core_mat_concept():
+    """The version is pinned so a change has to be deliberate.
+
+    0.3.0 added copper and the geotextile-encapsulated core. Both were additive,
+    so nothing written against 0.2 broke, but a manifest that says 0.2 should
+    not leave a reader guessing whether copper was in it.
+    """
+    assert CONTRACT_VERSION == "0.3.0-core-mat"
+
+
+def test_the_three_elements_are_distinct_and_copper_is_present():
+    from reactive_seabed_mat.contracts import Element, Parameter
+
+    assert [element.value for element in Element] == ["Pb", "Hg", "Cu"]
+    # Every element must also be a measurable parameter, or an observation of it
+    # could not be expressed at all.
+    parameters = {parameter.value for parameter in Parameter}
+    for element in Element:
+        assert element.value in parameters
 
 
 def test_no_vertical_mesh_interception_concepts_remain():

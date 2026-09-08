@@ -99,6 +99,71 @@ disulfide is reduced and every resulting thiol is sterically accessible to a
 hydrated Hg species, which no real material achieves. The model therefore takes
 a small accessible fraction of it, with a very wide interval, and says so.
 
+## 3b. Copper: the best published capacity and the hardest job
+
+Copper was added as a third channel because corroding brass and copper-alloy
+fuzes and driving bands are a documented component of dumped conventional
+munitions. It is instructive, because it is the clearest case in this project of
+**capacity and availability being different things.**
+
+Published Cu(II) capacities on keratin materials:
+
+| Material | Langmuir q_max | Note |
+|---|---|---|
+| Wool keratin nanofibres | **20 mg/g** | fits Langmuir [K9] |
+| Keratin/PA6 blend nanofibres, 50 / 70 / 90 % keratin | 61.7 / 90 / 103.5 mg/g | [K9] |
+| Wool-keratin-modified magnetite powder | 27.4 mg/g at 323 K | [K9] |
+
+Those are the **best** numbers in this whole document, several times the Pb
+figures. Two reasons not to use them as they stand:
+
+1. **They are nanofibres.** A nanofibre mat has a specific surface area far
+   above a needle-punched felt core. The model takes 3.0 mg/g, an order of
+   magnitude below the lowest nanofibre value, as the bulk-core estimate.
+2. **Almost none of the copper in seawater is available.** Above 99 % of
+   dissolved Cu is bound to strong organic ligands, with conditional stability
+   constants around 1e15, and free Cu2+ measured below 6 pM [K11]. A carboxyl or
+   amino group on keratin does not obviously outcompete a ligand that strong.
+
+The second point dominates. The model expresses it through
+`available_fraction = 0.02` for Cu: one fiftieth of the dissolved pool, with the
+interval reaching 0.002. **This is the most pessimistic number in the model, and
+it is the one the simulation then vindicates:** over six years the sorbent's
+contribution to copper attenuation is 0.00 percentage points. Copper passes
+through. What little the mat does for copper, an inert mat of the same geometry
+would also do.
+
+That is a result, not a failure of the model, and it should be said out loud
+rather than buried: **on this evidence, a keratin core is not a copper
+technology.** If copper is a target, the honest options are a different ligand
+chemistry chosen to compete with natural organic ligands, or dropping the claim.
+
+## 3c. Mercury is not free in seawater, and that cuts both ways
+
+The claim is correct and it is worth stating precisely. Thermodynamic
+calculations put Hg(II) at **above 99 % chloro-complexes** in seawater,
+dominated by the tetrachloride HgCl4(2-), with HgCl3(-) and HgCl2 making up most
+of the rest [K10]. Free Hg2+ is a vanishing fraction.
+
+**In our favour.** Chloro-complexed mercury is reported to resist reduction and
+methylation more than free Hg(II) does. And the thiol-Hg bond is strong enough
+that thiol ligands still outcompete chloride, which is precisely why
+thiol-functionalised sorbents are the established route for mercury in saline
+matrices. The model reflects this with a partition coefficient an order of
+magnitude above lead's.
+
+**Against us, and absent from every batch isotherm.** The species arriving at
+the surface is an **anion**, approaching a keratin surface that is negatively
+charged at pH 8, and a binding site must displace four chlorides before it takes
+the mercury. Neither the electrostatic penalty nor the ligand-exchange kinetics
+appear in a capacity measured on free Hg(2+) in deionised water at pH 4. The
+model carries them as `available_fraction = 0.10` for Hg, interval 0.01 to 0.4.
+
+The net effect in the simulation is that mercury behaves better than copper and
+worse than the freshwater literature implies: the sorbent adds about 0.6
+percentage points of attenuation at six years, against 0.2 for lead and 0.0 for
+copper.
+
 ## 4. The seawater derating, and why it is large
 
 Every capacity in section 2 was measured at **pH 4.0 in deionised water**. Our
@@ -195,3 +260,7 @@ top of contaminated anoxic sediment is not obviously ecologically neutral. See
 | K6 | *Characterisation of reduction state of cystine linkages on wool fibre surface*, ScienceDirect. https://www.sciencedirect.com/science/article/pii/S0142941821003810 |
 | K7 | Hg(II)-imprinted thiol-functionalised mesoporous sorbent, 78.5 mg/g. https://www.sciencedirect.com/science/article/abs/pii/S0039914006002074 (NOT keratin) |
 | K8 | Thiol-functionalised cellulose, 1325 mg/g Hg(II). https://www.sciencedirect.com/science/article/pii/S0045653524007847 (NOT keratin) |
+| K9 | Keratin Cu(II) capacities. Wool keratin nanofibres, 20 mg/g, Langmuir: https://www.sciencedirect.com/science/article/abs/pii/S0014305711002394 (keratin/PA6 blend nanofibres, 61.7 / 90 / 103.5 mg/g at 50 / 70 / 90 wt% keratin). Wool-keratin-modified magnetite, 27.4 mg/g at 323 K: https://doi.org/10.3390/nano11051068. All nanofibre or nanoparticle forms, NOT a bulk felt core. |
+| K10 | Mercury speciation in seawater: Hg(II) above 99 % Hg-Cl complexes, dominated by HgCl4(2-); halide complexes reduce and methylate more slowly than other Hg(II) forms. *Mercury in Marine and Oceanic Waters, a Review*, Water Air Soil Pollut (2016), DOI 10.1007/s11270-016-3060-3, https://pmc.ncbi.nlm.nih.gov/articles/PMC5013138/ |
+| K11 | Copper speciation: above 99 % of dissolved Cu organically complexed, free Cu2+ below 6 pM in pore waters; strong ligand (L1) conditional stability constants around 1e15. *Copper-binding ligands in deep-sea pore waters of the Pacific Ocean*, Scientific Reports (2021), https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8446087/ ; see also *Sources, sinks, and cycling of dissolved organic copper binding ligands in the ocean*, Commun Earth Environ (2022), https://www.nature.com/articles/s43247-022-00597-1 |
+| K12 | Activated carbon and methylmercury: porewater MeHg reduced 45 to 95 % (above 90 % at one month) but **sediment MeHg increased in five of seven studies**, mechanism unclear; salt-marsh field trial effects significant for only about the first year. https://pubmed.ncbi.nlm.nih.gov/24156748/ , https://www.sciencedirect.com/science/article/abs/pii/S004896971733108X |

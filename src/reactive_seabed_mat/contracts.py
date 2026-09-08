@@ -40,7 +40,13 @@ from typing import Any, Mapping, Protocol, Sequence
 
 import numpy as np
 
-CONTRACT_VERSION = "0.2.0-frozen-mat"
+#: 0.3.0 adds copper as a third element and encapsulates the reactive core
+#: between two carrier geotextiles.  Both are additive: ``Element.CU`` is a new
+#: member and ``AdvanceReactiveLayer`` gained a keyword-only argument with a
+#: default, so code written against 0.2 keeps working.  The version moves
+#: anyway, because a reader who sees 0.2 in a manifest should not have to guess
+#: whether copper was in it.
+CONTRACT_VERSION = "0.3.0-core-mat"
 
 __all__ = [
     "CONTRACT_VERSION",
@@ -103,11 +109,26 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 class Element(str, enum.Enum):
-    """Target elements.  Pb is the primary channel; Hg is optional and always
-    carries its own parameter set and its own allocated share of the medium."""
+    """Target elements.  Pb is the primary channel; Hg and Cu each carry their
+    own parameter set and their own allocated share of the medium, and the
+    shares must sum to at most one so no kilogram of sorbent is spent twice.
+
+    The three behave very differently in seawater, and the model must not treat
+    them as one problem with three labels:
+
+    * **Pb** is partly free and partly carbonate-complexed, so a fraction of it
+      is available to an ion-exchange site.
+    * **Hg** is above 99 per cent chloro-complexed, mostly as HgCl4(2-). It is
+      not free, and an anionic complex is not what a biosorption isotherm
+      measured on free Hg(2+) describes.
+    * **Cu** is above 99 per cent bound to strong organic ligands, with free
+      Cu(2+) in the picomolar range. It is the hardest of the three to take out
+      of seawater, not the easiest, despite having the best published capacity.
+    """
 
     PB = "Pb"
     HG = "Hg"
+    CU = "Cu"
 
 
 class StateOrigin(str, enum.Enum):
@@ -143,6 +164,7 @@ class Parameter(str, enum.Enum):
 
     PB = "Pb"
     HG = "Hg"
+    CU = "Cu"
     # water column and near-bed context
     CURRENT_EAST = "current_east"
     CURRENT_NORTH = "current_north"
@@ -1036,7 +1058,13 @@ class ActionEvent:
 # ---------------------------------------------------------------------------
 
 class AdvanceReactiveLayer(Protocol):
-    """1-D reactive layer through the mat thickness, for one tile, one step."""
+    """1-D reactive layer through the mat thickness, for one tile, one step.
+
+    ``geotextile`` is the carrier layer encapsulating the reactive core on both
+    faces.  Keyword-only with a default, so a caller written against contract
+    0.2 keeps working; passing ``None`` recovers the unencapsulated core that
+    0.2 assumed, which is how the cost of the encapsulation is measured.
+    """
 
     def __call__(
         self,
@@ -1044,6 +1072,8 @@ class AdvanceReactiveLayer(Protocol):
         exchange: SeabedExchange,
         material_parameters: Mapping[str, MaterialParameters],
         dt_s: float,
+        *,
+        geotextile: Any = ...,
     ) -> LayerStep: ...
 
 

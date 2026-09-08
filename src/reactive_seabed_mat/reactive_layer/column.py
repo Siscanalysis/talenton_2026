@@ -76,6 +76,7 @@ __all__ = [
     "ColumnStep",
     "DEFAULT_PICARD_ITERATIONS",
     "build_column_parameters",
+    "bottom_conductance",
     "top_conductance",
     "solve_column_step",
     "stored_kg_per_m2",
@@ -229,12 +230,24 @@ def build_column_parameters(
     )
 
 
+def bottom_conductance(params: ColumnParameters) -> float:
+    """``g_bot = 2 theta D_eff / dz`` [m s^-1], the bare sediment face.
+
+    The half cell between the sediment and the first node, with nothing in
+    series. The carrier geotextile adds a resistance here; that lives in
+    ``geotextile.py`` because it is a property of how the mat is built, not of
+    the reactive medium.
+    """
+    return 2.0 * params.porosity * params.d_eff_m2_per_s / params.dz_m
+
+
 def top_conductance(params: ColumnParameters) -> float:
     """``g_top = 1 / (dz / (2 theta D_eff) + 1 / k_film)`` [m s^-1].
 
     The half cell of layer porewater and the benthic boundary layer in series.
     Burial adds a third resistance in series; that lives in ``degradation.py``
-    because it is a degradation mode, not a property of a clean layer.
+    because it is a degradation mode, not a property of a clean layer. The
+    carrier geotextile adds a fourth, in ``geotextile.py``.
     """
     diffusive_resistance = (
         math.inf
@@ -277,13 +290,17 @@ def solve_column_step(
     bottom_water_kg_per_m3: float,
     *,
     top_conductance_m_per_s: float | None = None,
+    bottom_conductance_m_per_s: float | None = None,
     picard_iterations: int = DEFAULT_PICARD_ITERATIONS,
 ) -> ColumnStep:
     """One fully implicit coupled step of the 1-D reactive layer.
 
     ``top_conductance_m_per_s`` overrides ``g_top``; the caller passes the
-    burial-reduced conductance when the tile is buried.  Everything else is
-    exactly the scheme of the numerics probe.
+    burial-reduced conductance when the tile is buried, with the carrier
+    geotextile already in series. ``bottom_conductance_m_per_s`` overrides
+    ``g_bot`` the same way at the sediment face. Left as ``None`` they are the
+    bare half cell and the bare film, which is the unencapsulated core.
+    Everything else is exactly the scheme of the numerics probe.
 
     Returns a :class:`ColumnStep` whose fluxes are evaluated at the new time
     level with the matrix's own coefficients, so
@@ -338,8 +355,14 @@ def solve_column_step(
         if top_conductance_m_per_s is None
         else max(0.0, float(top_conductance_m_per_s))
     )
+    g_bot = (
+        bottom_conductance(params)
+        if bottom_conductance_m_per_s is None
+        else max(0.0, float(bottom_conductance_m_per_s))
+    )
 
     kd_diff = theta * d_eff / dz**2
+    gb = g_bot / dz
     advect = velocity / dz
     relax = 1.0 + dt * k_rate
 
@@ -373,9 +396,12 @@ def solve_column_step(
         ab[1, :] = theta / dt + exchange_a + 2.0 * kd_diff + advect
         rhs = theta / dt * concentration + exchange_b
 
-        # Sediment face: Dirichlet half a cell below node 0, advective inflow.
-        ab[1, 0] += kd_diff
-        rhs[0] += (2.0 * kd_diff + advect) * c_sed
+        # Sediment face: Dirichlet half a cell below node 0, advective inflow,
+        # through a conductance g_bot.  With no carrier geotextile g_bot is the
+        # bare half cell, 2 theta D_eff / dz, and gb collapses to 2 kd_diff,
+        # which is the form this solver had before the core was encapsulated.
+        ab[1, 0] += gb - kd_diff
+        rhs[0] += (gb + advect) * c_sed
         # Water face: advection out plus the benthic film (and any burial) in
         # series, replacing the interior diffusive face of the last cell.
         ab[1, -1] += g_top / dz - kd_diff
@@ -419,7 +445,10 @@ def solve_column_step(
         new_concentration = new_concentration.copy()
         new_concentration[negative] = 0.0
 
-    flux_in = velocity * c_sed + 2.0 * theta * d_eff * (c_sed - solution[0]) / dz
+    # Both fluxes are evaluated with the SAME conductances the matrix used, so
+    # the discrete balance closes exactly.  Probe 3 of REFACTOR_PLAN.md is what
+    # happens when they are not: an 88 per cent mass residual.
+    flux_in = velocity * c_sed + g_bot * (c_sed - solution[0])
     flux_out = velocity * solution[-1] + g_top * (solution[-1] - c_water)
 
     stored_after = stored_kg_per_m2(new_concentration, new_sorbed, params)
@@ -431,6 +460,8 @@ def solve_column_step(
         "dz_m": dz,
         "top_conductance_m_per_s": g_top,
         "top_conductance_overridden": top_conductance_m_per_s is not None,
+        "bottom_conductance_m_per_s": g_bot,
+        "bottom_conductance_overridden": bottom_conductance_m_per_s is not None,
         "peclet": params.peclet,
         "capacity_kg_per_m2": params.capacity_kg_per_m2,
         "locked_cells": int(np.count_nonzero(locked)),
@@ -473,6 +504,7 @@ def steady_state_flux_kg_per_m2_per_s(
     bottom_water_kg_per_m3: float = 0.0,
     *,
     top_conductance_m_per_s: float | None = None,
+    bottom_resistance_s_per_m: float = 0.0,
 ) -> float:
     """Analytic **continuum** steady-state flux through a non-sorbing layer.
 
@@ -493,6 +525,14 @@ def steady_state_flux_kg_per_m2_per_s(
     interpretation aid, never a substitute for the solver.  Pass
     ``top_conductance_m_per_s`` to substitute a burial-reduced conductance for
     ``k_film``.
+
+    ``bottom_resistance_s_per_m`` adds the sediment-face carrier geotextile as
+    a further series resistance.  That is exact as ``v -> 0`` and an
+    approximation otherwise, because an advective flux through a resistive layer
+    is not a pure series resistance.  The Peclet number across one geotextile is
+    about 0.3 at the seepage velocities used here, so the approximation is a
+    fair one; ``geotextile.geotextile_peclet`` is there to check rather than
+    assume it.
     """
     velocity = params.seepage_velocity_m_per_s
     conductance = (
@@ -509,12 +549,17 @@ def steady_state_flux_kg_per_m2_per_s(
         else params.thickness_m / (params.porosity * params.d_eff_m2_per_s)
     )
     top_resistance = math.inf if conductance <= 0.0 else 1.0 / conductance
+    bottom_resistance = max(0.0, float(bottom_resistance_s_per_m))
     if velocity <= 0.0:
-        total = layer_resistance + top_resistance
+        total = layer_resistance + top_resistance + bottom_resistance
         return 0.0 if not math.isfinite(total) or total <= 0.0 else driving / total
     if not math.isfinite(layer_resistance):
         return 0.0
     exponent = velocity * layer_resistance
     growth = math.exp(exponent)
-    denominator = 1.0 / (velocity + conductance) + (growth - 1.0) / velocity
+    denominator = (
+        1.0 / (velocity + conductance)
+        + (growth - 1.0) / velocity
+        + bottom_resistance
+    )
     return growth * driving / denominator

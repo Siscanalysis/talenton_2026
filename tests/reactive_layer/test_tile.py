@@ -289,7 +289,9 @@ def test_tile_summary_reports_the_four_modes_and_never_a_health_score(
     summary = tile_summary(step.new_state, materials, layer_step=step)
 
     assert summary["tile_id"] == tile.tile_id
-    assert set(summary["capacity_kg_per_m2"]) == {"Pb", "Hg"}
+    # Every configured element, whatever they are: pinning the list here is how
+    # adding copper broke three tests that were not about copper.
+    assert set(summary["capacity_kg_per_m2"]) == set(materials)
     assert "saturation" in summary["degradation"]
     assert "fouling" in summary["degradation"]
     assert "displacement" in summary["degradation"]
@@ -323,7 +325,9 @@ def test_diagnostics_record_every_number_the_frozen_signature_cannot_carry(
     )
     assert step.new_state.fouling_index > 0.0
     assert step.new_state.burial_depth_m > 0.0
-    assert step.diagnostics["clip_correction_kg"] == {"Pb": 0.0, "Hg": 0.0}
+    assert step.diagnostics["clip_correction_kg"] == {
+        element: 0.0 for element in materials
+    }
     assert step.diagnostics["picard_converged"] is True
 
     # Without the growth rates the caller owns degradation, and the step says so.

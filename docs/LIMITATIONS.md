@@ -58,10 +58,51 @@ Capping alters sediment redox conditions and can **increase** methylmercury
 production. This is a recognised risk of in-situ capping and amendment, not a
 detail. Ecological safety is therefore a validation constraint in this
 demonstrator, not an automatic benefit of treatment: the methylmercury channel
-is reported alongside the Pb and Hg attenuation and is available as a constraint
-in the optimisation. A cap that reduces total Hg flux while raising MeHg
-production could be a net harm, and the demonstrator is built so that outcome
-can be seen rather than hidden.
+is reported alongside the Pb and Hg attenuation and is treated as a risk. A cap
+that reduces total Hg flux while raising MeHg production could be a net harm,
+and the demonstrator is built so that outcome can be seen rather than hidden.
+
+### The evidence does not support a claim that this design prevents methylation
+
+It is tempting to argue that encapsulating the keratin between two geotextiles
+keeps the sulfur away from the sediment and therefore stops methylation. The
+published record does not support that, and it points the other way on the part
+that matters most.
+
+**What activated-carbon capping actually does to mercury**, which is the closest
+measured analogue:
+
+* Porewater MeHg **falls**, substantially. Field amendment at 2 to 7 % dry
+  weight reduced porewater MeHg by 45 to 95 %, and by more than 90 % at one
+  month.
+* Sediment MeHg **rose in five of seven studies**, apparently by shifting the
+  balance between MeHg production and degradation. The mechanism is stated in
+  the literature as unclear.
+* The effect **fades**. In a salt-marsh field trial the impact on porewater MeHg
+  and on MeHg partitioning was significant for only about the first year.
+
+So a sorbent cap reliably reduces the *mobile* pool and may simultaneously
+increase the *sediment* inventory, and its effect is not durable. Three separate
+reasons not to claim prevention.
+
+**Why a keratin core is a harder case than activated carbon, not an easier one.**
+Methylation is carried out largely by sulfate-reducing bacteria, which need
+labile organic carbon and sulfur. Activated carbon supplies neither: it is
+refractory. A keratin core supplies both. It is a biodegradable protein that is
+4 to 8 wt% sulfur, and the disulfides we would deliberately reduce to thiols to
+bind mercury are exactly the sulfur species those organisms use. Encapsulation
+limits particle contact; it does not stop dissolved organic carbon and reduced
+sulfur from leaching downward into the sediment beneath.
+
+**What can honestly be said.** Seawater mercury is above 99 % chloro-complexed,
+and those complexes are reported to resist reduction and methylation more than
+free Hg(II) does, so a mat that holds mercury as a thiolate rather than
+releasing it to porewater is *plausibly* better than doing nothing. Plausibly is
+the correct word. Until the experiment in `docs/MATERIAL_KERATIN.md` section 6
+item 6 is done, on this material, in this configuration, **methylmercury is a
+stop condition for the project and not a feature of it.** If a keratin core
+raises net MeHg production, keratin is the wrong core and the envelope should be
+filled with something else.
 
 ## Known modelling limitations
 

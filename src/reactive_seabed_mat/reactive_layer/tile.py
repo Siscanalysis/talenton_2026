@@ -59,10 +59,17 @@ from ..contracts import (
     SeabedExchange,
 )
 from .column import (
+    bottom_conductance,
     build_column_parameters,
     solve_column_step,
     steady_state_flux_kg_per_m2_per_s,
     top_conductance,
+)
+from .geotextile import (
+    DEFAULT_GEOTEXTILE,
+    GeotextileLayer,
+    encapsulated_conductances,
+    geotextile_resistance_s_per_m,
 )
 from .degradation import (
     BURIAL_WARNING,
@@ -289,8 +296,15 @@ def advance_reactive_layer(
     exchange: SeabedExchange,
     material_parameters: Mapping[str, MaterialParameters],
     dt_s: float,
+    *,
+    geotextile: "GeotextileLayer | None" = DEFAULT_GEOTEXTILE,
 ) -> LayerStep:
     """Advance one tile's 1-D reactive layer over ``dt_s``.
+
+    The reactive core is encapsulated between two carrier geotextiles, which
+    enter as inert diffusive resistances in series at both faces. Passing
+    ``geotextile=None`` removes them and recovers the bare-core model, which is
+    kept so the cost of the encapsulation can be measured rather than assumed.
 
     Exactly MODEL_SPEC section 3, per element, solved fully implicitly with the
     sorption exchange eliminated analytically (see ``column.py`` for why an
@@ -373,8 +387,18 @@ def advance_reactive_layer(
             fouling_index=tile_state.fouling_index,
         )
         clean_g_top = top_conductance(column)
-        g_top = buried_top_conductance(
+        buried_g_top = buried_top_conductance(
             clean_g_top, tile_state.burial_depth_m, burial_resistance
+        )
+        # The carrier geotextiles sit outside everything else: sediment, bottom
+        # geotextile, reactive core, top geotextile, burial, benthic film. They
+        # are added last so the order of the series matches the order of the
+        # physical layers.
+        g_bot, g_top = encapsulated_conductances(
+            clean_bottom_conductance_m_per_s=bottom_conductance(column),
+            clean_top_conductance_m_per_s=buried_g_top,
+            bottom_layer=geotextile,
+            top_layer=geotextile,
         )
 
         if key in tile_state.porewater_kg_per_m3:
@@ -395,8 +419,16 @@ def advance_reactive_layer(
         bare_flux[key] = declared_bare
         bare_flux_source[key] = source
 
+        # The barrier limit: what this mat would do with no chemical capacity
+        # left at all. Reported per element because the difference between it
+        # and the actual attenuation IS the sorbent's contribution, and for a
+        # strongly complexed metal like copper that difference is close to zero.
         barrier_flux[key] = steady_state_flux_kg_per_m2_per_s(
-            column, c_sed, c_water, top_conductance_m_per_s=g_top
+            column,
+            c_sed,
+            c_water,
+            top_conductance_m_per_s=g_top,
+            bottom_resistance_s_per_m=geotextile_resistance_s_per_m(geotextile),
         )
 
         if out_of_service:
@@ -433,6 +465,7 @@ def advance_reactive_layer(
             c_sed,
             c_water,
             top_conductance_m_per_s=g_top,
+            bottom_conductance_m_per_s=g_bot,
         )
         picard_converged = picard_converged and step.picard_converged
 

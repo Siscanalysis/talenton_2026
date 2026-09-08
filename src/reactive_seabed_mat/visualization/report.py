@@ -15,9 +15,11 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 from ..config import RunConfig, config_hash, config_to_dict
+from ..deployment.scale import scale_table
+from ..reactive_layer.geotextile import DEFAULT_GEOTEXTILE
 from ..scenarios.registry import scenario_description, scenario_letter
 from ..units import from_si_areal_flux, from_si_aqueous_concentration
-from . import maps
+from . import context_maps, maps
 
 __all__ = ["write_html_report", "figures_for_result"]
 
@@ -105,6 +107,64 @@ def figures_for_result(result) -> list[tuple[str, Any]]:
                 ),
             )
         )
+
+    # Three-dimensional views: the sandwich, the sorption front through the
+    # core, and the plume given a height. They answer questions the plan views
+    # structurally cannot.
+    figures.append(
+        (
+            "Mat construction, through the thickness",
+            context_maps.mat_structure_3d(
+                core_thickness_m=config.mat.thickness_m,
+                geotextile_thickness_m=DEFAULT_GEOTEXTILE.thickness_m,
+            ),
+        )
+    )
+    if result.final_tiles:
+        try:
+            figures.append(
+                (
+                    f"{primary} sorbed load through the core, per tile",
+                    context_maps.layer_profile_3d(
+                        result.final_tiles,
+                        primary,
+                        geotextile_thickness_m=DEFAULT_GEOTEXTILE.thickness_m,
+                    ),
+                )
+            )
+        except ValueError:
+            # A run with no sorbed profile for this element: skip the figure
+            # rather than invent one.
+            pass
+    if result.windows:
+        window = result.windows[-1]
+        figures.append(
+            (
+                f"{primary} plume as a surface at {window.label}",
+                context_maps.plume_surface_3d(
+                    window.field_with_mat.grid, window.field_with_mat, primary
+                ),
+            )
+        )
+
+    # Where the documented contamination is, and how much of it there is.
+    figures.append(
+        ("Documented dumping areas, for scale", context_maps.baltic_context_map())
+    )
+    figures.append(
+        (
+            "Area to cover, against what a mat can lay",
+            context_maps.deployment_scale_bar(
+                scale_table(
+                    sorbent_loading_kg_per_m2=config.mat.sorbent_loading_kg_per_m2,
+                    mat_material_eur_per_m2=config.costs.mat_material_eur_per_m2,
+                    demo_hotspot_area_m2=(
+                        config.hotspot.width_m * config.hotspot.length_m
+                    ),
+                )
+            ),
+        )
+    )
 
     if result.windows:
         labels = [window.label for window in result.windows]

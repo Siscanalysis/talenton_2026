@@ -126,7 +126,17 @@ class HotspotConfig:
     schedule: Sequence[HotspotScheduleEntry] = (
         HotspotScheduleEntry(
             start_s=0.0,
-            porewater_kg_per_m3={"Pb": 1.0e-3, "Hg": 8.0e-6},
+            # Pb 1.0 mg/L, Hg 8 ug/L, Cu 2.0 mg/L, all TOTAL DISSOLVED. These
+            # are deliberately extreme: docs/EVIDENCE_BASE.md section 1.1 shows
+            # the resulting bare Pb flux is hundreds of times measured benthic
+            # fluxes. They are chosen so a multi-year run shows loading and
+            # breakthrough, and the absolute kilograms therefore belong to the
+            # assumed hotspot rather than to any site. Copper is set above lead
+            # because corroding brass and copper-alloy fuzes and driving bands
+            # are a documented component of dumped conventional munitions, but
+            # only a small fraction of it is ever available to a sorbent: see
+            # ReactiveMediumConfig.available_fraction.
+            porewater_kg_per_m3={"Pb": 1.0e-3, "Hg": 8.0e-6, "Cu": 2.0e-3},
             seepage_velocity_m_per_s=3.0e-8,  # about 0.95 m/yr
         ),
     )
@@ -161,6 +171,12 @@ class ReactiveMediumConfig:
       capacity is instead a small fraction of the stoichiometric thiol ceiling
       implied by keratin's 4 to 8 wt% sulfur [K4], which is about 125 mg/g if
       every disulfide were reduced and accessible.
+    * Cu(II) has the *best* published keratin capacities of the three, 20 mg/g
+      on wool keratin nanofibres [K9], and is nonetheless the *hardest* of the
+      three to take out of seawater, because above 99 per cent of dissolved Cu
+      is held by strong organic ligands with conditional stability constants
+      around 1e15 and free Cu2+ sits below 6 pM [K11]. Capacity is not
+      availability, and ``available_fraction`` is where that distinction lives.
 
     Every value remains an ASSUMPTION about our material, not a measurement of
     it.  The intervals are wide on purpose.
@@ -192,6 +208,19 @@ class ReactiveMediumConfig:
     k_rate_interval: tuple[float, float] = (1.0e-4, 1.2e-3)
     d_eff_m2_per_s: float = 2.0e-10
     d_eff_interval: tuple[float, float] = (8.0e-11, 5.0e-10)
+    #: Fraction of the DISSOLVED pool that a sorption site can actually reach in
+    #: seawater, after speciation.  This is the honest home for the difference
+    #: between a capacity measured on free ions in deionised water and a real
+    #: seawater matrix, and it multiplies the driving concentration rather than
+    #: the capacity, because speciation limits the *supply*, not the number of
+    #: sites.
+    #:
+    #: Pb: free Pb2+ plus the weakly bound carbonate pool.  PbCO3(aq) alone is
+    #: about 41 per cent of dissolved Pb at pH 8.2 [K3] and measured free Pb2+
+    #: runs an order of magnitude below equilibrium predictions, so 0.25 is
+    #: already generous.
+    available_fraction: float = 0.25
+    available_fraction_interval: tuple[float, float] = (0.05, 0.6)
     allocation_fraction: float = 0.6
     fouling_rate_capacity: float = 0.0
     fouling_rate_kinetics: float = 0.8
@@ -239,11 +268,27 @@ class MatLayoutConfig:
         ReactiveMediumConfig(),
         ReactiveMediumConfig(
             element=Element.HG.value,
-            # Thiol-Hg affinity is high enough to outcompete seawater chloride,
-            # which is why thiol sorbents are the established route for Hg in
-            # saline matrices. Strong binding to comparatively few sites.
+            # Mercury in seawater is NOT free Hg2+: thermodynamic calculations
+            # put Hg(II) at above 99 per cent Hg-Cl complexes, dominated by the
+            # tetrachloride HgCl4(2-) [K10]. Two consequences, and they pull in
+            # opposite directions.
+            #
+            # For us: thiol-Hg bonds are strong enough that thiol ligands still
+            # outcompete chloride, which is why thiol sorbents are the
+            # established route for Hg in saline matrices. Hence a high Kd.
+            #
+            # Against us: the sorbing species is an ANION approaching a surface
+            # that is negatively charged at pH 8, and the site must displace
+            # four chlorides before it binds. Neither cost appears in a batch
+            # isotherm measured on free Hg2+, so available_fraction carries it.
             kd_m3_per_kg=30.0,
             kd_interval=(2.0, 300.0),
+            # Above 99 per cent chloro-complexed [K10]. The complexes are
+            # labile, so they are not permanently unavailable, but the fraction
+            # a site sees at any instant is small and the exchange is slower
+            # than for a free ion. 0.10 with a wide interval.
+            available_fraction=0.10,
+            available_fraction_interval=(0.01, 0.4),
             # 2 % of the 125 mg/g stoichiometric thiol ceiling implied by
             # keratin's 4 wt% sulfur [K4]. NO verified Hg capacity for a keratin
             # biosorbent was found, so this is the weakest number in the model
@@ -256,15 +301,66 @@ class MatLayoutConfig:
             commissioned_q_max_interval=None,
             k_rate_per_s=2.0e-4,
             k_rate_interval=(3.0e-5, 8.0e-4),
-            allocation_fraction=0.4,
+            allocation_fraction=0.3,
             source_ref=(
                 "stoichiometric thiol ceiling from keratin sulfur content [K4], "
-                "not a measured Hg capacity: none was found. Hg uptake also "
+                "not a measured Hg capacity: none was found. Seawater Hg is "
+                "above 99 per cent chloro-complexed [K10]. Hg uptake also "
                 "depends strongly on sulfide, chloride and dissolved organic "
                 "matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
             ),
         ),
+        ReactiveMediumConfig(
+            element=Element.CU.value,
+            # Copper has the best published keratin capacities of the three and
+            # is the hardest of the three to remove from seawater. Both are
+            # true, and the second matters more.
+            #
+            # Published: 20 mg/g on wool keratin nanofibres [K9], 27.4 mg/g on
+            # keratin-modified magnetite, and 61.7 to 103.5 mg/g on keratin/PA6
+            # blend nanofibres. The nanofibre figures are NOT transferable to a
+            # bulk felt core: they come from a far larger specific surface area
+            # than a needle-punched mat has. 3.0 mg/g is taken instead, an order
+            # of magnitude below the lowest nanofibre value.
+            kd_m3_per_kg=8.0,
+            kd_interval=(1.0, 60.0),
+            q_max_kg_per_kg=3.0e-3,
+            q_max_interval=(5.0e-4, 2.0e-2),
+            # A commissioning isotherm on our own batch is meaningful here,
+            # because unlike Hg there IS a measured keratin Cu capacity to
+            # confirm or refute.
+            commissioned_q_max_interval=(2.0e-3, 4.5e-3),
+            k_rate_per_s=5.0e-4,
+            k_rate_interval=(1.0e-4, 1.5e-3),
+            d_eff_m2_per_s=2.2e-10,
+            d_eff_interval=(9.0e-11, 5.5e-10),
+            # THE PESSIMISTIC NUMBER OF THE WHOLE MODEL. Above 99 per cent of
+            # dissolved Cu in seawater and in pore waters is bound to strong
+            # organic ligands, conditional stability constants around 1e15, with
+            # free Cu2+ below 6 pM [K11]. A carboxyl or amino site on keratin
+            # does not obviously outcompete a ligand that strong. 0.02 is one
+            # fiftieth of the dissolved pool and the interval reaches 0.002.
+            available_fraction=0.02,
+            available_fraction_interval=(0.002, 0.15),
+            allocation_fraction=0.1,
+            source_ref=(
+                "wool keratin nanofibre Cu(II) Langmuir capacity 20 mg/g [K9], "
+                "derated by an order of magnitude for a bulk felt core, then "
+                "limited by organic complexation: above 99 per cent of "
+                "dissolved Cu in seawater is bound to strong ligands [K11]. "
+                "See docs/MATERIAL_KERATIN.md section 3b"
+            ),
+        ),
     )
+
+    def __post_init__(self) -> None:
+        total = sum(medium.allocation_fraction for medium in self.media)
+        if total > 1.0 + 1e-12:
+            raise ValueError(
+                "the media allocation fractions spend more sorbent than the mat "
+                f"contains: {total:.3f} > 1.0. Every kilogram of keratin can be "
+                "counted once."
+            )
 
     @property
     def n_tiles(self) -> int:
@@ -457,7 +553,11 @@ class RunConfig:
     policy: PolicyConfig = field(default_factory=PolicyConfig)
     costs: CostConfig = field(default_factory=CostConfig)
     plume: PlumeWindowConfig = field(default_factory=PlumeWindowConfig)
-    elements: Sequence[str] = (Element.PB.value, Element.HG.value)
+    elements: Sequence[str] = (
+        Element.PB.value,
+        Element.HG.value,
+        Element.CU.value,
+    )
     transport_engine: str = "fipy"
     layer_engine: str = "scipy_banded_implicit"
     ensemble_size: int = 64

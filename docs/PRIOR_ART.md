@@ -40,6 +40,41 @@ and the mat form is not new.
 
 Each item is followed by the evidence that retires it.
 
+### 2.0 The name "Reactive Core Mat" is taken, and it is taken by exactly this
+
+**This needs a decision before anything is published under that name.**
+
+REACTIVE CORE MAT is CETCO's product name for "a patented permeable composite
+mat that encapsulates active material(s) between two layers of adhered,
+non-woven carrier geotextiles". That is not merely a similar idea to the
+geotextile / reactive core / geotextile construction this project has adopted:
+it is a word-for-word description of it, sold under that name since at least
+2017, and covered by a patent family that includes US 6,284,681 B1,
+US 2002/0151241 A1, US 7,670,082, US 8,042,696 ("Contaminant-reactive
+geocomposite mat"), US 8,262,318 and US 11,998,891 ("Geotextile sediment cap
+with active media"). Retrieved 2026-09-08.
+
+Two separate consequences, and they should not be confused with each other:
+
+1. **The architecture is fine to use, and using it is a strength.** It is proven,
+   manufacturable and field-deployed. This project has never claimed novelty for
+   it and section 6 says so explicitly.
+2. **The name is not fine to adopt.** Publishing a project called "Reactive Core
+   Mat" would put a third party's product name on our work, and a jury or a
+   patent attorney would notice before we did.
+
+This repository therefore describes the construction generically, as a
+*geotextile-encapsulated reactive core*, and keeps its own neutral identifier.
+Choosing a project name is a decision for the team, not for the code, and it is
+recorded here rather than made silently.
+
+**What would actually be ours, if anything is:** the reactive medium. CETCO's
+product carries organoclay, HUESKER's carries a cation adsorber or zeolite.
+Neither is a keratin biosorbent, and a waste-derived, sulfur-bearing protein core
+is a genuinely different filling for a well-known envelope. That is a materials
+claim, it is unproven, and section 6 lists what would have to be measured before
+it could be made.
+
 ### 2.1 Putting sorbent in a mat
 
 CETCO (Minerals Technologies Inc.) sells **REACTIVE CORE MAT with ORGANOCLAY**, described

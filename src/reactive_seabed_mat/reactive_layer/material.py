@@ -293,15 +293,42 @@ def build_material_parameters(
         if not (0.0 <= value <= 1.0):
             raise ValueError(f"{name} must lie in [0, 1], got {value!r}")
 
+    available = float(getattr(medium_config, "available_fraction", 1.0))
+    if not 0.0 < available <= 1.0:
+        raise ValueError(f"available_fraction must lie in (0, 1], got {available!r}")
+    available_interval = _check_interval(
+        "available_fraction",
+        available,
+        getattr(medium_config, "available_fraction_interval", (available, available)),
+    )
+
+    # Seawater speciation enters through Kd and NOT through q_max, because it
+    # limits the supply of sorbable species, not the number of sites.  If only a
+    # fraction f of the dissolved pool is in a form a site can bind, and that
+    # form stays in rapid equilibrium with the rest, then the partition
+    # coefficient measured against TOTAL dissolved concentration is f times the
+    # free-ion value, while the ultimate capacity is unchanged.  Applying f to
+    # q_max instead would claim the sites disappear in seawater, which is wrong:
+    # they are still there, they just fill more slowly and only at a higher
+    # total concentration.  For Cu, f = 0.02 makes the apparent Kd fifty times
+    # smaller than any freshwater isotherm would suggest, and that is the single
+    # most pessimistic number in the model.
     return MaterialParameters(
         element=element,
-        kd_m3_per_kg=float(medium_config.kd_m3_per_kg),
+        kd_m3_per_kg=float(medium_config.kd_m3_per_kg) * available,
         q_max_kg_per_kg=float(medium_config.q_max_kg_per_kg),
         k_rate_per_s=float(medium_config.k_rate_per_s),
         allocation_fraction=allocation,
         d_eff_m2_per_s=float(medium_config.d_eff_m2_per_s),
-        kd_interval=_check_interval(
-            "kd_m3_per_kg", medium_config.kd_m3_per_kg, medium_config.kd_interval
+        kd_interval=(
+            _check_interval(
+                "kd_m3_per_kg", medium_config.kd_m3_per_kg, medium_config.kd_interval
+            )[0]
+            * available_interval[0],
+            _check_interval(
+                "kd_m3_per_kg", medium_config.kd_m3_per_kg, medium_config.kd_interval
+            )[1]
+            * available_interval[1],
         ),
         q_max_interval=_check_interval(
             "q_max_kg_per_kg",

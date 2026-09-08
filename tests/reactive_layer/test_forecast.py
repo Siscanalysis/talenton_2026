@@ -38,16 +38,19 @@ def _interval_or_none(value) -> bool:
 
 
 def test_a_fresh_mat_gets_an_interval_never_a_bare_number(materials, tiles):
+    supply = {element: 0.0 for element in materials}
+    supply["Pb"] = REFERENCE_SUPPLY_KG_PER_M2_PER_S
     result = breakthrough_interval(
         materials,
-        {"Pb": 0.0, "Hg": 0.0},
+        {element: 0.0 for element in materials},
         tiles[0].geometry.sorbent_loading_kg_per_m2,
         0.0,
-        {"Pb": REFERENCE_SUPPLY_KG_PER_M2_PER_S, "Hg": 0.0},
+        supply,
         ensemble_size=32,
         seed=7,
     )
-    assert set(result) == {"Pb", "Hg"}
+    # Every configured element, whatever they are.
+    assert set(result) == set(materials)
     for key, value in result.items():
         assert _interval_or_none(value), f"{key} returned {value!r}"
         assert not isinstance(value, float)

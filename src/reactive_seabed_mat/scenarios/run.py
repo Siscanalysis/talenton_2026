@@ -77,6 +77,11 @@ class MatTimelinePoint:
     mean_residual_flux: Mapping[str, float]
     mean_bare_flux: Mapping[str, float]
     attenuation: Mapping[str, float]
+    #: What this mat would attenuate with no chemical capacity left: the pure
+    #: physical barrier.  The sorbent's contribution is the difference between
+    #: ``attenuation`` and this, and reporting only the first would credit the
+    #: chemistry with the geometry's work.
+    barrier_attenuation: Mapping[str, float]
     saturation: Mapping[str, float]
     retained_kg: Mapping[str, float]
     mean_fouling: float
@@ -92,6 +97,12 @@ class MatTimelinePoint:
             "mean_residual_flux_kg_per_m2_per_s": dict(self.mean_residual_flux),
             "mean_bare_flux_kg_per_m2_per_s": dict(self.mean_bare_flux),
             "attenuation": dict(self.attenuation),
+            "barrier_only_attenuation": dict(self.barrier_attenuation),
+            "sorbent_contribution": {
+                element: self.attenuation.get(element, float("nan"))
+                - self.barrier_attenuation.get(element, float("nan"))
+                for element in self.attenuation
+            },
             "saturation_fraction": dict(self.saturation),
             "retained_kg": dict(self.retained_kg),
             "mean_fouling_index": self.mean_fouling,
@@ -523,11 +534,24 @@ def _sample_point(
     mean_out: dict[str, float] = {}
     mean_bare: dict[str, float] = {}
     attenuation: dict[str, float] = {}
+    barrier_attenuation: dict[str, float] = {}
     saturation: dict[str, float] = {}
     retained: dict[str, float] = {}
 
     for element in elements:
         bare = float(hotspot.bare_flux_kg_per_m2_per_s.get(element, 0.0))
+        barriers = [
+            float(
+                step.diagnostics.get("barrier_flux_kg_per_m2_per_s", {}).get(
+                    element, float("nan")
+                )
+            )
+            for step in layer_steps
+        ]
+        barrier = _mean_over_tiles([b for b in barriers if b == b]) if barriers else bare
+        barrier_attenuation[element] = (
+            (1.0 - barrier / bare) if bare > 0.0 else float("nan")
+        )
         outs = [
             float(step.flux_out_kg_per_m2_per_s.get(element, 0.0))
             for step in layer_steps
@@ -555,6 +579,7 @@ def _sample_point(
         mean_residual_flux=mean_out,
         mean_bare_flux=mean_bare,
         attenuation=attenuation,
+        barrier_attenuation=barrier_attenuation,
         saturation=saturation,
         retained_kg=retained,
         mean_fouling=_mean_over_tiles([tile.fouling_index for tile in tiles]),
