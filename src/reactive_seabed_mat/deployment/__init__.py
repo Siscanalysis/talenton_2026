@@ -20,6 +20,19 @@ from .scale import (  # noqa: F401
     material_demand,
     scale_table,
 )
+from .priority import (  # noqa: F401
+    CONTAMINANT_MISMATCH_WARNING,
+    GERMAN_PROGRAMME,
+    PILOT_CANDIDATES,
+    PRIORITY_NOTE,
+    RECEPTOR_WEIGHTS,
+    CandidateArea,
+    Receptor,
+    priority_score,
+    proximity_score,
+    rank_candidates,
+    recovery_years,
+)
 
 __all__ = [
     "BALTIC_DUMPSITES",
@@ -28,4 +41,15 @@ __all__ = [
     "coverable_area_m2",
     "material_demand",
     "scale_table",
+    "CONTAMINANT_MISMATCH_WARNING",
+    "GERMAN_PROGRAMME",
+    "PILOT_CANDIDATES",
+    "PRIORITY_NOTE",
+    "RECEPTOR_WEIGHTS",
+    "CandidateArea",
+    "Receptor",
+    "priority_score",
+    "proximity_score",
+    "rank_candidates",
+    "recovery_years",
 ]

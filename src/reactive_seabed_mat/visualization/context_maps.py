@@ -26,6 +26,7 @@ from .maps import SYNTHETIC_BANNER
 __all__ = [
     "baltic_context_map",
     "deployment_scale_bar",
+    "pilot_priority_chart",
     "layer_profile_3d",
     "plume_surface_3d",
     "mat_structure_3d",
@@ -196,6 +197,71 @@ def deployment_scale_bar(rows: Sequence[Mapping[str, Any]]):
         yaxis={"title": "area (km2)", "type": "log"},
         template=_DARK,
         margin={"l": 70, "r": 20, "t": 100, "b": 110},
+    )
+    return figure
+
+
+def pilot_priority_chart(rows: Sequence[Mapping[str, Any]]):
+    """Candidate pilot areas ranked by receptor proximity.
+
+    Bars are coloured by whether this material's chemistry actually addresses
+    the contamination documented there, because an area can rank first on who it
+    protects and still be the wrong job for this mat. Collapsing the two into one
+    number would hide exactly the finding that matters.
+    """
+    import plotly.graph_objects as go
+
+    names = [str(row["name"]) for row in rows]
+    scores = [float(row["priority_score"]) for row in rows]
+    addressable = [bool(row["addressable_by_this_material"]) for row in rows]
+    colours = ["#30d158" if flag else "#ff453a" for flag in addressable]
+
+    figure = go.Figure()
+    figure.add_trace(
+        go.Bar(
+            x=scores,
+            y=names,
+            orientation="h",
+            marker_color=colours,
+            customdata=np.stack(
+                [
+                    [row["depth_m"] for row in rows],
+                    [
+                        row["nearest_receptor_km"]
+                        if row["nearest_receptor_km"] is not None
+                        else float("nan")
+                        for row in rows
+                    ],
+                    [", ".join(row["documented_contaminants"]) for row in rows],
+                    ["yes" if flag else "NO" for flag in addressable],
+                ],
+                axis=-1,
+            ),
+            hovertemplate=(
+                "<b>%{y}</b><br>priority %{x:.2f}"
+                "<br>depth %{customdata[0]} m"
+                "<br>nearest receptor %{customdata[1]} km"
+                "<br>documented: %{customdata[2]}"
+                "<br>addressed by this chemistry: %{customdata[3]}<extra></extra>"
+            ),
+        )
+    )
+    figure.update_layout(
+        title={
+            "text": (
+                "Which hectares: candidate pilot areas by receptor proximity"
+                "<br><sub>Green = the documented contamination includes metals "
+                "this mat binds. Red = it does not. "
+                "A ranking device, not a risk assessment: no dose-response "
+                "model and no regulatory threshold is applied.</sub>"
+            ),
+            "x": 0.01,
+            "xanchor": "left",
+        },
+        xaxis={"title": "receptor priority (unitless, comparative)"},
+        yaxis={"autorange": "reversed"},
+        template=_DARK,
+        margin={"l": 260, "r": 20, "t": 100, "b": 60},
     )
     return figure
 

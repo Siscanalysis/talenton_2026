@@ -93,7 +93,87 @@ The honest positioning is therefore:
   material survives;
 * definitely a monitoring and decision problem first.
 
-## 4. What this section does not do
+## 4. Which hectares: rank by what they protect, not by what they contain
+
+If only one or two hectares can be covered, the question is no longer *how good
+is the mat* but **where does a hectare do the most good**. The rule adopted here
+is **receptor proximity**: a tonne of lead in 90 m of water 40 km offshore
+reaches almost nobody, while a tenth of that seeping under a bathing beach, a
+mussel farm or a municipal intake reaches people by a short, documented pathway.
+For a government or municipal first customer, the deliverable is reduced
+exposure of a named receptor, not reduced inventory.
+
+`deployment/priority.py` computes the ranking. The weights are judgement and are
+exposed as data so a reviewer can argue with the numbers rather than with a
+hidden constant. It is a ranking device, not a risk assessment: no
+dose-response model, no exposure duration, and no regulatory threshold is
+applied anywhere.
+
+| Candidate | Priority | Depth | Nearest receptor | Documented contaminants | Our chemistry? |
+|---|---|---|---|---|---|
+| Industrial harbour sediment, generic | **2.39** | 8 m | 0.1 km | Pb, Hg, Cu | **yes** |
+| Kolberger Heide, Kiel Bay | 2.16 | 12 m | 1.0 km | TNT, heavy metals | partly |
+| Bay of Lubeck coastal dumping areas | 2.08 | 20 m | 1.5 km | TNT, RDX, DNT | **no** |
+| Bornholm Basin, primary dumpsite | **0.38** | 90 m | 12 km | CWA, As, heavy metals | partly |
+
+**The ranking inverts the intuition the "war pollution" framing invites.** The
+biggest, most famous dumpsite scores *last*, six times below a nondescript
+harbour, because it is deep and far from anyone. This is a good result: it says
+the small area we can afford should go where the exposure pathway is short.
+
+### The customer this points at already exists
+
+Germany's federal **Immediate Action Programme for dumped munitions** is funded
+at **EUR 100 million** by the Federal Ministry for the Environment, and ran its
+first pilot clearance in the **Bay of Lubeck off Haffkrug and Pelzerhaken** from
+2024, concluding in 2025 [P1]. Shallow water, beside coastal resort towns, next
+to tourism and fisheries. That is precisely the customer profile: a national
+environment ministry, working close inshore, on a receptor-driven mandate.
+
+And there is a gap a containment measure could fill. The planned salvage
+platform is expected to clear about **2 tonnes a day** from the end of 2026,
+against roughly **300,000 tonnes** in German waters [P2]. At that rate physical
+recovery takes **about 411 years**. That is not a criticism of recovery, which
+is the right answer where it is affordable and safe. It is the size of the
+interim during which whatever is left keeps leaking, and it is arithmetic rather
+than argument.
+
+For scale in the other direction: the entire EUR 100 million programme budget,
+spent solely on mat material at the assumed unit price, buys **41.7 hectares**.
+That is a real pilot and it is not a cleanup.
+
+### The finding that has to be said before a proposal is written
+
+**At the German coastal dumpsites, the contamination measured reaching biota is
+energetic compounds, not metals.** Four years of monitoring in the Bay of Lubeck
+detected TNT and six further energetic compounds in every monthly water sample
+at four locations, with 1,3-dinitrobenzene, 2,4-dinitrotoluene and RDX above
+1 ng/L on average, and energetic compounds in blue mussels below 0.6 ng/g dry
+weight [P3]. Dab from German coastal waters carry TNT metabolites [P4].
+
+A keratin thiol core binds soft metals. **It does not bind nitroaromatics.**
+
+So the receptor-priority rule is right, and it points at a contaminant this
+material does not address. Three honest responses, in order of how much they
+concede:
+
+1. **Go where the metals are.** Industrial and harbour sediment ranks first on
+   receptor grounds anyway, and it is where reactive capping is already
+   commercially deployed. The munitions framing is dropped; the technology
+   claim gets stronger.
+2. **Add a second medium.** Activated carbon binds nitroaromatics well and is
+   the established sorbent for them. A dual-media core, keratin for metals and
+   carbon for energetics, is the obvious design response. It is also a different
+   product from the one modelled here, and nothing in this repository tests it.
+3. **Keep the munitions framing and narrow the claim** to the metal fraction at
+   those sites, stating plainly that the energetic compounds are somebody
+   else's problem and that recovery, not capping, addresses them.
+
+What is not honest is to cite the munitions programme as the market and then
+present a metals sorbent as the answer to it. The table above exists so that
+cannot happen by accident.
+
+## 5. What this section does not do
 
 It does not estimate how much of the contamination sits in the small fraction of
 area that could be covered. That fraction matters enormously: if 80 % of the
@@ -118,6 +198,10 @@ smallest of those, and it is already prohibitive at dumpsite scale.
 | B2 | EMODnet Human Activities, *Map of the week: dumped munitions*, https://emodnet.ec.europa.eu/en/map-week-dumped-munitions-0 ; European Atlas of the Seas viewer, https://ec.europa.eu/maritimeaffairs/atlas/maritime_atlas/ |
 | B3 | Bornholm Basin dumpsite geometry and tonnage: primary dumpsite a circle of radius 3 nautical miles, extended area close to 1000 km²; about 32,000 t of chemical weapons containing about 11,000 t of agents, dumped 1947. Geophysical and chemical dumpsite evaluation, https://www.sciencedirect.com/science/article/abs/pii/S0048969710004523 ; seismic imaging of the Bornholm Basin dumpsite, DOI 10.1007/s12665-009-0171-9 |
 | B4 | FAO via industry summaries: world greasy wool production about 1.76 Mt in 2022, about 1.98 Mt in 2023. IWTO market information, https://iwto.org/wp-content/uploads/2022/04/IWTO-Market-Information-Sample-Edition-17.pdf |
+| P1 | German Federal Ministry for the Environment, *Unexploded munitions in the sea*, Immediate Action Programme funded at EUR 100 million; first pilot clearance in the Bay of Lubeck off Haffkrug and Pelzerhaken, 2024 to 2025. https://www.bundesumweltministerium.de/en/topics/marine-conservation/unexploded-munitions-in-the-sea ; https://sdgs.un.org/partnerships/immediate-action-programme-dumped-munitions |
+| P2 | GEOMAR Helmholtz Centre for Ocean Research Kiel: munitions mapping since 2016, the Kolberger Heide monitoring programme, and the planned salvage platform at roughly 2 t/day from end 2026 against about 300,000 t in German waters. https://www.geomar.de/en/discover/munitions-in-the-sea ; Kolberger Heide survey method, https://www.sciencedirect.com/science/article/pii/S0278434320300649 |
+| P3 | *Towards a good environmental status: a 4-year monitoring study on the contamination of the Bay of Luebeck with energetic compounds prior to munitions remediation*. TNT and six further energetic compounds in all monthly water samples at four locations; 1,3-DNB, 2,4-DNT and RDX above 1 ng/L on average; energetic compounds in blue mussels below 0.6 ng/g dry weight. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12185565/ |
+| P4 | *Explosives leaking from dumped munition contaminate fish from German coastal waters: a reason for chronic effects?*, Environmental Sciences Europe (2024). DOI 10.1186/s12302-024-00942-5 |
 
 Areas quoted as "an order-of-magnitude figure from the published extent" in
 `scale.py` are marked as such in the code and are not officially published

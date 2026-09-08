@@ -42,7 +42,13 @@ Each item is followed by the evidence that retires it.
 
 ### 2.0 The name "Reactive Core Mat" is taken, and it is taken by exactly this
 
-**This needs a decision before anything is published under that name.**
+**Decided, 8 September 2026: we do not use that name.** This project is called a
+**selective reactive seabed mat**, which is a plain description of what it is:
+a mat, laid on the seabed, whose core is reactive, and whose selectivity is the
+hypothesis under test. The package identifier `reactive_seabed_mat` and the
+repository name follow from it. The name is deliberately generic, and being
+generic is the point: it describes a class of thing rather than claiming a
+product.
 
 REACTIVE CORE MAT is CETCO's product name for "a patented permeable composite
 mat that encapsulates active material(s) between two layers of adhered,
@@ -64,9 +70,10 @@ Two separate consequences, and they should not be confused with each other:
    patent attorney would notice before we did.
 
 This repository therefore describes the construction generically, as a
-*geotextile-encapsulated reactive core*, and keeps its own neutral identifier.
-Choosing a project name is a decision for the team, not for the code, and it is
-recorded here rather than made silently.
+*geotextile-encapsulated reactive core*, and never as a Reactive Core Mat. Every
+occurrence of that phrase in this repository attributes it to CETCO, and a test
+would be the right way to keep it that way if the name ever starts drifting into
+our own prose.
 
 **What would actually be ours, if anything is:** the reactive medium. CETCO's
 product carries organoclay, HUESKER's carries a cation adsorber or zeolite.

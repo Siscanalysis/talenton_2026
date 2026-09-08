@@ -47,6 +47,32 @@ evidence.
    Covering it would need about a fifth of one year's global wool clip. A
    realistic deployment is one to two hectares, so the binding question is
    *which* hectares. See [`docs/DEPLOYMENT_SCALE.md`](docs/DEPLOYMENT_SCALE.md).
+4. **The best-funded munitions site is one we cannot treat.** Ranking candidate
+   areas by receptor proximity puts coastal sites first and the famous offshore
+   dumpsite last, which is the right answer. But the contamination measured
+   reaching biota at the German coastal dumpsites is **TNT, RDX and DNT**, and a
+   keratin thiol core binds soft metals, not nitroaromatics.
+
+## Where a first hectare should go
+
+If only one or two hectares can be covered, rank by **what they protect**, not
+by what they contain. `deployment/priority.py` computes it:
+
+| Candidate | Priority | Depth | Nearest receptor | Our chemistry? |
+|---|---|---|---|---|
+| Industrial harbour sediment | **2.39** | 8 m | 0.1 km | **yes** |
+| Kolberger Heide, Kiel Bay | 2.16 | 12 m | 1.0 km | partly |
+| Bay of Lubeck dumping areas | 2.08 | 20 m | 1.5 km | **no** |
+| Bornholm primary dumpsite | **0.38** | 90 m | 12 km | partly |
+
+The customer this points at exists: Germany's federal Immediate Action
+Programme for dumped munitions, **EUR 100 million**, ran its first pilot in the
+Bay of Lubeck beside coastal resort towns in 2024 to 2025. And there is a gap to
+fill, because at the planned salvage rate of about 2 t/day against roughly
+300,000 t in German waters, physical recovery takes **about 411 years**.
+
+That whole EUR 100 M budget, spent only on mat material, buys **41.7 hectares**.
+A pilot, not a cleanup.
 
 And one claim we deliberately do **not** make: that encapsulating the core
 prevents methylmercury formation. Activated-carbon capping cuts porewater MeHg

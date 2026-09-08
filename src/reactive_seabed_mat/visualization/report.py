@@ -15,6 +15,7 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 from ..config import RunConfig, config_hash, config_to_dict
+from ..deployment.priority import rank_candidates
 from ..deployment.scale import scale_table
 from ..reactive_layer.geotextile import DEFAULT_GEOTEXTILE
 from ..scenarios.registry import scenario_description, scenario_letter
@@ -150,6 +151,12 @@ def figures_for_result(result) -> list[tuple[str, Any]]:
     # Where the documented contamination is, and how much of it there is.
     figures.append(
         ("Documented dumping areas, for scale", context_maps.baltic_context_map())
+    )
+    figures.append(
+        (
+            "Which hectares: candidate pilot areas by receptor proximity",
+            context_maps.pilot_priority_chart(rank_candidates()),
+        )
     )
     figures.append(
         (
