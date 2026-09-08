@@ -26,25 +26,38 @@ from ..coastal_transport import seabed_source as ss
 from ..config import RunConfig
 from ..contracts import (
     Element,
+    EstimateSnapshot,
     FieldState,
     LayerStep,
     MassLedger,
+    MatTileGeometry,
     MatTileState,
+    ObservationRecord,
+    OperatorKnownMat,
+    Recommendation,
     SeabedSourceField,
+    ServiceEvent,
 )
+from ..estimation import estimate_tiles
+from ..maintenance import PolicyState, accepted_service_tiles, recommend
+from ..observations.generator import ObservationGenerator, scene_from_layer_history
+from ..observations.records import observations_available
 from ..reactive_layer import (
+    RetrievedMediaLedger,
     advance_reactive_layer,
     apply_degradation_events,
     build_material_map,
     build_tile_states,
     grow_burial,
     grow_fouling,
+    replace_tiles,
 )
 
 _SECONDS_PER_YEAR = 365.25 * 86400.0
 
 __all__ = [
     "MatTimelinePoint",
+    "MatTimelineResult",
     "PlumeWindowResult",
     "ScenarioResult",
     "run_mat_timeline",
@@ -109,6 +122,43 @@ class PlumeWindowResult:
 
 
 @dataclass(frozen=True, slots=True)
+class MatTimelineResult:
+    """Everything the mat clock produced.
+
+    A record rather than a tuple because the maintenance loop added four more
+    outputs and a seven-tuple is not an interface.
+    """
+
+    timeline: Sequence[MatTimelinePoint]
+    final_tiles: Sequence[MatTileState]
+    mat_ledger: Mapping[str, MassLedger]
+    captured_tiles: Mapping[float, Sequence[MatTileState]]
+    hotspot_released_kg: Mapping[str, float]
+    #: Every recommendation the policy made, in order. Empty under ``none``.
+    recommendations: Sequence[Recommendation] = ()
+    #: Service events a human accepted.  Always ``simulation_only``.
+    service_events: Sequence[ServiceEvent] = ()
+    #: Mass moved out of the active mat and into retrieved media.
+    retrieved_kg: Mapping[str, float] = field(default_factory=dict)
+    assumed_service_cost_eur: float = 0.0
+    #: The last estimate per tile, for the report.  Estimated, never true.
+    final_estimates: Mapping[str, EstimateSnapshot] = field(default_factory=dict)
+    n_observations: int = 0
+
+    def __iter__(self):
+        """Backwards compatibility with the original five-tuple return."""
+        return iter(
+            (
+                self.timeline,
+                self.final_tiles,
+                self.mat_ledger,
+                self.captured_tiles,
+                self.hotspot_released_kg,
+            )
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class ScenarioResult:
     config: RunConfig
     timeline: Sequence[MatTimelinePoint]
@@ -120,6 +170,10 @@ class ScenarioResult:
     #: Gross mass leaving the whole hotspot over the timeline, including the
     #: part that never touches a tile.  Reported separately on purpose.
     hotspot_released_kg: Mapping[str, float] = field(default_factory=dict)
+    #: The maintenance record for this run: recommendations, accepted service
+    #: events and the retrieved-media totals.  ``None`` only if the timeline was
+    #: built by an older caller.
+    maintenance: "MatTimelineResult | None" = None
     checks: Sequence[Any] = ()
 
 
@@ -136,11 +190,20 @@ def run_mat_timeline(
     *,
     sample_every_s: float | None = None,
     progress: bool = False,
-) -> tuple[list[MatTimelinePoint], list[MatTileState], dict[str, MassLedger], dict[float, list]]:
+) -> MatTimelineResult:
     """Advance the reactive layer over the whole simulated duration.
 
-    Returns the sampled timeline, the final tile states, the per-element mat
-    ledger, and the tile states captured at each requested plume-window time.
+    Under a policy other than ``none`` this also runs the evidence loop on its
+    own clock: every ``PolicyConfig.decision_period_s`` the simulator emits the
+    observations that window would have produced, the estimator reads only the
+    ones that have *arrived*, the policy recommends, and an accepted
+    recommendation is applied as a real tile replacement.
+
+    The three clocks are deliberately separate. The layer steps at ``dt_s``, the
+    evidence arrives on campaign intervals of weeks to months, and a laboratory
+    result becomes usable only after its latency has passed. That last gap is
+    what makes scenario E behave differently from a run where the controller can
+    see everything immediately.
     """
     materials = build_material_map(config.mat)
     elements = [element for element in config.elements]
@@ -150,10 +213,15 @@ def run_mat_timeline(
     grid, land_mask = bundle.grid, bundle.land_mask
     field_state = bundle.field_state
 
-    tiles = list(
-        build_tile_states(
-            config.mat, start, materials, hotspot=config.hotspot, elements=elements
+    deploy_mat = config.policy.kind != "none"
+    tiles = (
+        list(
+            build_tile_states(
+                config.mat, start, materials, hotspot=config.hotspot, elements=elements
+            )
         )
+        if deploy_mat
+        else []
     )
 
     dt = config.dt_s
@@ -178,6 +246,18 @@ def run_mat_timeline(
     timeline: list[MatTimelinePoint] = []
     degradation_log: list[dict[str, Any]] = []
     next_sample = 0.0
+
+    # --- the evidence loop's own state ------------------------------------
+    known = _operator_known_mat(config, tiles, grid) if deploy_mat else None
+    policy_state = PolicyState()
+    media_ledger = RetrievedMediaLedger()
+    all_records: list[ObservationRecord] = []
+    recommendations: list[Recommendation] = []
+    service_events: list[ServiceEvent] = []
+    estimates: dict[str, EstimateSnapshot] = {}
+    window_history: dict[str, list[tuple[Any, LayerStep]]] = {}
+    next_decision = config.policy.decision_period_s
+    decision_index = 0
 
     for step in range(n_steps + 1):
         elapsed = step * dt
@@ -207,6 +287,8 @@ def run_mat_timeline(
                 continue
             layer_step = advance_reactive_layer(tile, exchange, materials, dt)
             layer_steps.append(layer_step)
+            if deploy_mat:
+                window_history.setdefault(tile.tile_id, []).append((now, layer_step))
             advanced = grow_fouling(
                 layer_step.new_state, config.degradation.fouling_growth_per_s, dt
             )
@@ -250,6 +332,42 @@ def run_mat_timeline(
             )
             next_sample = elapsed + sample_every_s
 
+        # --- the evidence loop ------------------------------------------
+        if deploy_mat and known is not None and elapsed >= next_decision:
+            decision_index += 1
+            all_records.extend(
+                _observe_window(config, window_history, decision_index)
+            )
+            window_history = {}
+            # The controller sees only what has ARRIVED. A laboratory result
+            # sampled last month but still in transit is not evidence yet.
+            visible = list(observations_available(all_records, now))
+            estimates = estimate_tiles(visible, known, config, now)
+            batch = recommend(
+                estimates, known, config, now, elapsed, policy_state
+            )
+            recommendations.extend(batch)
+
+            accepted = accepted_service_tiles(batch)
+            if accepted:
+                tiles, event = replace_tiles(
+                    tiles,
+                    accepted,
+                    now,
+                    ledger=media_ledger,
+                    costs=config.costs,
+                    triggered_by_recommendation_id=batch[0].recommendation_id,
+                )
+                tiles = list(tiles)
+                service_events.append(event)
+                policy_state.last_service_s = elapsed
+                policy_state.accepted_events.append(event.event_id)
+                known = replace(
+                    known,
+                    accepted_service_events=tuple(service_events),
+                )
+            next_decision = elapsed + config.policy.decision_period_s
+
         for year in want_years:
             if year not in captured and elapsed >= year * _SECONDS_PER_YEAR - 0.5 * dt:
                 captured[year] = [replace(tile) for tile in tiles]
@@ -275,7 +393,102 @@ def run_mat_timeline(
         )
         for element in elements
     }
-    return timeline, tiles, ledger, captured, hotspot_released
+    # Metal already moved into retrieved media has left the active layer, so
+    # the layer's own budget must count it as retained somewhere. It is added
+    # here rather than to boundary_out_kg, because it did not enter the water.
+    if media_ledger.totals_kg:
+        ledger = {
+            element: replace(
+                entry,
+                retained_in_mat_kg=entry.retained_in_mat_kg
+                + media_ledger.total_kg(element),
+            )
+            for element, entry in ledger.items()
+        }
+
+    return MatTimelineResult(
+        timeline=timeline,
+        final_tiles=tiles,
+        mat_ledger=ledger,
+        captured_tiles=captured,
+        hotspot_released_kg=hotspot_released,
+        recommendations=tuple(recommendations),
+        service_events=tuple(service_events),
+        retrieved_kg=dict(media_ledger.totals_kg),
+        assumed_service_cost_eur=media_ledger.assumed_cost_eur,
+        final_estimates=estimates,
+        n_observations=len(all_records),
+    )
+
+
+def _operator_known_mat(
+    config: RunConfig, tiles: Sequence[MatTileState], grid
+) -> OperatorKnownMat:
+    """What the operator legitimately knows without opening the simulator.
+
+    Design geometry, what was installed and when, and which service events were
+    accepted. No tile inventory, no hidden condition, no truth of any kind.
+    """
+    if not tiles:
+        raise ValueError(
+            "an operator-known mat needs at least one deployed tile; the "
+            "'none' policy has no mat and must not build one"
+        )
+    geometry = tiles[0].geometry
+    covered = sum(tile.geometry.footprint_area_m2 for tile in tiles)
+    return OperatorKnownMat(
+        mat_id=f"MAT-{config.run_id}",
+        tile_ids=tuple(tile.tile_id for tile in tiles),
+        media_id=tiles[0].media_id if tiles else "media_A0",
+        installed_at_utc=config.start_datetime,
+        geometry=geometry,
+        hotspot_area_m2=float(config.hotspot.width_m * config.hotspot.length_m),
+        covered_area_m2=float(covered),
+        accepted_service_events=(),
+    )
+
+
+def _observe_window(
+    config: RunConfig,
+    history: Mapping[str, Sequence[tuple[Any, LayerStep]]],
+    index: int,
+) -> list[ObservationRecord]:
+    """Emit the observations this decision window would actually have produced.
+
+    The generator is a *simulator* component and legitimately sees truth. Its
+    output is the only thing the estimator is ever shown, and every record
+    carries its own ``available_at_utc``, so the separation survives even though
+    both live in the same process.
+
+    The hourly environmental stream is switched off here: it is context, it does
+    not constrain Pb or Hg, and generating tens of thousands of context records
+    per run would cost minutes to tell the policy nothing.
+    """
+    if not history:
+        return []
+    windows = [samples for samples in history.values() if samples]
+    if not windows:
+        return []
+    window_start = min(samples[0][0] for samples in windows)
+    window_end = max(samples[-1][0] for samples in windows)
+    duration_s = max((window_end - window_start).total_seconds(), 1.0)
+
+    scene = scene_from_layer_history(history)
+    generator = ObservationGenerator(
+        config.observations,
+        seed=config.seed + 1000 * index,
+        start_utc=window_start,
+    )
+    records = generator.generate(
+        scene, duration_s, include_environmental=False, include_dgt=True
+    )
+    # Each window builds a fresh generator, so its record ids restart. Stamping
+    # the window keeps them unique across the run, which matters because a
+    # recommendation cites record ids as its evidence.
+    return [
+        replace(record, record_id=f"W{index:03d}-{record.record_id}")
+        for record in records
+    ]
 
 
 def _sample_point(
@@ -299,7 +512,11 @@ def _sample_point(
             float(step.flux_out_kg_per_m2_per_s.get(element, 0.0))
             for step in layer_steps
         ]
-        out = _mean_over_tiles(outs)
+        # No layer step means no reactive layer stood between the sediment and
+        # the water, so the residual flux IS the bare flux.  Averaging an empty
+        # list to zero here would report perfect attenuation for a mat that does
+        # not exist, which is the exact opposite of the truth.
+        out = _mean_over_tiles(outs) if outs else bare
         mean_out[element] = out
         mean_bare[element] = bare
         attenuation[element] = (1.0 - out / bare) if bare > 0.0 else float("nan")
@@ -420,18 +637,16 @@ def run_plume_window(
 
 def run_scenario(config: RunConfig, *, progress: bool = False) -> ScenarioResult:
     """Full scenario: the mat timeline plus a plume window at each sample year."""
-    timeline, tiles, ledger, captured, hotspot_released = run_mat_timeline(
-        config, progress=progress
-    )
+    mat = run_mat_timeline(config, progress=progress)
 
     windows: list[PlumeWindowResult] = []
-    for year in sorted(captured):
+    for year in sorted(mat.captured_tiles):
         if progress:
             print(f"  plume window at {year:.1f} yr")
         windows.append(
             run_plume_window(
                 config,
-                captured[year],
+                mat.captured_tiles[year],
                 year * _SECONDS_PER_YEAR,
                 label=f"{year:.1f} yr",
             )
@@ -439,9 +654,10 @@ def run_scenario(config: RunConfig, *, progress: bool = False) -> ScenarioResult
 
     return ScenarioResult(
         config=config,
-        timeline=timeline,
+        timeline=mat.timeline,
         windows=windows,
-        final_tiles=tiles,
-        mat_ledger=ledger,
-        hotspot_released_kg=hotspot_released,
+        final_tiles=mat.final_tiles,
+        mat_ledger=mat.mat_ledger,
+        hotspot_released_kg=mat.hotspot_released_kg,
+        maintenance=mat,
     )

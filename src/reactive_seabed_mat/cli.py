@@ -81,6 +81,54 @@ def _write_result(result, base: Path) -> RunPaths:
             for window in result.windows
         ],
     )
+    maintenance = result.maintenance
+    if maintenance is not None:
+        write_json(
+            paths.comparison / "recommendations.json",
+            {
+                "policy": config.policy.kind,
+                "saturation_decision_bound": config.policy.saturation_decision_bound,
+                "note": (
+                    "Recommendations are advisory. Every one carries "
+                    "human_confirmation_required = True and "
+                    "execution_mode = 'simulation_only'; nothing here actuates "
+                    "anything. Acceptance in this demonstrator is automatic and "
+                    "total, which models an operator who follows the "
+                    "recommendation exactly."
+                ),
+                "n_observations_generated": maintenance.n_observations,
+                "assumed_service_cost_eur": maintenance.assumed_service_cost_eur,
+                "retrieved_kg": dict(maintenance.retrieved_kg),
+                "service_events": [
+                    {
+                        "event_id": event.event_id,
+                        "time_utc": str(event.time_utc),
+                        "tile_ids": list(event.tile_ids),
+                        "retrieved_kg": dict(event.retrieved_kg),
+                        "cost_eur": event.cost_eur,
+                        "triggered_by": event.triggered_by_recommendation_id,
+                        "execution_mode": event.execution_mode,
+                    }
+                    for event in maintenance.service_events
+                ],
+                "recommendations": [
+                    {
+                        "recommendation_id": rec.recommendation_id,
+                        "decision_time_utc": str(rec.decision_time_utc),
+                        "action": rec.action.value,
+                        "reason": rec.reason,
+                        "uncertainty_note": rec.uncertainty_note,
+                        "target_tile_ids": list(rec.target_tile_ids),
+                        "n_evidence_records": len(rec.evidence_record_ids),
+                        "expected_cost_eur": rec.expected_cost_eur,
+                        "human_confirmation_required": rec.human_confirmation_required,
+                        "execution_mode": rec.execution_mode,
+                    }
+                    for rec in maintenance.recommendations
+                ],
+            },
+        )
+
     write_json(
         paths.truth / "final_tiles.json",
         [
@@ -164,6 +212,95 @@ def _run_one(name: str, base: Path, *, quick: bool) -> None:
     print(f"     wrote {paths.root} in {elapsed:.1f} s")
 
 
+def _mass_into_water_kg(result, element: str) -> float:
+    """Mass entering the overlying water over the timeline, per element.
+
+    One quantity for all three policies, which is the only way the comparison
+    means anything. With no mat it is the whole hotspot release; with a mat it
+    is what left the reactive layer, plus whatever the tiles never covered.
+    """
+    if result.config.policy.kind == "none":
+        return float(result.hotspot_released_kg.get(element, 0.0))
+    ledger = result.mat_ledger.get(element)
+    return float(ledger.boundary_out_kg) if ledger is not None else 0.0
+
+
+def _compare_policies(scenario: str, base: Path, *, quick: bool) -> None:
+    """Run one scenario under all three policies under identical assumptions."""
+    config = registry.build_scenario(scenario)
+    if quick:
+        config = replace(
+            config,
+            duration_s=min(config.duration_s, 3.0 * _SECONDS_PER_YEAR),
+            plume=replace(config.plume, sample_years=(0.0,)),
+        )
+    element = config.elements[0]
+    rows = []
+
+    for policy in registry.POLICIES:
+        variant = registry.policy_variant(config, policy)
+        print(f"[{policy}] {scenario}: {variant.duration_years:.1f} yr")
+        started = time.perf_counter()
+        result = run_scenario(variant)
+        paths = _write_result(result, base)
+        maintenance = result.maintenance
+        row = {
+            "policy": policy,
+            "description": registry.POLICIES[policy],
+            "run_id": variant.run_id,
+            f"{element}_into_water_kg": _mass_into_water_kg(result, element),
+            f"{element}_retained_kg": (
+                result.mat_ledger[element].retained_in_mat_kg
+                if element in result.mat_ledger
+                else 0.0
+            ),
+            "final_attenuation": (
+                result.timeline[-1].attenuation.get(element) if result.timeline else None
+            ),
+            "n_service_events": len(maintenance.service_events) if maintenance else 0,
+            "assumed_service_cost_eur": (
+                maintenance.assumed_service_cost_eur if maintenance else 0.0
+            ),
+            "n_recommendations": len(maintenance.recommendations) if maintenance else 0,
+            "output": str(paths.root),
+        }
+        retained = row[f"{element}_retained_kg"]
+        row["assumed_eur_per_kg_retained"] = (
+            row["assumed_service_cost_eur"] / retained if retained > 0 else None
+        )
+        rows.append(row)
+        print(
+            f"     {element} into water {row[f'{element}_into_water_kg']:.4g} kg"
+            f" | services {row['n_service_events']}"
+            f" | assumed cost EUR {row['assumed_service_cost_eur']:,.0f}"
+            f" | {time.perf_counter() - started:.0f} s"
+        )
+
+    target = base / f"{scenario}_policy_comparison.json"
+    write_json(
+        target,
+        {
+            "scenario": scenario,
+            "element": element,
+            "identical_assumptions": (
+                "Same seed, same forcing, same hotspot schedule, same "
+                "observation schedule. Only PolicyConfig.kind differs."
+            ),
+            "cost_note": (
+                "Every euro value is an assumption from CostConfig. No supplier "
+                "has been contacted and no quotation exists."
+            ),
+            "comparison_note": (
+                "Mass into water is the same quantity in all three rows: the "
+                "whole hotspot release under 'none', and what left the reactive "
+                "layer under the other two."
+            ),
+            "rows": rows,
+        },
+    )
+    print(f"     wrote {target}")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="reactive-seabed-mat-demo",
@@ -191,6 +328,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     quick_parser.add_argument("--out", default="results")
 
+    compare_parser = sub.add_parser(
+        "compare",
+        help="one scenario under no mat, fixed servicing and evidence-informed "
+             "servicing, under identical assumptions",
+    )
+    compare_parser.add_argument(
+        "scenario", nargs="?", default="progressive_saturation",
+        choices=registry.list_scenarios(),
+    )
+    compare_parser.add_argument("--out", default="results")
+    compare_parser.add_argument(
+        "--quick", action="store_true", help="cap the timeline at three years"
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "list":
@@ -209,6 +360,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "run-all":
         for name in registry.list_scenarios():
             _run_one(name, base, quick=args.quick)
+        return 0
+    if args.command == "compare":
+        _compare_policies(args.scenario, base, quick=args.quick)
         return 0
     return 1
 

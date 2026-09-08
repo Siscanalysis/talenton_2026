@@ -80,6 +80,17 @@ def _build_config():
         "Seepage velocity (x baseline)", 0.2, 5.0, 1.0, 0.1
     )
 
+    st.sidebar.header("Maintenance policy")
+    policy_kind = st.sidebar.radio(
+        "Policy",
+        list(registry.POLICIES),
+        index=list(registry.POLICIES).index(config.policy.kind),
+        format_func=lambda k: {"none": "no mat", "fixed": "fixed interval",
+                               "evidence_informed": "evidence informed"}[k],
+        help="Only PolicyConfig.kind changes, so the three are compared under "
+             "identical assumptions.",
+    )
+
     st.sidebar.header("Timeline")
     years = st.sidebar.slider(
         "Simulated years", 0.5, 8.0, float(config.duration_years), 0.5
@@ -111,6 +122,7 @@ def _build_config():
         duration_s=years * _SECONDS_PER_YEAR,
         plume=replace(config.plume, sample_years=(view_year,)),
     )
+    config = registry.policy_variant(config, policy_kind)
     return config, name, view_year
 
 
@@ -138,7 +150,11 @@ def main() -> None:
     st.info(registry.scenario_description(name), icon="🧭")
 
     with st.spinner("Solving the reactive layer over the mat timeline..."):
-        timeline, tiles, ledger, captured, hotspot_released = _timeline(key, config)
+        mat = _timeline(key, config)
+    timeline = mat.timeline
+    ledger = mat.mat_ledger
+    captured = mat.captured_tiles
+    hotspot_released = mat.hotspot_released_kg
 
     last = timeline[-1]
     columns = st.columns(4)
@@ -155,8 +171,14 @@ def main() -> None:
         f"{primary} retained in mat", f"{last.retained_kg[primary]:.3g} kg"
     )
 
-    tab_map, tab_time, tab_ledger, tab_assumptions = st.tabs(
-        ["Seabed and plume maps", "Through time", "Mass ledger", "Assumptions"]
+    tab_map, tab_time, tab_ledger, tab_care, tab_assumptions = st.tabs(
+        [
+            "Seabed and plume maps",
+            "Through time",
+            "Mass ledger",
+            "Maintenance",
+            "Assumptions",
+        ]
     )
 
     with tab_map:
@@ -264,6 +286,75 @@ def main() -> None:
             },
             use_container_width=True,
         )
+
+    with tab_care:
+        st.subheader(f"Policy: {config.policy.kind}")
+        st.caption(registry.POLICIES[config.policy.kind])
+        if config.policy.kind == "none":
+            st.info(
+                "No mat is deployed in this variant, so there is nothing to "
+                "maintain. It is the reference the other two are measured "
+                "against.",
+                icon="🧭",
+            )
+        else:
+            columns = st.columns(4)
+            columns[0].metric("Observations generated", f"{mat.n_observations:,}")
+            columns[1].metric("Recommendations", f"{len(mat.recommendations)}")
+            columns[2].metric("Accepted services", f"{len(mat.service_events)}")
+            columns[3].metric(
+                "Assumed service cost", f"EUR {mat.assumed_service_cost_eur:,.0f}"
+            )
+            st.caption(
+                "The controller sees a record only once its `available_at_utc` "
+                "has passed, so a laboratory result still in transit cannot "
+                "influence an earlier decision. Every recommendation carries "
+                "`human_confirmation_required = True` and "
+                "`execution_mode = 'simulation_only'`."
+            )
+            if mat.recommendations:
+                st.dataframe(
+                    {
+                        "decision time": [
+                            str(r.decision_time_utc)[:10] for r in mat.recommendations
+                        ],
+                        "action": [r.action.value for r in mat.recommendations],
+                        "tiles": [
+                            ", ".join(r.target_tile_ids) or "-"
+                            for r in mat.recommendations
+                        ],
+                        "evidence records": [
+                            len(r.evidence_record_ids) for r in mat.recommendations
+                        ],
+                        "reason": [r.reason for r in mat.recommendations],
+                    },
+                    use_container_width=True,
+                )
+            if mat.service_events:
+                st.subheader("Accepted service events")
+                st.dataframe(
+                    {
+                        "date": [str(e.time_utc)[:10] for e in mat.service_events],
+                        "tiles": [", ".join(e.tile_ids) for e in mat.service_events],
+                        "retrieved (kg)": [
+                            sum(e.retrieved_kg.values()) for e in mat.service_events
+                        ],
+                        "assumed cost (EUR)": [
+                            e.cost_eur for e in mat.service_events
+                        ],
+                    },
+                    use_container_width=True,
+                )
+            else:
+                st.warning(
+                    "No service event was accepted over this timeline. Under "
+                    "the evidence-informed policy that is a result, not a bug: "
+                    "with chemistry on one tile and no seepage measurement, the "
+                    "estimated saturation interval stays too wide to justify a "
+                    "vessel. The value of evidence-informed maintenance is "
+                    "bounded by the monitoring programme that feeds it.",
+                    icon="⚠️",
+                )
 
     with tab_assumptions:
         st.subheader("Reactive medium: keratin, literature-derated")

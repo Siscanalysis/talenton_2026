@@ -146,6 +146,79 @@ def _ledger_rows(result) -> str:
     return "\n".join(rows)
 
 
+def _maintenance_section(result) -> str:
+    """The recommendation log, or an honest statement that there is none."""
+    maintenance = getattr(result, "maintenance", None)
+    config: RunConfig = result.config
+    if maintenance is None:
+        return ""
+    if config.policy.kind == "none":
+        return (
+            "<h2>Maintenance</h2><p class='caption'>This run is the "
+            "<strong>no mat</strong> reference case, so there is nothing to "
+            "maintain and no recommendation is made. It exists to give the "
+            "other two policies something honest to be compared against.</p>"
+        )
+
+    counts: dict[str, int] = {}
+    for recommendation in maintenance.recommendations:
+        counts[recommendation.action.value] = (
+            counts.get(recommendation.action.value, 0) + 1
+        )
+    tally = "".join(
+        f"<tr><td>{html.escape(action)}</td><td>{count}</td></tr>"
+        for action, count in sorted(counts.items(), key=lambda kv: -kv[1])
+    )
+
+    events = "".join(
+        "<tr>"
+        f"<td>{html.escape(str(event.time_utc)[:10])}</td>"
+        f"<td>{html.escape(', '.join(event.tile_ids))}</td>"
+        f"<td>{sum(event.retrieved_kg.values()):.4g}</td>"
+        f"<td>{event.cost_eur:,.0f}</td>"
+        f"<td>{html.escape(event.execution_mode)}</td>"
+        "</tr>"
+        for event in maintenance.service_events
+    ) or (
+        "<tr><td colspan='5'>No service event was accepted over this "
+        "timeline.</td></tr>"
+    )
+
+    last = maintenance.recommendations[-1] if maintenance.recommendations else None
+    latest = (
+        f"<p class='caption'><strong>Most recent recommendation:</strong> "
+        f"{html.escape(last.action.value)}. {html.escape(last.reason)}<br>"
+        f"<em>{html.escape(last.uncertainty_note)}</em></p>"
+        if last is not None
+        else ""
+    )
+
+    return f"""
+<h2>Maintenance under the <code>{html.escape(config.policy.kind)}</code> policy</h2>
+<p class="caption">{html.escape(config.policy.kind)}: the decision was taken on
+the <code>{html.escape(config.policy.saturation_decision_bound)}</code> end of
+the estimated saturation interval, which is a risk posture rather than a
+measurement. {maintenance.n_observations:,} synthetic observation records were
+generated; the controller saw only those whose <code>available_at_utc</code> had
+passed, so a laboratory result in transit could not influence an earlier
+decision.</p>
+<table>
+<tr><th>Recommended action</th><th>Times</th></tr>
+{tally or "<tr><td colspan='2'>none</td></tr>"}
+</table>
+<table>
+<tr><th>Service date</th><th>Tiles</th><th>Retrieved (kg)</th>
+    <th>Assumed cost (EUR)</th><th>Execution mode</th></tr>
+{events}
+</table>
+{latest}
+<p class="caption">Every recommendation carries
+<code>human_confirmation_required = True</code> and
+<code>execution_mode = "simulation_only"</code>. Nothing in this demonstrator
+actuates anything, and no euro figure is a quotation.</p>
+"""
+
+
 def _material_rows(config: RunConfig) -> str:
     rows = []
     loading = config.mat.sorbent_loading_kg_per_m2
@@ -260,6 +333,8 @@ Full derivation and sources: <code>docs/MATERIAL_KERATIN.md</code>.</p>
 <p class="caption">The mat ledger covers the whole simulated timeline. The water
 ledgers below each plume window cover that window only. The two are never added
 together, because the coastal model was not integrated for years.</p>
+
+{_maintenance_section(result)}
 
 {"".join(blocks)}
 

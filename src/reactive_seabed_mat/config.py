@@ -177,6 +177,14 @@ class ReactiveMediumConfig:
     #: the optimistic case in which seawater costs nothing.
     q_max_kg_per_kg: float = 1.0e-3
     q_max_interval: tuple[float, float] = (3.0e-4, 8.0e-3)
+    #: What an operator would know after a commissioning isotherm on the actual
+    #: batch, in artificial seawater at pH 8.1 (experiment 1 of
+    #: ``docs/MATERIAL_KERATIN.md``).  ``None`` means no such test was done, and
+    #: the estimator then has to fall back on the literature interval above,
+    #: which spans a factor of 27 and is too wide to run a replacement policy
+    #: on.  That contrast is a result worth showing, not a nuisance: it puts a
+    #: number on what the laboratory work is worth.
+    commissioned_q_max_interval: tuple[float, float] | None = (7.5e-4, 1.3e-3)
     #: Order of magnitude from pseudo-second-order kinetics reaching equilibrium
     #: within 24 h in batch [K1].  In a mat the rate is set by intraparticle
     #: transport, not by batch stirring, so this is uncertain.
@@ -242,6 +250,10 @@ class MatLayoutConfig:
             # and the interval spans 0.16 % to 20 % of that ceiling.
             q_max_kg_per_kg=2.5e-3,
             q_max_interval=(2.0e-4, 2.5e-2),
+            # No verified keratin Hg capacity exists, so there is nothing for a
+            # commissioning test to confirm yet. Left as None on purpose: the
+            # Hg channel must not borrow the confidence the Pb channel earned.
+            commissioned_q_max_interval=None,
             k_rate_per_s=2.0e-4,
             k_rate_interval=(3.0e-5, 8.0e-4),
             allocation_fraction=0.4,
@@ -362,6 +374,12 @@ class PolicyConfig:
     kind: str = "evidence_informed"  # none | fixed | evidence_informed
     fixed_interval_s: float = 2.0 * _SECONDS_PER_YEAR
     decision_period_s: float = 30.0 * _SECONDS_PER_DAY
+    #: Which end of the estimated saturation interval a decision is taken on:
+    #: ``lower`` acts only on proof, ``upper`` acts on possibility, ``mid`` is
+    #: neutral between replacing too early and replacing too late.  This is a
+    #: risk posture, not a physical parameter, and it belongs in the open where
+    #: a reviewer can disagree with it.
+    saturation_decision_bound: str = "mid"
     #: Recommend replacement when the estimated saturation lower bound passes
     #: this.  A demonstration trigger, not a regulatory or engineering standard.
     replacement_saturation_threshold: float = 0.80
