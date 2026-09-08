@@ -183,6 +183,27 @@ Show the log-scale area chart.
 > binding question was never "how good is the mat". It is **which two hectares**,
 > and that is a targeting and monitoring problem. Which is the problem this
 > demonstrator is actually built to address.
+>
+> So we rank candidates by **what they protect**, not by what they contain. That
+> puts a nondescript industrial harbour first and the famous Bornholm dumpsite
+> **last**, six times lower, because Bornholm sits in 90 metres of water twelve
+> kilometres from the nearest receptor.
+>
+> The customer that points at already exists. Germany's federal programme for
+> dumped munitions is funded at **100 million euro** and ran its first pilot in
+> the Bay of Lübeck, beside resort towns, in 2024. And at the planned salvage
+> rate, about two tonnes a day against three hundred thousand tonnes in German
+> waters, **physical recovery takes roughly 411 years.** That interim is the gap
+> a containment measure would have to cover.
+>
+> One last thing, and it is the one I would want to be asked about. At those
+> German coastal sites, what is actually measured reaching mussels and fish is
+> **TNT, RDX and DNT** — not metals. Keratin thiols bind soft metals. They do
+> not bind nitroaromatics. So either we go where the metals are, which is
+> harbour sediment and ranks first anyway, or we add activated carbon as a
+> second medium, or we narrow the claim to the metal fraction. What we do not do
+> is cite the munitions programme as the market and then offer a metals sorbent
+> as the answer to it.
 
 ## 4:55 to 5:00 What would change our minds
 

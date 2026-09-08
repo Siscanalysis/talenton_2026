@@ -25,6 +25,12 @@ attention.
    388,000 t of keratin, a fifth of one year's global wool clip, tens of billions
    of euro of material. See the log-scale figure below and
    [`../DEPLOYMENT_SCALE.md`](../DEPLOYMENT_SCALE.md).
+4. **The best-funded munitions site is one this material cannot treat.** Ranking
+   candidates by receptor proximity correctly puts coastal sites first and the
+   famous offshore dumpsite last. But what is measured reaching biota at the
+   German coastal dumpsites is **TNT, RDX and DNT**, and a keratin thiol core
+   binds soft metals, not nitroaromatics. The priority chart in `index.html`
+   colours that in: green where the chemistry matches, red where it does not.
 
 Measured a different way the chemistry looks better: of the lead that actually
 *enters* the layer, the mat keeps about 27 %. Both numbers are true. The first
