@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/reactive-seabed-mat-demo/observation.schema.json",
-  "title": "Mesh demonstrator observation record (shared contract v0.1)",
-  "description": "One measured parameter per record, long form. Non-detect is a bound, not a zero; a missing value is not a non-detect. Units are explicit and never inferred from the parameter name.",
+  "$id": "https://example.invalid/reactive-seabed-mat/observation.schema.json",
+  "title": "Reactive seabed mat observation record (shared contract v0.2)",
+  "description": "One measured parameter per record, long form. Non-detect is a bound, not a zero; a missing value is not a non-detect. Units are explicit and never inferred from the parameter name. quantity_kind is declared, never inferred from (matrix, fraction, unit). data_origin is the acquisition pathway; provenance is the truth status, and the two are independent.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,6 +11,7 @@
     "observed_at_utc",
     "available_at_utc",
     "parameter",
+    "quantity_kind",
     "unit",
     "matrix",
     "fraction",
@@ -18,7 +19,8 @@
     "qualifier",
     "quality_flag",
     "method_id",
-    "data_origin"
+    "data_origin",
+    "provenance"
   ],
   "properties": {
     "record_id": {"type": "string", "minLength": 1},
@@ -26,37 +28,87 @@
     "sensor_id": {"type": ["string", "null"]},
     "sample_id": {"type": ["string", "null"]},
     "media_id": {"type": ["string", "null"]},
+    "tile_id": {
+      "type": ["string", "null"],
+      "description": "Which mat tile this observation belongs to. Required for spatially local failure to be observable; media_id is not a substitute."
+    },
     "observed_at_utc": {"type": "string", "pattern": "Z$"},
     "available_at_utc": {"type": "string", "pattern": "Z$"},
     "sampling_start_utc": {"type": ["string", "null"], "pattern": "Z$"},
     "sampling_end_utc": {"type": ["string", "null"], "pattern": "Z$"},
     "parameter": {
       "enum": ["Pb", "Hg", "current_east", "current_north", "temperature",
-               "conductivity", "salinity", "pH", "turbidity", "mesh_tilt",
-               "battery_voltage"]
+               "sediment_temperature", "conductivity", "salinity", "pH",
+               "turbidity", "dissolved_oxygen", "redox_potential", "sulfide",
+               "seepage_velocity", "differential_head", "mat_permeability",
+               "mat_tilt", "mat_displacement", "mat_uplift",
+               "mat_coverage_fraction", "mat_damage_class", "burial_depth",
+               "scour_depth", "battery_voltage"]
+    },
+    "quantity_kind": {
+      "enum": ["aqueous_concentration", "solid_loading", "accumulated_mass",
+               "areal_flux", "length", "velocity", "fraction", "categorical",
+               "context"]
     },
     "unit": {"type": "string", "minLength": 1},
-    "matrix": {"enum": ["seawater", "porewater", "sediment", "sorbent", "instrument"]},
+    "matrix": {
+      "enum": ["seawater", "bottom_water", "porewater", "mat_porewater",
+               "sediment", "sorbent", "mat_structure", "instrument"]
+    },
     "fraction": {
-      "enum": ["not_applicable", "labile", "dissolved_filtered", "total_recoverable",
-               "dissolved_inorganic", "methylmercury", "sorbed_total"]
+      "enum": ["not_applicable", "labile", "dgt_labile", "dissolved_filtered",
+               "total_recoverable", "dissolved_inorganic", "methylmercury",
+               "sorbed_total", "acid_volatile_sulfide",
+               "simultaneously_extracted_metal"]
     },
     "acquisition_kind": {
-      "enum": ["in_situ_sensor", "grab_sample", "passive_sampler", "media_assay", "manual"]
+      "enum": ["in_situ_sensor", "grab_sample", "sediment_core",
+               "passive_sampler", "benthic_chamber", "media_assay",
+               "rov_inspection", "diver_inspection", "bathymetric_survey",
+               "acoustic_position", "manual"]
     },
     "value": {"type": ["number", "null"]},
     "uncertainty_std": {"type": ["number", "null"], "minimum": 0},
-    "qualifier": {"enum": ["quantified", "below_lod", "below_loq", "missing"]},
+    "qualifier": {
+      "enum": ["quantified", "below_lod", "below_loq", "above_range",
+               "categorical", "missing"]
+    },
     "lower_bound": {"type": ["number", "null"]},
     "upper_bound": {"type": ["number", "null"]},
+    "condition_class": {
+      "type": ["string", "null"],
+      "description": "Controlled-vocabulary class for a categorical condition observation, for example intact / abraded / punctured / torn / lost."
+    },
     "quality_flag": {"enum": [1, 2, 3, 4, 9]},
     "method_id": {"type": "string", "minLength": 1},
     "calibration_id": {"type": ["string", "null"]},
-    "data_origin": {"enum": ["synthetic", "sensor", "laboratory", "external_model", "derived"]},
+    "data_origin": {
+      "enum": ["sensor", "laboratory", "field_survey", "external_model",
+               "derived", "manual"],
+      "description": "The acquisition pathway only. Whether the number is real is recorded in provenance."
+    },
+    "provenance": {
+      "enum": ["measurement", "external_model", "literature", "assumption",
+               "fitted", "synthetic_demo"]
+    },
     "source_ref": {"type": ["string", "null"]},
     "x_m": {"type": ["number", "null"]},
     "y_m": {"type": ["number", "null"]},
     "depth_m": {"type": ["number", "null"]},
+    "vertical_datum": {
+      "enum": ["sea_surface", "seabed", "mat_top", "mat_base", null],
+      "description": "What depth_m is measured from. Without it a sample at depth_m 5.0 is ambiguous between the water column and below the sediment surface."
+    },
+    "z_in_mat_m": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Position within the reactive-layer thickness, for a depth-resolved profile."
+    },
+    "chamber_area_m2": {
+      "type": ["number", "null"],
+      "exclusiveMinimum": 0,
+      "description": "Enclosed area of a benthic flux chamber. Required to interpret its flux."
+    },
     "crs": {"type": ["string", "null"]}
   },
   "allOf": [
@@ -86,6 +138,28 @@
       }
     },
     {
+      "if": {"properties": {"qualifier": {"const": "above_range"}}, "required": ["qualifier"]},
+      "then": {
+        "properties": {
+          "value": {"type": "null"},
+          "lower_bound": {"type": "number"},
+          "upper_bound": {"type": "null"}
+        },
+        "required": ["lower_bound"]
+      }
+    },
+    {
+      "if": {"properties": {"qualifier": {"const": "categorical"}}, "required": ["qualifier"]},
+      "then": {
+        "properties": {
+          "value": {"type": "null"},
+          "condition_class": {"type": "string", "minLength": 1},
+          "quantity_kind": {"const": "categorical"}
+        },
+        "required": ["condition_class"]
+      }
+    },
+    {
       "if": {"properties": {"qualifier": {"const": "missing"}}, "required": ["qualifier"]},
       "then": {
         "properties": {
@@ -108,6 +182,42 @@
         },
         "required": ["sampling_start_utc", "sampling_end_utc"]
       }
+    },
+    {
+      "if": {
+        "properties": {"acquisition_kind": {"const": "benthic_chamber"}},
+        "required": ["acquisition_kind"]
+      },
+      "then": {
+        "properties": {
+          "sampling_start_utc": {"type": "string"},
+          "sampling_end_utc": {"type": "string"},
+          "chamber_area_m2": {"type": "number"}
+        },
+        "required": ["sampling_start_utc", "sampling_end_utc", "chamber_area_m2"]
+      }
+    },
+    {
+      "if": {
+        "properties": {"quantity_kind": {"const": "areal_flux"}},
+        "required": ["quantity_kind"]
+      },
+      "then": {
+        "properties": {
+          "unit": {
+            "enum": ["kg/m2/s", "g/m2/s", "mg/m2/s", "ug/m2/s", "ng/m2/s",
+                     "kg/m2/d", "g/m2/d", "mg/m2/d", "ug/m2/d", "ng/m2/d",
+                     "mg/m2/yr", "ug/m2/yr"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"quantity_kind": {"const": "length"}},
+        "required": ["quantity_kind"]
+      },
+      "then": {"properties": {"unit": {"enum": ["m", "cm", "mm", "um", "km"]}}}
     }
   ]
 }

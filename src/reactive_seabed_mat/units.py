@@ -37,6 +37,15 @@ __all__ = [
     "AQUEOUS_CONCENTRATION_UNITS",
     "SOLID_LOADING_UNITS",
     "MASS_UNITS",
+    "AREAL_FLUX_UNITS",
+    "LENGTH_UNITS",
+    "VELOCITY_UNITS",
+    "to_si_areal_flux",
+    "from_si_areal_flux",
+    "to_si_length",
+    "from_si_length",
+    "to_si_velocity",
+    "from_si_velocity",
     "to_si_aqueous_concentration",
     "from_si_aqueous_concentration",
     "to_si_solid_loading",
@@ -88,21 +97,67 @@ MASS_UNITS: dict[str, float] = {
     "kg": 1.0,
 }
 
+# --- areal flux: factor to kg m^-2 s^-1 ------------------------------------
+# The quantity the mat is judged on.  Without this ladder no flux value could
+# be converted, validated or range-checked, and flux attenuation is the whole
+# claim of a reactive cap.
+_SECONDS_PER_DAY = 86400.0
+_SECONDS_PER_YEAR = 365.25 * _SECONDS_PER_DAY
+
+AREAL_FLUX_UNITS: dict[str, float] = {
+    "kg/m2/s": 1.0,
+    "g/m2/s": 1.0e-3,
+    "mg/m2/s": 1.0e-6,
+    "ug/m2/s": 1.0e-9,
+    "ng/m2/s": 1.0e-12,
+    "kg/m2/d": 1.0 / _SECONDS_PER_DAY,
+    "g/m2/d": 1.0e-3 / _SECONDS_PER_DAY,
+    "mg/m2/d": 1.0e-6 / _SECONDS_PER_DAY,
+    "ug/m2/d": 1.0e-9 / _SECONDS_PER_DAY,
+    "ng/m2/d": 1.0e-12 / _SECONDS_PER_DAY,
+    "mg/m2/yr": 1.0e-6 / _SECONDS_PER_YEAR,
+    "ug/m2/yr": 1.0e-9 / _SECONDS_PER_YEAR,
+}
+
+# --- length: factor to m ---------------------------------------------------
+# ``m`` used to sit among the unconverted context units, so a burial depth
+# reported in centimetres would have passed every check as if it were metres.
+LENGTH_UNITS: dict[str, float] = {
+    "m": 1.0,
+    "cm": 1.0e-2,
+    "mm": 1.0e-3,
+    "um": 1.0e-6,
+    "km": 1.0e3,
+}
+
+# --- velocity: factor to m s^-1 --------------------------------------------
+# Seepage and Darcy velocities are habitually reported in cm/yr or m/yr, which
+# differ from m/s by nine orders of magnitude.
+VELOCITY_UNITS: dict[str, float] = {
+    "m/s": 1.0,
+    "cm/s": 1.0e-2,
+    "mm/s": 1.0e-3,
+    "m/d": 1.0 / _SECONDS_PER_DAY,
+    "cm/d": 1.0e-2 / _SECONDS_PER_DAY,
+    "m/yr": 1.0 / _SECONDS_PER_YEAR,
+    "cm/yr": 1.0e-2 / _SECONDS_PER_YEAR,
+    "mm/yr": 1.0e-3 / _SECONDS_PER_YEAR,
+}
+
 # --- units that carry no conversion (context / QC channels) ----------------
 DIMENSIONLESS_OR_CONTEXT_UNITS: frozenset[str] = frozenset(
     {
-        "1",  # practical salinity, dimensionless ratios
+        "1",  # practical salinity, dimensionless ratios, coverage fractions
         "degC",
         "mS/cm",
         "NTU",
         "pH",
         "V",
+        "mV",  # redox potential
+        "Pa",  # differential pressure across the layer
         "deg",
-        "m/s",
-        "m",
-        "s",
-        "kg",
-        "kg/s",
+        "m2",  # permeability
+        "class",  # categorical condition classes
     }
 )
 
@@ -158,18 +213,52 @@ def from_si_mass(value_si: float, unit: str) -> float:
     return value_si / _lookup(unit, MASS_UNITS, "mass")
 
 
+def to_si_areal_flux(value: float, unit: str) -> float:
+    """Areal contaminant flux -> kg m^-2 s^-1."""
+    return value * _lookup(unit, AREAL_FLUX_UNITS, "areal flux")
+
+
+def from_si_areal_flux(value_si: float, unit: str) -> float:
+    """kg m^-2 s^-1 -> requested display unit."""
+    return value_si / _lookup(unit, AREAL_FLUX_UNITS, "areal flux")
+
+
+def to_si_length(value: float, unit: str) -> float:
+    """Length -> m."""
+    return value * _lookup(unit, LENGTH_UNITS, "length")
+
+
+def from_si_length(value_si: float, unit: str) -> float:
+    """m -> requested display unit."""
+    return value_si / _lookup(unit, LENGTH_UNITS, "length")
+
+
+def to_si_velocity(value: float, unit: str) -> float:
+    """Velocity -> m s^-1."""
+    return value * _lookup(unit, VELOCITY_UNITS, "velocity")
+
+
+def from_si_velocity(value_si: float, unit: str) -> float:
+    """m s^-1 -> requested display unit."""
+    return value_si / _lookup(unit, VELOCITY_UNITS, "velocity")
+
+
 def convert_scalar(value: float, from_unit: str, to_unit: str) -> float:
     """Convert within one ladder.  Cross-ladder conversion is an error."""
     for table, ladder in (
         (AQUEOUS_CONCENTRATION_UNITS, "aqueous concentration"),
         (SOLID_LOADING_UNITS, "solid loading"),
         (MASS_UNITS, "mass"),
+        (AREAL_FLUX_UNITS, "areal flux"),
+        (LENGTH_UNITS, "length"),
+        (VELOCITY_UNITS, "velocity"),
     ):
         if from_unit in table and to_unit in table:
             return value * table[from_unit] / table[to_unit]
     raise UnitError(
         f"cannot convert {from_unit!r} -> {to_unit!r}: not on a common physical "
-        "ladder (aqueous concentration / solid loading / mass)."
+        "ladder (aqueous concentration / solid loading / mass / areal flux / "
+        "length / velocity)."
     )
 
 

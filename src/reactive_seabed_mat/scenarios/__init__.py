@@ -1,12 +1,13 @@
-"""Demonstration scenes and the coupled run loop."""
+"""Demonstration scenarios and the coupled run loop."""
 
 from __future__ import annotations
 
 from .registry import (  # noqa: F401
     POLICIES,
-    SCENES,
-    build_scene,
-    list_scenes,
+    SCENARIOS,
+    build_scenario,
+    list_scenarios,
     policy_variant,
-    scene_description,
+    scenario_description,
+    scenario_letter,
 )

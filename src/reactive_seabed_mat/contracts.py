@@ -1,15 +1,24 @@
-"""Frozen module boundary for the marine reactive-mesh demonstrator.
+"""Frozen module boundary for the selective reactive seabed mat demonstrator.
 
-Coordinator-owned.  Branch agents (``feat/mesh-care``, ``feat/coastal-2d``,
-``feat/feedback``, ``feat/presentation``, ``feat/ml-extension``) import these
-types and implement the functions declared at the bottom of this file.  They
-must **not** edit this module; additions are proposed in the branch handoff.
+Coordinator-owned.  Branch agents import these types and implement the
+functions declared at the bottom of this file.  They must not edit this module;
+additions are proposed in the branch handoff.
 
-The typed objects here are the exact realisation of
-``docs/DATA_CONTRACT.md`` section 2 ("Module boundary to freeze").
+The product modelled here is a **thin, modular, retrievable reactive mat** laid
+on or immediately above an authorised contaminated seabed area.  It attenuates
+the contaminant flux from the sediment into the overlying water.  It is not a
+vertical panel intercepting a plume, and nothing in this module computes a
+frontal area, a swept volume or an interception efficiency.
 
-Three states are kept apart everywhere in the code base
-(:class:`StateOrigin`):
+The chain is::
+
+    authorised contaminated seabed hotspot
+      -> contaminant flux through / near the seabed
+      -> reactive mat (1-D reactive layer, per tile)
+      -> residual flux into the overlying water
+      -> 2-D coastal advection and diffusion
+
+Three states are kept apart everywhere (:class:`StateOrigin`):
 
 ``TRUE_SIMULATED``
     the hidden simulator state; written only under ``results/<run>/truth/``.
@@ -31,15 +40,18 @@ from typing import Any, Mapping, Protocol, Sequence
 
 import numpy as np
 
-CONTRACT_VERSION = "0.1.0-frozen"
+CONTRACT_VERSION = "0.2.0-frozen-mat"
 
 __all__ = [
     "CONTRACT_VERSION",
+    # enumerations
     "Element",
     "StateOrigin",
     "ProvenanceLabel",
     "Parameter",
+    "QuantityKind",
     "Matrix",
+    "VerticalDatum",
     "Fraction",
     "AcquisitionKind",
     "Qualifier",
@@ -47,28 +59,39 @@ __all__ = [
     "DataOrigin",
     "ActionKind",
     "AmbiguityFlag",
+    "DegradationMode",
+    "METAL_PARAMETERS",
+    "CONTEXT_PARAMETERS",
+    "MAT_CONDITION_PARAMETERS",
+    "AQUEOUS_MATRICES",
+    # observation
     "ObservationRecord",
+    # macro
     "GridSpec",
     "FieldState",
     "Forcing",
-    "SourceTerm",
+    "SeabedHotspot",
+    "SeabedSourceField",
     "TransportStep",
+    # micro
     "MaterialParameters",
-    "PanelGeometry",
-    "PanelState",
-    "ContactBatch",
-    "PanelStep",
+    "MatTileGeometry",
+    "MatTileState",
+    "SeabedExchange",
+    "LayerStep",
     "ServiceEvent",
     "MassLedger",
-    "OperatorKnownPanel",
+    # estimation and decision
+    "OperatorKnownMat",
     "ModelHistory",
     "EstimateSnapshot",
     "Recommendation",
     "ActionEvent",
-    "AdvancePanel",
+    # frozen function signatures
+    "AdvanceReactiveLayer",
+    "BuildSeabedExchange",
+    "ResidualSourceFlux",
     "TransportStepFn",
-    "BuildContacts",
-    "ApplyTransfers",
     "ObservationsAvailable",
     "UpdateEstimate",
     "Recommend",
@@ -81,7 +104,7 @@ __all__ = [
 
 class Element(str, enum.Enum):
     """Target elements.  Pb is the primary channel; Hg is optional and always
-    carries its own parameter set and its own allocated material mass."""
+    carries its own parameter set and its own allocated share of the medium."""
 
     PB = "Pb"
     HG = "Hg"
@@ -94,69 +117,179 @@ class StateOrigin(str, enum.Enum):
 
 
 class ProvenanceLabel(str, enum.Enum):
-    """Mandatory label for every number that reaches a chart or an export."""
+    """Mandatory label for every number that reaches a chart or an export.
+
+    Deliberately separate from :class:`DataOrigin`.  A fabricated laboratory
+    record is ``DataOrigin.LABORATORY`` with ``ProvenanceLabel.SYNTHETIC_DEMO``:
+    the pathway and the truth status are different questions, and the previous
+    contract could not express both at once.
+    """
 
     MEASUREMENT = "measurement"
     EXTERNAL_MODEL = "external_model"
     LITERATURE = "literature"
     ASSUMPTION = "assumption"
+    FITTED = "fitted"
     SYNTHETIC_DEMO = "synthetic_demo"
 
 
 class Parameter(str, enum.Enum):
+    """What is measured.
+
+    ``Pb`` and ``Hg`` stay the parameter names for a flux measurement too: a
+    benthic-chamber Pb flux is still Pb, distinguished by its
+    :class:`QuantityKind` and unit, not by inventing a new parameter name.
+    """
+
     PB = "Pb"
     HG = "Hg"
+    # water column and near-bed context
     CURRENT_EAST = "current_east"
     CURRENT_NORTH = "current_north"
     TEMPERATURE = "temperature"
+    SEDIMENT_TEMPERATURE = "sediment_temperature"
     CONDUCTIVITY = "conductivity"
     SALINITY = "salinity"
     PH = "pH"
     TURBIDITY = "turbidity"
-    MESH_TILT = "mesh_tilt"
+    DISSOLVED_OXYGEN = "dissolved_oxygen"
+    REDOX_POTENTIAL = "redox_potential"
+    SULFIDE = "sulfide"
+    # interface physics
+    SEEPAGE_VELOCITY = "seepage_velocity"
+    DIFFERENTIAL_HEAD = "differential_head"
+    MAT_PERMEABILITY = "mat_permeability"
+    # mat condition
+    MAT_TILT = "mat_tilt"
+    MAT_DISPLACEMENT = "mat_displacement"
+    MAT_UPLIFT = "mat_uplift"
+    MAT_COVERAGE_FRACTION = "mat_coverage_fraction"
+    MAT_DAMAGE_CLASS = "mat_damage_class"
+    BURIAL_DEPTH = "burial_depth"
+    SCOUR_DEPTH = "scour_depth"
+    # housekeeping
     BATTERY_VOLTAGE = "battery_voltage"
 
 
-#: Parameters that carry metal-concentration information.  Everything else is
-#: context / QC and must never be converted into a Pb or Hg estimate.
+#: Parameters that carry metal-concentration or metal-flux information.
 METAL_PARAMETERS: frozenset[Parameter] = frozenset({Parameter.PB, Parameter.HG})
 
-#: Ordinary water-quality proxies.  Explicitly listed so the estimator can
-#: assert it is not deriving chemistry from them.
+#: Ordinary water-quality and physical proxies.  Listed explicitly so the
+#: estimator can assert it never derives chemistry from them.
 CONTEXT_PARAMETERS: frozenset[Parameter] = frozenset(
     {
+        Parameter.CURRENT_EAST,
+        Parameter.CURRENT_NORTH,
         Parameter.TEMPERATURE,
+        Parameter.SEDIMENT_TEMPERATURE,
         Parameter.CONDUCTIVITY,
         Parameter.SALINITY,
         Parameter.PH,
         Parameter.TURBIDITY,
+        Parameter.DISSOLVED_OXYGEN,
+        Parameter.REDOX_POTENTIAL,
+        Parameter.SULFIDE,
+        Parameter.SEEPAGE_VELOCITY,
+        Parameter.DIFFERENTIAL_HEAD,
+        Parameter.BATTERY_VOLTAGE,
+    }
+)
+
+#: Physical condition of the mat itself.  These constrain degradation modes 3
+#: and 4 (displacement and local damage); they carry no chemistry.
+MAT_CONDITION_PARAMETERS: frozenset[Parameter] = frozenset(
+    {
+        Parameter.MAT_TILT,
+        Parameter.MAT_DISPLACEMENT,
+        Parameter.MAT_UPLIFT,
+        Parameter.MAT_COVERAGE_FRACTION,
+        Parameter.MAT_DAMAGE_CLASS,
+        Parameter.BURIAL_DEPTH,
+        Parameter.SCOUR_DEPTH,
+        Parameter.MAT_PERMEABILITY,
     }
 )
 
 
+class QuantityKind(str, enum.Enum):
+    """What kind of number a record carries.
+
+    Declared, never inferred from ``(matrix, fraction, unit)``.  The observation
+    operator dispatches on this.
+    """
+
+    AQUEOUS_CONCENTRATION = "aqueous_concentration"   # kg m^-3
+    SOLID_LOADING = "solid_loading"                   # kg kg^-1
+    ACCUMULATED_MASS = "accumulated_mass"             # kg over a window
+    AREAL_FLUX = "areal_flux"                         # kg m^-2 s^-1
+    LENGTH = "length"                                 # m
+    VELOCITY = "velocity"                             # m s^-1
+    FRACTION = "fraction"                             # dimensionless 0..1
+    CATEGORICAL = "categorical"                       # a class, not a number
+    CONTEXT = "context"                               # unconverted context
+
+
 class Matrix(str, enum.Enum):
+    """What was sampled.
+
+    ``BOTTOM_WATER`` is distinguished from ``SEAWATER`` because a near-bed
+    measurement above the cap and a mid-column one are physically different.
+    ``MAT_POREWATER`` is the state variable of the 1-D layer itself.
+    """
+
     SEAWATER = "seawater"
+    BOTTOM_WATER = "bottom_water"
     POREWATER = "porewater"
+    MAT_POREWATER = "mat_porewater"
     SEDIMENT = "sediment"
     SORBENT = "sorbent"
+    MAT_STRUCTURE = "mat_structure"
     INSTRUMENT = "instrument"
+
+
+#: Matrices representing a dissolved aqueous pool the model can assimilate.
+#: ``POREWATER`` is now a primary channel: it is the driving boundary condition
+#: of the reactive layer.  Demoting it to evidence was the single most damaging
+#: assumption inherited from the vertical-panel concept.
+AQUEOUS_MATRICES: frozenset[Matrix] = frozenset(
+    {Matrix.SEAWATER, Matrix.BOTTOM_WATER, Matrix.POREWATER, Matrix.MAT_POREWATER}
+)
+
+
+class VerticalDatum(str, enum.Enum):
+    """What ``depth_m`` is measured from.  Previously undeclared, which made a
+    sediment sample at ``depth_m = 5.0`` unresolvably ambiguous."""
+
+    SEA_SURFACE = "sea_surface"
+    SEABED = "seabed"
+    MAT_TOP = "mat_top"
+    MAT_BASE = "mat_base"
 
 
 class Fraction(str, enum.Enum):
     NOT_APPLICABLE = "not_applicable"
     LABILE = "labile"
+    DGT_LABILE = "dgt_labile"
     DISSOLVED_FILTERED = "dissolved_filtered"
     TOTAL_RECOVERABLE = "total_recoverable"
     DISSOLVED_INORGANIC = "dissolved_inorganic"
     METHYLMERCURY = "methylmercury"
     SORBED_TOTAL = "sorbed_total"
+    ACID_VOLATILE_SULFIDE = "acid_volatile_sulfide"
+    SIMULTANEOUSLY_EXTRACTED_METAL = "simultaneously_extracted_metal"
 
 
 class AcquisitionKind(str, enum.Enum):
     IN_SITU_SENSOR = "in_situ_sensor"
     GRAB_SAMPLE = "grab_sample"
+    SEDIMENT_CORE = "sediment_core"
     PASSIVE_SAMPLER = "passive_sampler"
+    BENTHIC_CHAMBER = "benthic_chamber"
     MEDIA_ASSAY = "media_assay"
+    ROV_INSPECTION = "rov_inspection"
+    DIVER_INSPECTION = "diver_inspection"
+    BATHYMETRIC_SURVEY = "bathymetric_survey"
+    ACOUSTIC_POSITION = "acoustic_position"
     MANUAL = "manual"
 
 
@@ -164,6 +297,8 @@ class Qualifier(str, enum.Enum):
     QUANTIFIED = "quantified"
     BELOW_LOD = "below_lod"
     BELOW_LOQ = "below_loq"
+    ABOVE_RANGE = "above_range"
+    CATEGORICAL = "categorical"
     MISSING = "missing"
 
 
@@ -178,31 +313,60 @@ class QualityFlag(enum.IntEnum):
 
 
 class DataOrigin(str, enum.Enum):
-    SYNTHETIC = "synthetic"
+    """The acquisition pathway.  Truth status lives in :class:`ProvenanceLabel`."""
+
     SENSOR = "sensor"
     LABORATORY = "laboratory"
+    FIELD_SURVEY = "field_survey"
     EXTERNAL_MODEL = "external_model"
     DERIVED = "derived"
+    MANUAL = "manual"
 
 
 class ActionKind(str, enum.Enum):
-    CONTINUE = "CONTINUE"
-    REQUEST_CHEMICAL_SAMPLE = "REQUEST_CHEMICAL_SAMPLE"
+    """What may be recommended.  Never an actuation."""
+
+    CONTINUE_MONITORING = "CONTINUE_MONITORING"
+    TAKE_CHEMICAL_SAMPLE = "TAKE_CHEMICAL_SAMPLE"
     CHECK_SENSOR = "CHECK_SENSOR"
-    INSPECT_MESH = "INSPECT_MESH"
-    PLAN_REPLACEMENT = "PLAN_REPLACEMENT"
-    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+    INSPECT_MAT = "INSPECT_MAT"
+    PLAN_PARTIAL_REPLACEMENT = "PLAN_PARTIAL_REPLACEMENT"
+    REPLACE_ACTIVE_PANEL = "REPLACE_ACTIVE_PANEL"
+    PERFORMANCE_UNCERTAIN = "PERFORMANCE_UNCERTAIN"
+
+
+class DegradationMode(str, enum.Enum):
+    """The four independent ways a mat stops working.
+
+    They are modelled and reported independently.  Reading every performance
+    loss as chemical saturation is the specific failure this enumeration exists
+    to prevent.
+    """
+
+    SATURATION = "saturation"          # 1: capacity consumed, breakthrough
+    FOULING = "fouling"                # 2: pore blockage, permeability loss
+    DISPLACEMENT = "displacement"      # 3: burial, erosion, scour, uplift, shift
+    LOCAL_DAMAGE = "local_damage"      # 4: tear, puncture, lost tile
 
 
 class AmbiguityFlag(str, enum.Enum):
-    """Competing explanations the estimator is allowed to leave unresolved."""
+    """Competing explanations the estimator may leave unresolved.
 
-    SOURCE_INCREASE = "source_increase"
-    PLUME_SHIFT = "plume_shift"
+    ``BURIAL`` matters most: burial *reduces* the apparent flux and can
+    masquerade as success.
+    """
+
+    SEDIMENT_SOURCE_INCREASE = "sediment_source_increase"
+    ADVECTIVE_CHANGE = "advective_change"
     SATURATION = "saturation"
     FOULING = "fouling"
+    BURIAL = "burial"
+    EROSION_SCOUR = "erosion_scour"
+    DISPLACEMENT_UPLIFT = "displacement_uplift"
+    TEAR_PUNCTURE = "tear_puncture"
     SENSOR_DRIFT = "sensor_drift"
     SENSOR_FAILURE = "sensor_failure"
+    METHYLMERCURY_RISK = "methylmercury_risk"
     INSUFFICIENT_DATA = "insufficient_data"
 
 
@@ -224,6 +388,7 @@ class ObservationRecord:
     observed_at_utc: datetime
     available_at_utc: datetime
     parameter: Parameter
+    quantity_kind: QuantityKind
     unit: str
     matrix: Matrix
     fraction: Fraction
@@ -232,21 +397,33 @@ class ObservationRecord:
     quality_flag: QualityFlag
     method_id: str
     data_origin: DataOrigin
+    provenance: ProvenanceLabel
 
     sensor_id: str | None = None
     sample_id: str | None = None
     media_id: str | None = None
+    #: Which mat tile this observation belongs to.  Without it, spatially local
+    #: failure is unobservable; ``media_id`` is not a substitute, because one
+    #: media batch can be laid across many tiles.
+    tile_id: str | None = None
     sampling_start_utc: datetime | None = None
     sampling_end_utc: datetime | None = None
     value: float | None = None
     uncertainty_std: float | None = None
     lower_bound: float | None = None
     upper_bound: float | None = None
+    #: For ``Qualifier.CATEGORICAL``: a class from a controlled vocabulary.
+    condition_class: str | None = None
     calibration_id: str | None = None
     source_ref: str | None = None
     x_m: float | None = None
     y_m: float | None = None
     depth_m: float | None = None
+    vertical_datum: VerticalDatum | None = None
+    #: Position within the mat thickness, for a depth-resolved layer profile.
+    z_in_mat_m: float | None = None
+    #: Enclosed area of a benthic flux chamber; required to interpret its flux.
+    chamber_area_m2: float | None = None
     crs: str | None = None
     raw: Mapping[str, Any] = field(default_factory=dict)
 
@@ -259,19 +436,23 @@ class ObservationRecord:
         return self.qualifier in (Qualifier.BELOW_LOD, Qualifier.BELOW_LOQ)
 
     @property
+    def is_mat_condition(self) -> bool:
+        return self.parameter in MAT_CONDITION_PARAMETERS
+
+    @property
     def carries_chemical_information(self) -> bool:
         """A missing record carries none; a non-detect carries a bound."""
         return self.is_metal and self.qualifier is not Qualifier.MISSING
 
 
 # ---------------------------------------------------------------------------
-# Macro (transport) side
+# Macro (coastal transport) side
 # ---------------------------------------------------------------------------
 
 @dataclass(frozen=True, slots=True)
 class GridSpec:
-    """Uniform metric grid.  ``crs`` is the metric computation CRS; latitude /
-    longitude is a display concern only."""
+    """Uniform metric grid.  ``crs`` is the metric computation CRS; latitude and
+    longitude are a display concern only."""
 
     nx: int
     ny: int
@@ -314,7 +495,7 @@ class GridSpec:
 
 @dataclass(frozen=True, slots=True)
 class FieldState:
-    """Dissolved concentration field per element.
+    """Dissolved concentration field per element in the overlying water.
 
     Arrays are ``(ny, nx)`` in kg m^-3; ``arr.reshape(-1)`` is FiPy cell order.
     ``land_mask`` marks no-flux cells (``True`` = land, no water, no transport).
@@ -361,15 +542,55 @@ class Forcing:
 
 
 @dataclass(frozen=True, slots=True)
-class SourceTerm:
-    """A hypothetical release.  ``rate_kg_per_s`` is per element."""
+class SeabedHotspot:
+    """An authorised contaminated seabed area.
 
-    source_id: str
-    x_m: float
-    y_m: float
-    rate_kg_per_s: Mapping[str, float]
+    Abstract by construction.  This is a contaminant hotspot, not an object:
+    nothing in this repository simulates, locates or recommends the handling of
+    unexploded ordnance.  Real work near historical marine munitions requires
+    specialist and environmental approval.
+    """
+
+    hotspot_id: str
+    #: Flat cell indices of the contaminated seabed cells.
+    cell_indices: Sequence[int]
+    #: Sediment porewater concentration driving the flux [kg m^-3], per element.
+    sediment_porewater_kg_per_m3: Mapping[str, float]
+    #: Uncapped bare-sediment areal flux [kg m^-2 s^-1], per element.  The
+    #: reference against which attenuation is measured.
+    bare_flux_kg_per_m2_per_s: Mapping[str, float]
+    seepage_velocity_m_per_s: float
+    film_transfer_m_per_s: float
     label: ProvenanceLabel = ProvenanceLabel.SYNTHETIC_DEMO
-    description: str = "hypothetical source; not a located real hotspot"
+    description: str = (
+        "Hypothetical authorised contaminant hotspot for a demonstration. "
+        "Not a located real site, and not an ordnance object."
+    )
+
+    @property
+    def n_cells(self) -> int:
+        return len(self.cell_indices)
+
+
+@dataclass(frozen=True, slots=True)
+class SeabedSourceField:
+    """The residual flux entering the water column, per element.
+
+    This is what the reactive layer hands to the coastal model.  Arrays are
+    ``(ny, nx)`` in kg m^-2 s^-1 and are zero outside the hotspot.
+    ``components`` breaks the total into the covered, uncovered, damaged and
+    edge-leakage contributions, so a map can show *why* a cell emits.
+    """
+
+    time_utc: datetime
+    flux_kg_per_m2_per_s: Mapping[str, np.ndarray]
+    components: Mapping[str, Mapping[str, np.ndarray]] = field(default_factory=dict)
+    provenance: ProvenanceLabel = ProvenanceLabel.SYNTHETIC_DEMO
+    notes: str = ""
+
+    def total_rate_kg_per_s(self, element: Element | str, grid: GridSpec) -> float:
+        key = element.value if isinstance(element, Element) else element
+        return float(np.sum(self.flux_kg_per_m2_per_s[key]) * grid.cell_area_m2)
 
 
 @dataclass(frozen=True, slots=True)
@@ -377,28 +598,29 @@ class TransportStep:
     new_field: FieldState
     boundary_in_kg: Mapping[str, float]
     boundary_out_kg: Mapping[str, float]
+    released_from_seabed_kg: Mapping[str, float]
     diagnostics: Mapping[str, Any] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
-# Micro (material) side
+# Micro (reactive layer) side
 # ---------------------------------------------------------------------------
 
 @dataclass(frozen=True, slots=True)
 class MaterialParameters:
-    """Reduced sorbent parameters for **one** element.
+    """Reduced reactive-medium parameters for **one** element.
 
     ``kd_m3_per_kg``
-        partition slope of the capped linear isotherm, q_eq = Kd * c (kg/kg).
+        partition slope of the capped linear isotherm, q_eq = Kd * C (kg/kg).
     ``q_max_kg_per_kg``
-        capacity cap of the isotherm (kg metal per kg of *allocated* sorbent).
+        operating capacity cap.  Not a literature maximum [S01, S04].
     ``k_rate_per_s``
         first-order approach-to-equilibrium rate constant.
     ``allocation_fraction``
-        share of the panel's sorbent mass assigned to this element.  The sum
-        over elements must not exceed 1: mesh capacity is never double-counted.
-    All values are synthetic demonstration parameters unless ``provenance``
-    says otherwise; literature maxima are not operating capacities [S01, S04].
+        share of the medium assigned to this element.  The sum over elements
+        must not exceed 1: capacity is never counted twice.
+    ``d_eff_m2_per_s``
+        effective diffusion in the layer porewater, tortuosity included.
     """
 
     element: Element
@@ -406,103 +628,200 @@ class MaterialParameters:
     q_max_kg_per_kg: float
     k_rate_per_s: float
     allocation_fraction: float
+    d_eff_m2_per_s: float = 2.0e-10
     kd_interval: tuple[float, float] | None = None
     q_max_interval: tuple[float, float] | None = None
     k_rate_interval: tuple[float, float] | None = None
+    d_eff_interval: tuple[float, float] | None = None
+    #: Fraction of accessible capacity lost at full fouling.
     fouling_rate_capacity: float = 0.0
+    #: Fraction of the approach rate lost at full fouling.
     fouling_rate_kinetics: float = 1.0
+    #: Fraction of effective diffusivity lost at full fouling (pore blockage).
+    fouling_rate_diffusivity: float = 0.6
     provenance: ProvenanceLabel = ProvenanceLabel.SYNTHETIC_DEMO
     source_ref: str = "assumed synthetic baseline; see docs/MODEL_SPEC.md"
 
 
 @dataclass(frozen=True, slots=True)
-class PanelGeometry:
-    """Physical footprint of one retrievable panel."""
+class MatTileGeometry:
+    """One replaceable module of the mat.
+
+    A tile lies flat on the seabed.  It has an area and a thickness, not a
+    frontal area: nothing here is swept by a lateral current.
+    """
 
     width_m: float
-    height_m: float
+    length_m: float
+    thickness_m: float
     x_m: float
     y_m: float
-    #: Documented, uncertain fraction of the water passing the panel's frontal
-    #: area that actually contacts reactive material.  Not a claim that every
-    #: molecule in a grid cell passes through the panel.
-    interception_efficiency: float = 0.5
-    interception_interval: tuple[float, float] | None = None
+    #: Dry bulk density of the reactive medium in the layer [kg m^-3].
+    bulk_density_kg_per_m3: float = 400.0
+    porosity: float = 0.5
+    #: Fraction of the flux that leaks around the tile edge rather than passing
+    #: through the reactive layer.  A documented, uncertain design parameter.
+    edge_leakage_fraction: float = 0.02
+    edge_leakage_interval: tuple[float, float] | None = None
 
     @property
-    def frontal_area_m2(self) -> float:
-        return self.width_m * self.height_m
+    def footprint_area_m2(self) -> float:
+        return self.width_m * self.length_m
+
+    @property
+    def sorbent_loading_kg_per_m2(self) -> float:
+        """Reactive medium per unit seabed area."""
+        return self.bulk_density_kg_per_m3 * self.thickness_m
+
+    @property
+    def sorbent_mass_kg(self) -> float:
+        return self.sorbent_loading_kg_per_m2 * self.footprint_area_m2
 
 
 @dataclass(frozen=True, slots=True)
-class PanelState:
-    """Auditable per-panel state.  ``retained_kg`` never decreases silently."""
+class MatTileState:
+    """Auditable per-tile state.
 
-    panel_id: str
+    The four degradation modes live in four independent fields, so a
+    performance loss can be attributed rather than blamed on saturation.
+    Sorbed mass never decreases silently.
+    """
+
+    tile_id: str
     media_id: str
     installed_at_utc: datetime
-    sorbent_mass_kg: float
-    geometry: PanelGeometry
-    retained_kg: Mapping[str, float]
-    fouling_fraction: float = 0.0
+    geometry: MatTileGeometry
+    #: Porewater concentration profile through the layer, ``(nz,)`` per element.
+    porewater_kg_per_m3: Mapping[str, np.ndarray]
+    #: Sorbed loading profile through the layer, ``(nz,)`` per element.
+    sorbed_kg_per_kg: Mapping[str, np.ndarray]
+    #: Mode 2.  0 = clean, 1 = fully fouled.
+    fouling_index: float = 0.0
+    #: Mode 4.  1 = intact, 0 = wholly failed.  The share of tile area still
+    #: functioning; the remainder passes the bare flux straight through.
+    integrity_index: float = 1.0
+    #: Mode 3.  Sediment accumulated on top of the tile [m].
+    burial_depth_m: float = 0.0
+    #: Mode 3.  Horizontal offset from the as-laid position [m].
+    displacement_m: float = 0.0
+    #: Mode 3.  A displaced tile no longer covers its cells at all.
+    displaced: bool = False
     active: bool = True
     service_count: int = 0
 
-    def allocated_mass_kg(self, params: MaterialParameters) -> float:
-        return self.sorbent_mass_kg * params.allocation_fraction
+    @property
+    def n_nodes(self) -> int:
+        return int(next(iter(self.porewater_kg_per_m3.values())).shape[0])
 
-    def loading_kg_per_kg(self, params: MaterialParameters) -> float:
-        allocated = self.allocated_mass_kg(params)
-        if allocated <= 0.0:
+    @property
+    def coverage_fraction(self) -> float:
+        """Share of the tile's footprint still providing a reactive layer."""
+        if self.displaced or not self.active:
             return 0.0
-        return self.retained_kg.get(params.element.value, 0.0) / allocated
+        return max(0.0, min(1.0, self.integrity_index))
 
-    def nominal_capacity_kg(self, params: MaterialParameters) -> float:
-        return self.allocated_mass_kg(params) * params.q_max_kg_per_kg
+    def dz_m(self) -> float:
+        return self.geometry.thickness_m / self.n_nodes
+
+    def retained_kg_per_m2(self, element: Element | str) -> float:
+        """Sorbed plus dissolved inventory per unit seabed area."""
+        key = element.value if isinstance(element, Element) else element
+        dz = self.dz_m()
+        porewater = np.asarray(self.porewater_kg_per_m3[key], dtype=float)
+        sorbed = np.asarray(self.sorbed_kg_per_kg[key], dtype=float)
+        return float(
+            np.sum(
+                self.geometry.porosity * porewater
+                + self.geometry.bulk_density_kg_per_m3 * sorbed
+            )
+            * dz
+        )
+
+    def retained_kg(self, element: Element | str) -> float:
+        return self.retained_kg_per_m2(element) * self.geometry.footprint_area_m2
+
+    def capacity_kg_per_m2(self, params: MaterialParameters) -> float:
+        """Nominal capacity for one element, using its allocated medium."""
+        return (
+            self.geometry.sorbent_loading_kg_per_m2
+            * params.allocation_fraction
+            * params.q_max_kg_per_kg
+        )
+
+    def saturation_fraction(self, params: MaterialParameters) -> float:
+        """Active-media saturation for one element, in ``[0, 1+]``."""
+        capacity = self.capacity_kg_per_m2(params)
+        if capacity <= 0.0:
+            return 0.0
+        key = params.element.value
+        dz = self.dz_m()
+        sorbed = np.asarray(self.sorbed_kg_per_kg[key], dtype=float)
+        sorbed_kg_per_m2 = float(
+            np.sum(self.geometry.bulk_density_kg_per_m3 * sorbed) * dz
+        )
+        return sorbed_kg_per_m2 / capacity
 
 
 @dataclass(frozen=True, slots=True)
-class ContactBatch:
-    """What one panel actually sees during one step.
+class SeabedExchange:
+    """The conditions one tile sees over one step.
 
-    ``available_kg`` is the contaminant mass genuinely reachable in this step,
-    already bounded by the water volume swept and by the grid-cell inventory.
-    It is *not* the source's whole release.
+    Replaces the vertical-panel ``ContactBatch``.  There is no swept volume and
+    no interception efficiency: the driving conditions are the sediment
+    porewater beneath the tile and the bottom water above it.
     """
 
-    panel_id: str
+    tile_id: str
     time_utc: datetime
     dt_s: float
-    concentration_kg_per_m3: Mapping[str, float]
-    concentration_interpretation: str
-    available_kg: Mapping[str, float]
-    exchange_volume_m3: float
-    exchange_is_measured: bool
+    #: Driving porewater concentration at the sediment face [kg m^-3].
+    sediment_porewater_kg_per_m3: Mapping[str, float]
+    #: Overlying bottom-water concentration [kg m^-3], from the coastal field.
+    bottom_water_kg_per_m3: Mapping[str, float]
+    #: Darcy seepage velocity through the layer [m s^-1], positive upward.
+    seepage_velocity_m_per_s: float
+    #: Benthic boundary-layer transfer coefficient [m s^-1].
+    film_transfer_m_per_s: float
+    #: Uncapped reference flux for the same conditions [kg m^-2 s^-1].
+    bare_flux_kg_per_m2_per_s: Mapping[str, float]
     cell_indices: Sequence[int]
     cell_weights: Sequence[float]
+    driving_is_measured: bool = False
     environment: Mapping[str, float] = field(default_factory=dict)
     diagnostics: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
-class PanelStep:
-    new_state: PanelState
-    uptake_kg_by_element: Mapping[str, float]
-    release_kg_by_element: Mapping[str, float]
+class LayerStep:
+    """What one tile did over one step.
+
+    Fluxes are per unit seabed area.  ``flux_out`` is the residual flux the
+    coastal model receives; it is never a mass subtracted from a water cell.
+    """
+
+    new_state: MatTileState
+    flux_in_kg_per_m2_per_s: Mapping[str, float]
+    flux_out_kg_per_m2_per_s: Mapping[str, float]
+    retained_delta_kg_per_m2: Mapping[str, float]
+    released_kg_per_m2: Mapping[str, float]
+    exchange: SeabedExchange | None = None
     diagnostics: Mapping[str, Any] = field(default_factory=dict)
-    #: The batch this step answered.  ``apply_transfers`` uses its
-    #: ``cell_indices`` / ``cell_weights`` to put the mass back exactly where it
-    #: came from, without needing a second argument.
-    contact_batch: ContactBatch | None = None
+
+    def attenuation(self, element: Element | str, bare_flux: float) -> float | None:
+        """``1 - J_out / J_bare``, or ``None`` when there is no flux to attenuate."""
+        key = element.value if isinstance(element, Element) else element
+        if bare_flux <= 0.0:
+            return None
+        return 1.0 - self.flux_out_kg_per_m2_per_s[key] / bare_flux
 
 
 @dataclass(frozen=True, slots=True)
 class ServiceEvent:
-    """A simulated maintenance action that changed a panel."""
+    """A simulated maintenance action that changed one or more tiles."""
 
     event_id: str
     time_utc: datetime
-    panel_id: str
+    tile_ids: Sequence[str]
     kind: str
     old_media_id: str | None
     new_media_id: str | None
@@ -516,36 +835,46 @@ class ServiceEvent:
 class MassLedger:
     """Per-element mass bookkeeping for a whole run.
 
-    Invariant checked in the tests::
+    The contaminant now enters the water *from the seabed through the mat*, so
+    the compartments are source-driven::
 
-        initial_water + emitted + boundary_in
-          == in_water + in_active_mesh + in_retrieved_media + boundary_out
-             + numerical_correction
+        initial_water + released_from_sediment + boundary_in
+          == in_water + retained_in_mat + retained_in_retrieved_media
+             + boundary_out + numerical_correction
 
-    ``numerical_correction`` records any clipping the solver had to apply.  It
-    is reported, never hidden.
+    ``released_from_sediment_kg`` is the gross mass that left the sediment,
+    whether it entered a tile or passed straight into the water where the mat is
+    absent, displaced or torn.  The sediment reservoir itself is prescribed and
+    not depleted, which is a documented assumption, not a conservation claim.
+
+    ``numerical_correction_kg`` records any clipping the solvers applied.  It is
+    reported, never hidden.
     """
 
     element: str
     initial_water_kg: float = 0.0
-    emitted_kg: float = 0.0
+    released_from_sediment_kg: float = 0.0
     boundary_in_kg: float = 0.0
     in_water_kg: float = 0.0
-    in_active_mesh_kg: float = 0.0
-    in_retrieved_media_kg: float = 0.0
+    retained_in_mat_kg: float = 0.0
+    retained_in_retrieved_media_kg: float = 0.0
     boundary_out_kg: float = 0.0
     numerical_correction_kg: float = 0.0
 
     @property
     def supplied_kg(self) -> float:
-        return self.initial_water_kg + self.emitted_kg + self.boundary_in_kg
+        return (
+            self.initial_water_kg
+            + self.released_from_sediment_kg
+            + self.boundary_in_kg
+        )
 
     @property
     def accounted_kg(self) -> float:
         return (
             self.in_water_kg
-            + self.in_active_mesh_kg
-            + self.in_retrieved_media_kg
+            + self.retained_in_mat_kg
+            + self.retained_in_retrieved_media_kg
             + self.boundary_out_kg
             + self.numerical_correction_kg
         )
@@ -565,35 +894,42 @@ class MassLedger:
 # ---------------------------------------------------------------------------
 
 @dataclass(frozen=True, slots=True)
-class OperatorKnownPanel:
+class OperatorKnownMat:
     """What an operator legitimately knows without measuring anything.
 
-    Deployment paperwork, essentially: which panel, which media batch, when it
-    went in, how much sorbent it holds, its geometry, and which service actions
-    were actually accepted.  It carries **no** retained mass and no fouling
-    state -- those are exactly what has to be estimated.
+    Deployment paperwork: which tiles, which media batch, when they went in,
+    their geometry, and which service actions were accepted.  It carries no
+    loading, no fouling and no integrity: those are exactly what has to be
+    estimated.
     """
 
-    panel_id: str
+    mat_id: str
+    tile_ids: Sequence[str]
     media_id: str
     installed_at_utc: datetime
-    sorbent_mass_kg: float
-    geometry: PanelGeometry
+    geometry: MatTileGeometry
+    hotspot_area_m2: float
+    covered_area_m2: float
     accepted_service_events: Sequence[ServiceEvent] = ()
+
+    @property
+    def design_coverage_fraction(self) -> float:
+        if self.hotspot_area_m2 <= 0.0:
+            return 0.0
+        return self.covered_area_m2 / self.hotspot_area_m2
 
 
 @dataclass(frozen=True, slots=True)
 class ModelHistory:
     """The ``model_history`` argument of ``update_estimate``.
 
-    It contains only operator-available information: deployment facts, the
-    prior parameter ranges (assumptions, not fitted truth), and the estimator's
-    own previous snapshots.  Drivers -- current speed, upstream concentration --
-    are derived from the observation records themselves, so there is no path
-    from the hidden simulator into this object.
+    Operator-available information only: deployment facts, prior parameter
+    ranges (assumptions, not fitted truth), and the estimator's own previous
+    snapshots.  Drivers are derived from the observation records themselves, so
+    there is no path from the hidden simulator into this object.
     """
 
-    panel: OperatorKnownPanel
+    mat: OperatorKnownMat
     material_priors: Mapping[str, MaterialParameters]
     elements: Sequence[str]
     reference_time_utc: datetime
@@ -613,19 +949,37 @@ class EstimateSnapshot:
     """Operator-facing state estimate.  Contains no hidden event label.
 
     Intervals are documented central credible intervals of the weighted
-    parameter ensemble at ``interval_level`` (default 0.90, i.e. the 5th and
-    95th weighted percentiles).
+    parameter ensemble at ``interval_level`` (default 0.90, the 5th and 95th
+    weighted percentiles).
+
+    Remaining life is deliberately an interval or ``None``.  A falsely precise
+    remaining-life number is worse than an honest "not determined".
     """
 
     time_utc: datetime
-    panel_id: str
-    retained_kg_estimate: Mapping[str, float]
-    retained_kg_interval: Mapping[str, tuple[float, float]]
-    remaining_life_s_interval: Mapping[str, tuple[float, float] | None]
+    tile_id: str
+    #: Sorbed loading per unit area, per element [kg m^-2].
+    loading_kg_per_m2_estimate: Mapping[str, float]
+    loading_kg_per_m2_interval: Mapping[str, tuple[float, float]]
+    #: Remaining capacity per unit area, per element [kg m^-2].
+    remaining_capacity_kg_per_m2: Mapping[str, tuple[float, float]]
+    #: Residual flux leaving the mat, per element [kg m^-2 s^-1].
+    residual_flux_interval: Mapping[str, tuple[float, float]]
+    #: Estimated sediment-side source flux, per element [kg m^-2 s^-1].
+    source_flux_interval: Mapping[str, tuple[float, float]]
+    #: ``1 - J_out / J_bare`` per element, as an interval.
+    attenuation_interval: Mapping[str, tuple[float, float]]
+    breakthrough_s_interval: Mapping[str, tuple[float, float] | None]
+    fouling_index_interval: tuple[float, float] | None
+    integrity_index_interval: tuple[float, float] | None
+    effective_permeability_interval: tuple[float, float] | None
     data_age_s: Mapping[str, float | None]
     model_data_compatibility: float | None
     evidence_record_ids: Sequence[str]
     ambiguity_flags: Sequence[AmbiguityFlag]
+    #: Weight the evidence gives each degradation mode.  Reported side by side
+    #: so no single mode is assumed.
+    degradation_mode_weights: Mapping[str, float] = field(default_factory=dict)
     interval_level: float = 0.90
     ensemble_size: int = 0
     origin: StateOrigin = StateOrigin.ESTIMATED
@@ -639,12 +993,13 @@ class Recommendation:
 
     recommendation_id: str
     decision_time_utc: datetime
-    panel_id: str
+    mat_id: str
     action: ActionKind
     reason: str
     evidence_record_ids: Sequence[str]
     uncertainty_note: str
     data_age_s: float | None
+    target_tile_ids: Sequence[str] = ()
     human_confirmation_required: bool = True
     execution_mode: str = "simulation_only"
     expected_cost_eur: float | None = None
@@ -659,31 +1014,67 @@ class Recommendation:
 
 @dataclass(frozen=True, slots=True)
 class ActionEvent:
-    """A recommendation a (simulated) human accepted; separate from the
-    recommendation itself, so duplicates cannot create repeated replacements."""
+    """A recommendation a simulated human accepted.
+
+    Separate from the recommendation itself, so duplicates cannot create
+    repeated replacements.
+    """
 
     action_event_id: str
     recommendation_id: str
     accepted_at_utc: datetime
     action: ActionKind
-    panel_id: str
+    mat_id: str
     accepted: bool
+    target_tile_ids: Sequence[str] = ()
     cost_eur: float = 0.0
     note: str = ""
 
 
 # ---------------------------------------------------------------------------
-# Frozen function signatures (DATA_CONTRACT section 2)
+# Frozen function signatures (docs/DATA_CONTRACT.md section 2)
 # ---------------------------------------------------------------------------
 
-class AdvancePanel(Protocol):
+class AdvanceReactiveLayer(Protocol):
+    """1-D reactive layer through the mat thickness, for one tile, one step."""
+
     def __call__(
         self,
-        panel_state: PanelState,
-        contact_batch: ContactBatch,
+        tile_state: MatTileState,
+        exchange: SeabedExchange,
         material_parameters: Mapping[str, MaterialParameters],
         dt_s: float,
-    ) -> PanelStep: ...
+    ) -> LayerStep: ...
+
+
+class BuildSeabedExchange(Protocol):
+    """Driving conditions per tile, from the hotspot and the overlying field."""
+
+    def __call__(
+        self,
+        field_state: FieldState,
+        tiles: Sequence[MatTileState],
+        hotspot: SeabedHotspot,
+        forcing: Forcing,
+        dt_s: float,
+    ) -> Sequence[SeabedExchange]: ...
+
+
+class ResidualSourceFlux(Protocol):
+    """Tile states plus hotspot to the distributed source the water receives.
+
+    Covered area emits the tile's ``flux_out``; uncovered, displaced or torn
+    area emits the bare flux; edge leakage is added on footprint boundary cells.
+    """
+
+    def __call__(
+        self,
+        grid: GridSpec,
+        hotspot: SeabedHotspot,
+        tiles: Sequence[MatTileState],
+        layer_steps: Sequence[LayerStep],
+        time_utc: datetime,
+    ) -> SeabedSourceField: ...
 
 
 class TransportStepFn(Protocol):
@@ -691,27 +1082,9 @@ class TransportStepFn(Protocol):
         self,
         field_state: FieldState,
         forcing: Forcing,
-        sources: Sequence[SourceTerm],
+        sources: SeabedSourceField,
         dt_s: float,
     ) -> TransportStep: ...
-
-
-class BuildContacts(Protocol):
-    def __call__(
-        self,
-        field_state: FieldState,
-        panels: Sequence[PanelState],
-        forcing: Forcing,
-        dt_s: float,
-    ) -> Sequence[ContactBatch]: ...
-
-
-class ApplyTransfers(Protocol):
-    def __call__(
-        self,
-        field_state: FieldState,
-        panel_steps: Sequence[PanelStep],
-    ) -> FieldState: ...
 
 
 class ObservationsAvailable(Protocol):

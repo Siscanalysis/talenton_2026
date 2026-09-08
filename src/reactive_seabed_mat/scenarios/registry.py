@@ -1,11 +1,23 @@
-"""The demonstration scenes, as configuration variations.  Coordinator-owned.
+"""The demonstration scenarios, as configuration variations.  Coordinator-owned.
 
-Each scene is a pure function of the default :class:`~reactive_seabed_mat.config.RunConfig`,
-so two scenes differ only in what their description says they differ in.  The
-policy comparison (``none`` / ``fixed`` / ``evidence_informed``) is applied on
-top of a scene, which is what makes "under identical assumptions" true rather
-than merely claimed: same seed, same forcing, same source schedule, same
-observation schedule.
+Each scenario is a pure function of the default
+:class:`~reactive_seabed_mat.config.RunConfig`, so two scenarios differ only in
+what their description says they differ in.  The policy comparison
+(``none`` / ``fixed`` / ``evidence_informed``) is applied on top of a scenario,
+which is what makes "under identical assumptions" true rather than merely
+claimed: same seed, same forcing, same hotspot schedule, same observation
+schedule.
+
+Scenarios A to F follow the brief:
+
+======  ==========================  =================================================
+A       ``fresh_mat``               fresh mat, moderate source
+B       ``progressive_saturation``  same source, the mat progressively saturates
+C       ``increased_leak``          the leak rate increases
+D       ``displaced_section``       a section is displaced and a tile is punctured
+E       ``delayed_chemistry``       late chemistry changes the maintenance decision
+F       ``undersized_mat``          a deliberately poor design
+======  ==========================  =================================================
 """
 
 from __future__ import annotations
@@ -14,24 +26,24 @@ from dataclasses import replace
 from typing import Callable, Mapping
 
 from ..config import (
-    ForcingConfig,
-    MaterialConfig,
-    ObservationConfig,
-    PanelConfig,
-    PolicyConfig,
+    DegradationConfig,
+    DegradationEvent,
+    HotspotScheduleEntry,
     RunConfig,
-    SourceConfig,
-    SourceScheduleEntry,
     default_run_config,
 )
 
+_SECONDS_PER_DAY = 86400.0
+_SECONDS_PER_YEAR = 365.25 * _SECONDS_PER_DAY
+
 __all__ = [
-    "SCENES",
+    "SCENARIOS",
     "POLICIES",
-    "build_scene",
-    "scene_description",
+    "build_scenario",
+    "scenario_description",
+    "scenario_letter",
     "policy_variant",
-    "list_scenes",
+    "list_scenarios",
 ]
 
 
@@ -40,198 +52,241 @@ def _base(run_id: str, scenario: str, **overrides) -> RunConfig:
 
 
 # ---------------------------------------------------------------------------
-# Scene 1 - baseline
+# A - fresh mat, moderate source
 # ---------------------------------------------------------------------------
 
-def scene_baseline() -> RunConfig:
-    """Fresh panel under steady forcing, against the same run with no mesh."""
-    return _base("baseline", "baseline")
+def scenario_fresh_mat() -> RunConfig:
+    """A fresh, fully covering mat over a moderate hotspot.
+
+    The reference case, and the one the no-mat run is compared against under
+    identical forcing.
+    """
+    return _base("fresh_mat", "fresh_mat", duration_s=1.0 * _SECONDS_PER_YEAR)
 
 
 # ---------------------------------------------------------------------------
-# Scene 2 - loading and fouling
+# B - the mat progressively saturates
 # ---------------------------------------------------------------------------
 
-def scene_loading_fouling() -> RunConfig:
-    """A partially preloaded panel that fouls, so predicted performance falls
-    and the interval widens.  The preload is explicit in the exported config;
-    uptake parameters are not inflated to force saturation."""
-    config = _base("loading_fouling", "loading_fouling", duration_s=345600.0)
-    panel = config.panels[0]
-    preloaded = replace(
-        panel,
-        preload_kg={"Pb": 0.55 * panel.sorbent_mass_kg * 0.6 * 6.0e-5, "Hg": 0.0},
-        fouling_growth_per_s=6.0e-6,
+def scenario_progressive_saturation() -> RunConfig:
+    """Same source, run long enough for the medium to load and break through.
+
+    Nothing about the chemistry is changed: only the simulated duration. The
+    attenuation falls because capacity is consumed, which is what makes
+    criterion 4 (loading affects later performance) demonstrable rather than
+    asserted.
+    """
+    return _base(
+        "progressive_saturation",
+        "progressive_saturation",
+        duration_s=6.0 * _SECONDS_PER_YEAR,
     )
-    return replace(config, panels=(preloaded,))
 
 
 # ---------------------------------------------------------------------------
-# Scene 3a - source change,  3b - current reversal
+# C - the leak rate increases
 # ---------------------------------------------------------------------------
 
-def scene_source_change() -> RunConfig:
-    """The release triples half-way through.  Station readings rise."""
-    config = _base("source_change", "source_change")
+def scenario_increased_leak() -> RunConfig:
+    """The sediment-side driving conditions worsen after two years.
+
+    The porewater concentration triples and the seepage velocity doubles. The
+    mat is unchanged, so a rising residual flux here means a stronger source,
+    not a failing cap. Distinguishing the two is the estimator's job.
+    """
+    config = _base("increased_leak", "increased_leak", duration_s=6.0 * _SECONDS_PER_YEAR)
+    base_entry = config.hotspot.schedule[0]
     schedule = (
-        SourceScheduleEntry(0.0, {"Pb": 2.0e-7, "Hg": 2.0e-9}),
-        SourceScheduleEntry(129600.0, {"Pb": 6.0e-7, "Hg": 6.0e-9}),
+        base_entry,
+        HotspotScheduleEntry(
+            start_s=2.0 * _SECONDS_PER_YEAR,
+            porewater_kg_per_m3={
+                element: 3.0 * value
+                for element, value in base_entry.porewater_kg_per_m3.items()
+            },
+            seepage_velocity_m_per_s=2.0 * base_entry.seepage_velocity_m_per_s,
+        ),
     )
-    return replace(config, source=replace(config.source, schedule=schedule))
-
-
-def scene_current_reversal() -> RunConfig:
-    """The source is unchanged, but the tide reverses the flow.  Station
-    readings change for a completely different reason.  This is the pair that
-    shows why current data and targeted sampling are worth their cost."""
-    config = _base("current_reversal", "current_reversal")
-    forcing = ForcingConfig(
-        kind="tidal",
-        u_mean_m_per_s=0.02,
-        tidal_amplitude_m_per_s=0.22,
-        diffusivity_m2_per_s=0.6,
-    )
-    return replace(config, forcing=forcing)
+    return replace(config, hotspot=replace(config.hotspot, schedule=schedule))
 
 
 # ---------------------------------------------------------------------------
-# Scene 4 - sensor dropout, drift and delayed chemistry
+# D - a section is displaced or fails locally
 # ---------------------------------------------------------------------------
 
-def scene_sensor_dropout() -> RunConfig:
-    """The metal probe drops out for a day and drifts afterwards, while the
-    laboratory result for the missing period is still in transit.  The correct
-    behaviour is a wider interval and an evidence-limited recommendation, never
-    a confident 'all safe'."""
-    config = _base("sensor_dropout", "sensor_dropout")
+def scenario_displaced_section() -> RunConfig:
+    """One tile is swept off its footprint; another is punctured.
+
+    Chemistry, source and forcing are untouched. The failure is spatially local:
+    the affected cells return to the bare-sediment flux while their neighbours
+    keep attenuating. This is the scenario that proves criterion 5, and the one
+    where reading the loss as saturation would be wrong.
+    """
+    config = _base(
+        "displaced_section", "displaced_section", duration_s=4.0 * _SECONDS_PER_YEAR
+    )
+    events = (
+        DegradationEvent(
+            start_s=1.5 * _SECONDS_PER_YEAR,
+            tile_id="tile_2_0",
+            mode="displacement",
+            magnitude=1.0,          # fully displaced off its footprint
+        ),
+        DegradationEvent(
+            start_s=2.2 * _SECONDS_PER_YEAR,
+            tile_id="tile_0_2",
+            mode="local_damage",
+            magnitude=0.35,         # 35 % of the tile area torn open
+        ),
+    )
+    return replace(config, degradation=replace(config.degradation, events=events))
+
+
+# ---------------------------------------------------------------------------
+# E - late chemistry changes the decision
+# ---------------------------------------------------------------------------
+
+def scenario_delayed_chemistry() -> RunConfig:
+    """The probe drops out and drifts while the laboratory result is in transit.
+
+    The correct behaviour is a wider interval and an evidence-limited
+    recommendation, never a confident "all safe". When the delayed result
+    finally becomes available it must be compared with the prediction at
+    *sampling* time, and it is allowed to change the decision then, not
+    retrospectively.
+    """
+    config = _base(
+        "delayed_chemistry", "delayed_chemistry", duration_s=4.0 * _SECONDS_PER_YEAR
+    )
     observations = replace(
         config.observations,
-        sensor_dropout_window_s=(86400.0, 172800.0),
-        sensor_drift_start_s=172800.0,
-        sensor_drift_per_s=2.5e-6,
-        lab_latency_s=216000.0,
+        sensor_dropout_window_s=(1.0 * _SECONDS_PER_YEAR, 1.25 * _SECONDS_PER_YEAR),
+        sensor_drift_start_s=1.25 * _SECONDS_PER_YEAR,
+        sensor_drift_per_s=6.0e-9,
+        lab_latency_s=75.0 * _SECONDS_PER_DAY,
     )
     return replace(config, observations=observations)
 
 
 # ---------------------------------------------------------------------------
-# Scene 5 - replacement
+# F - a deliberately poor design
 # ---------------------------------------------------------------------------
 
-def scene_replacement() -> RunConfig:
-    """A heavily preloaded panel reaches the replacement trigger, a simulated
-    operator accepts, capacity resets and the retrieved mass stays on the
-    ledger."""
-    config = _base("replacement", "replacement", duration_s=345600.0)
-    panel = config.panels[0]
-    preloaded = replace(
-        panel,
-        preload_kg={"Pb": 0.74 * panel.sorbent_mass_kg * 0.6 * 6.0e-5, "Hg": 0.0},
+def scenario_undersized_mat() -> RunConfig:
+    """Too small, too thin, and laid over a stronger seep.
+
+    The mat covers only 45 % of the hotspot and is 2 mm thick instead of 10 mm,
+    so most of the area is never treated and the treated part saturates quickly.
+    Capture is poor and the cost per kilogram retained is bad. This scenario
+    exists so the demonstration is not tuned to succeed, and it is a real
+    outcome of the same equations, not a special case.
+    """
+    config = _base("undersized_mat", "undersized_mat", duration_s=4.0 * _SECONDS_PER_YEAR)
+    mat = replace(
+        config.mat,
+        coverage_fraction=0.45,
+        thickness_m=0.002,
+        tiles_x=2,
+        tiles_y=2,
+        edge_leakage_fraction=0.10,
     )
-    policy = replace(config.policy, replacement_loading_threshold=0.78)
-    return replace(config, panels=(preloaded,), policy=policy)
-
-
-# ---------------------------------------------------------------------------
-# Scene 6 - the unfavourable case
-# ---------------------------------------------------------------------------
-
-def scene_poor_performance() -> RunConfig:
-    """A deliberately unfavourable case: weak interception and slow kinetics in
-    a faster current.  Capture is negligible and the cost per captured kg is
-    absurd.  This is a real outcome of the same equations, and it is included
-    so the demonstration is not tuned to succeed."""
-    config = _base("poor_performance", "poor_performance")
-    panel = config.panels[0]
-    slow_materials = tuple(
-        replace(
-            material,
-            k_rate_per_s=material.k_rate_per_s / 40.0,
-            k_rate_interval=(
-                material.k_rate_interval[0] / 40.0,
-                material.k_rate_interval[1] / 40.0,
-            ),
-        )
-        for material in panel.materials
+    base_entry = config.hotspot.schedule[0]
+    schedule = (
+        HotspotScheduleEntry(
+            start_s=0.0,
+            porewater_kg_per_m3=dict(base_entry.porewater_kg_per_m3),
+            seepage_velocity_m_per_s=3.0 * base_entry.seepage_velocity_m_per_s,
+        ),
     )
-    weak_panel = replace(
-        panel,
-        interception_efficiency=0.05,
-        interception_interval=(0.01, 0.12),
-        sorbent_mass_kg=8.0,
-        materials=slow_materials,
+    return replace(
+        config,
+        mat=mat,
+        hotspot=replace(config.hotspot, schedule=schedule),
     )
-    forcing = replace(config.forcing, u_mean_m_per_s=0.30)
-    return replace(config, panels=(weak_panel,), forcing=forcing)
 
 
-SCENES: Mapping[str, Callable[[], RunConfig]] = {
-    "baseline": scene_baseline,
-    "loading_fouling": scene_loading_fouling,
-    "source_change": scene_source_change,
-    "current_reversal": scene_current_reversal,
-    "sensor_dropout": scene_sensor_dropout,
-    "replacement": scene_replacement,
-    "poor_performance": scene_poor_performance,
+SCENARIOS: Mapping[str, Callable[[], RunConfig]] = {
+    "fresh_mat": scenario_fresh_mat,
+    "progressive_saturation": scenario_progressive_saturation,
+    "increased_leak": scenario_increased_leak,
+    "displaced_section": scenario_displaced_section,
+    "delayed_chemistry": scenario_delayed_chemistry,
+    "undersized_mat": scenario_undersized_mat,
+}
+
+_LETTERS: Mapping[str, str] = {
+    "fresh_mat": "A",
+    "progressive_saturation": "B",
+    "increased_leak": "C",
+    "displaced_section": "D",
+    "delayed_chemistry": "E",
+    "undersized_mat": "F",
 }
 
 _DESCRIPTIONS: Mapping[str, str] = {
-    "baseline": (
-        "Scene 1. Fresh panel versus no mesh under identical forcing. Shows "
-        "captured and escaped mass per element."
+    "fresh_mat": (
+        "Scenario A. A fresh, fully covering mat over a moderate hotspot, "
+        "against the same hotspot with no mat under identical forcing."
     ),
-    "loading_fouling": (
-        "Scene 2. An explicitly preloaded panel fouls: predicted performance "
-        "declines and the uncertainty interval widens. Inspect or replace?"
+    "progressive_saturation": (
+        "Scenario B. The same source over six years: the medium loads, "
+        "attenuation falls and the layer breaks through. Only the duration "
+        "differs from A."
     ),
-    "source_change": (
-        "Scene 3a. The release triples. Station readings rise because more "
-        "metal is entering the water."
+    "increased_leak": (
+        "Scenario C. After two years the porewater concentration triples and "
+        "the seepage velocity doubles. The mat is unchanged, so a rising "
+        "residual flux means a stronger source, not a failing cap."
     ),
-    "current_reversal": (
-        "Scene 3b. The release is unchanged and the tide reverses. Station "
-        "readings change for a different reason. Same symptom, different "
-        "mechanism."
+    "displaced_section": (
+        "Scenario D. One tile is displaced off its footprint and another is "
+        "punctured. The failure is local: those cells return to the bare flux "
+        "while their neighbours keep working."
     ),
-    "sensor_dropout": (
-        "Scene 4. Probe dropout, then drift, with laboratory chemistry still in "
-        "transit. Recommendations stay evidence-limited."
+    "delayed_chemistry": (
+        "Scenario E. Probe dropout, then drift, with laboratory chemistry "
+        "still in transit. The late result changes the maintenance decision "
+        "when it arrives, and not before."
     ),
-    "replacement": (
-        "Scene 5. The replacement trigger is reached, a simulated operator "
-        "accepts, active capacity resets and retrieved mass stays on the ledger."
-    ),
-    "poor_performance": (
-        "Scene 6. The unfavourable case: weak interception, slow kinetics, "
-        "faster current. Negligible capture and no economic advantage."
+    "undersized_mat": (
+        "Scenario F. A deliberately poor design: 45 % coverage, 2 mm thick, "
+        "over a stronger seep. Poor capture and a bad cost per kilogram."
     ),
 }
 
 POLICIES: Mapping[str, str] = {
-    "none": "No mesh deployed. The reference case.",
+    "none": "No mat deployed. The bare-sediment reference case.",
     "fixed": "Fixed-interval servicing, ignoring the evidence.",
-    "evidence_informed": "Servicing recommended from the observations and their uncertainty.",
+    "evidence_informed": (
+        "Servicing recommended from the observations and their uncertainty."
+    ),
 }
 
 
-def scene_description(name: str) -> str:
+def scenario_description(name: str) -> str:
     return _DESCRIPTIONS[name]
 
 
-def list_scenes() -> list[str]:
-    return list(SCENES)
+def scenario_letter(name: str) -> str:
+    return _LETTERS[name]
 
 
-def build_scene(name: str) -> RunConfig:
+def list_scenarios() -> list[str]:
+    return list(SCENARIOS)
+
+
+def build_scenario(name: str) -> RunConfig:
     try:
-        factory = SCENES[name]
+        factory = SCENARIOS[name]
     except KeyError:
-        raise KeyError(f"unknown scene {name!r}; known scenes: {list(SCENES)}") from None
+        raise KeyError(
+            f"unknown scenario {name!r}; known: {list(SCENARIOS)}"
+        ) from None
     return factory()
 
 
 def policy_variant(config: RunConfig, policy_kind: str) -> RunConfig:
-    """Same scene, different maintenance policy.
+    """Same scenario, different maintenance policy.
 
     Only ``PolicyConfig.kind`` changes, so a comparison across policies really
     is a comparison under identical assumptions.  The run id records which
