@@ -1,7 +1,7 @@
 # Reference register
 
 Checked 8 September 2026, as supplied with the build packet. Full annotations
-are in `docs/MESH_DEMO_BUILD_BRIEF.md`. Entries S19–S22 are explicitly
+are in `docs/reactive_seabed_mat_BUILD_BRIEF.md`. Entries S19–S22 are explicitly
 historical or incompletely retrieved product evidence. A source note supports a
 bounded claim; none of them validates our device.
 

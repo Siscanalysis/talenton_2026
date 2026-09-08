@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mesh-demo"
-version = "0.1.0"
-description = "Offline presentation demonstrator for a sensor-informed marine reactive mesh (Pb first, Hg optional)"
+name = "reactive-seabed-mat-demo"
+version = "0.2.0"
+description = "Offline presentation demonstrator for a sensor-informed selective reactive seabed mat (Pb first, Hg optional)"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 license = { text = "MIT" }
@@ -26,10 +26,13 @@ dev = ["pytest>=8,<10"]
 ml = ["scikit-learn>=1.4,<2"]
 
 [project.scripts]
-mesh-demo = "mesh_demo.cli:main"
+reactive-seabed-mat-demo = "reactive_seabed_mat.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+reactive_seabed_mat = ["schemas/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

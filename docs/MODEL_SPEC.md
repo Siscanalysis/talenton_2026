@@ -6,7 +6,7 @@ maintenance. None of it is a validated product specification, and none of it is
 transferred from [S01] or [S04] as an operating capacity.
 
 Symbols use SI internally: mass kg, aqueous concentration kg m^-3, loading
-kg kg^-1, length m, time s (see `src/mesh_demo/units.py`).
+kg kg^-1, length m, time s (see `src/reactive_seabed_mat/units.py`).
 
 ---
 
@@ -18,7 +18,7 @@ kg kg^-1, length m, time s (see `src/mesh_demo/units.py`).
 | `results/<run>/observations/` | observation generator | estimator, policy, UI |
 | `results/<run>/estimates/` | estimator | policy, UI |
 
-`src/mesh_demo/feedback/` and the estimator must never import from the truth
+`src/reactive_seabed_mat/feedback/` and the estimator must never import from the truth
 store. `tests/feedback/test_no_hidden_truth.py` enforces this by static import
 inspection and by running the estimator with the truth directory removed.
 

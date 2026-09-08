@@ -6,8 +6,8 @@ from dataclasses import replace
 
 import pytest
 
-from mesh_demo.config import config_to_dict
-from mesh_demo.scenarios import registry
+from reactive_seabed_mat.config import config_to_dict
+from reactive_seabed_mat.scenarios import registry
 
 
 def test_every_scene_builds_and_is_described():

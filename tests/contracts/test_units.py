@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from mesh_demo import units
+from reactive_seabed_mat import units
 
 
 def test_aqueous_ladder_round_trip():

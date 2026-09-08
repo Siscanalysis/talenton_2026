@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-SRC = Path(__file__).resolve().parents[2] / "src" / "mesh_demo"
+SRC = Path(__file__).resolve().parents[2] / "src" / "reactive_seabed_mat"
 
 #: Packages that make operational recommendations.  They may read observations
 #: and their own estimates, never ``truth/``.
@@ -87,7 +87,7 @@ def test_operational_modules_never_name_the_truth_store(module: Path):
 
 
 def test_run_paths_operational_view_excludes_truth(tmp_path):
-    from mesh_demo.results import RunPaths
+    from reactive_seabed_mat.results import RunPaths
 
     paths = RunPaths.create(tmp_path, "run1")
     operational = paths.operational_paths()

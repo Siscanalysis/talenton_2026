@@ -24,7 +24,7 @@ uv pip install --python .venv\Scripts\python.exe -e . --no-deps
 .venv\Scripts\python.exe -m pytest -q
 
 # the five demonstration scenes plus the poor-performance case, offline
-.venv\Scripts\python.exe -m mesh_demo.cli run-all --out results
+.venv\Scripts\python.exe -m reactive_seabed_mat.cli run-all --out results
 
 # the local app (no account, no tile server, no network)
 .venv\Scripts\streamlit.exe run app/streamlit_app.py
@@ -42,7 +42,7 @@ Exact commands, timings and the five-minute narration are in
 | `docs/REUSE_AND_DATA.md` | Which solver stack was chosen, and what was deliberately not used |
 | `docs/REFERENCES.md` | Reference register S01–S30, U01 |
 | `docs/research/` | European supplier / interface evidence matrix |
-| `src/mesh_demo/` | The model: `micro/`, `transport/`, `observations/`, `feedback/`, `reporting/`, `scenarios/` |
+| `src/reactive_seabed_mat/` | The model: `micro/`, `transport/`, `observations/`, `feedback/`, `reporting/`, `scenarios/` |
 | `app/` | The Streamlit presentation app |
 | `tests/` | Contract, micro, transport, feedback, presentation and integration tests |
 | `results/` | Generated run outputs (git-ignored) |

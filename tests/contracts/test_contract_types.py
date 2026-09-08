@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 import numpy as np
 import pytest
 
-from mesh_demo import config as cfg
-from mesh_demo.contracts import (
+from reactive_seabed_mat import config as cfg
+from reactive_seabed_mat.contracts import (
     CONTRACT_VERSION,
     ActionKind,
     ContactBatch,
@@ -85,7 +85,7 @@ def test_recommendation_cannot_disable_human_confirmation():
 
 def test_panel_capacity_uses_allocated_mass_only():
     params = cfg.MaterialConfig()
-    from mesh_demo.contracts import MaterialParameters
+    from reactive_seabed_mat.contracts import MaterialParameters
 
     material = MaterialParameters(
         element=Element.PB,

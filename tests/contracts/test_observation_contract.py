@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from mesh_demo.contracts import (
+from reactive_seabed_mat.contracts import (
     AcquisitionKind,
     DataOrigin,
     Fraction,
@@ -22,9 +22,9 @@ from mesh_demo.contracts import (
     Qualifier,
     QualityFlag,
 )
-from mesh_demo.observations import records as obs
+from reactive_seabed_mat.observations import records as obs
 
-FIXTURE = Path(__file__).resolve().parents[2] / "data" / "examples" / "observations.jsonl"
+FIXTURE = Path(__file__).resolve().parents[2] / "data" / "synthetic" / "observations.jsonl"
 
 
 def _base_payload(**overrides):

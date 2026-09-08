@@ -8,10 +8,10 @@ not edit them.
 
 ```
 contracts/                        DATA_CONTRACT.md, observation.schema.json
-src/mesh_demo/contracts.py        frozen dataclasses and function signatures
-src/mesh_demo/units.py            SI conversions
-src/mesh_demo/config.py           the single run-configuration schema
-src/mesh_demo/observations/records.py   validation, JSONL I/O, the time gate
+src/reactive_seabed_mat/contracts.py        frozen dataclasses and function signatures
+src/reactive_seabed_mat/units.py            SI conversions
+src/reactive_seabed_mat/config.py           the single run-configuration schema
+src/reactive_seabed_mat/observations/records.py   validation, JSONL I/O, the time gate
 pyproject.toml, requirements.lock.txt   dependency lock
 tests/contracts/                  the frozen-contract test suite
 docs/MODEL_SPEC.md                equations and acceptance rules
@@ -25,14 +25,14 @@ current types.
 
 | Branch | Prompt | Owned paths |
 |---|---|---|
-| `feat/mesh-care` | `prompts/02_mesh_care.md` | `src/mesh_demo/micro/`, `tests/micro/`, `examples/micro/`, `docs/handoffs/mesh_care.md` |
-| `feat/coastal-2d` | `prompts/03_coastal_transport.md` | `src/mesh_demo/transport/`, `src/mesh_demo/transport/geodata/`, `tests/transport/`, `examples/transport/`, `docs/handoffs/coastal_2d.md` |
-| `feat/feedback` | `prompts/04_observations_feedback.md` | `src/mesh_demo/observations/` (except `records.py`), `src/mesh_demo/feedback/`, `tests/feedback/`, `examples/feedback/`, `docs/handoffs/feedback.md` |
-| `feat/presentation` | `prompts/05_presentation_integration.md` | `app/`, `src/mesh_demo/reporting/`, `tests/presentation/`, `examples/presentation/`, `docs/presentation/`, `docs/handoffs/presentation.md` |
+| `feat/mesh-care` | `prompts/02_mesh_care.md` | `src/reactive_seabed_mat/micro/`, `tests/micro/`, `examples/micro/`, `docs/handoffs/mesh_care.md` |
+| `feat/coastal-2d` | `prompts/03_coastal_transport.md` | `src/reactive_seabed_mat/transport/`, `src/reactive_seabed_mat/transport/geodata/`, `tests/transport/`, `examples/transport/`, `docs/handoffs/coastal_2d.md` |
+| `feat/feedback` | `prompts/04_observations_feedback.md` | `src/reactive_seabed_mat/observations/` (except `records.py`), `src/reactive_seabed_mat/feedback/`, `tests/feedback/`, `examples/feedback/`, `docs/handoffs/feedback.md` |
+| `feat/presentation` | `prompts/05_presentation_integration.md` | `app/`, `src/reactive_seabed_mat/reporting/`, `tests/presentation/`, `examples/presentation/`, `docs/presentation/`, `docs/handoffs/presentation.md` |
 | `research/sensors` | `prompts/01_sensor_supplier_research.md` | `docs/research/`, `data/vendor_evidence/`, `docs/handoffs/research_sensors.md` |
-| `feat/ml-extension` | `prompts/06_optional_ml.md` | `src/mesh_demo/ml/`, `tests/ml/`, `examples/ml/`, `docs/handoffs/ml_extension.md` |
+| `feat/ml-extension` | `prompts/06_optional_ml.md` | `src/reactive_seabed_mat/ml/`, `tests/ml/`, `examples/ml/`, `docs/handoffs/ml_extension.md` |
 
-`src/mesh_demo/scenarios/` and `src/mesh_demo/cli.py` are integration surface:
+`src/reactive_seabed_mat/scenarios/` and `src/reactive_seabed_mat/cli.py` are integration surface:
 coordinator-owned, written after the branches merge.
 
 ## Non-negotiable rules

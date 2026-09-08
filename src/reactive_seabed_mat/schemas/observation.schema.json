@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/reactive-seabed-mat-demo/observation.schema.json",
+  "title": "Mesh demonstrator observation record (shared contract v0.1)",
+  "description": "One measured parameter per record, long form. Non-detect is a bound, not a zero; a missing value is not a non-detect. Units are explicit and never inferred from the parameter name.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "station_id",
+    "observed_at_utc",
+    "available_at_utc",
+    "parameter",
+    "unit",
+    "matrix",
+    "fraction",
+    "acquisition_kind",
+    "qualifier",
+    "quality_flag",
+    "method_id",
+    "data_origin"
+  ],
+  "properties": {
+    "record_id": {"type": "string", "minLength": 1},
+    "station_id": {"type": "string", "minLength": 1},
+    "sensor_id": {"type": ["string", "null"]},
+    "sample_id": {"type": ["string", "null"]},
+    "media_id": {"type": ["string", "null"]},
+    "observed_at_utc": {"type": "string", "pattern": "Z$"},
+    "available_at_utc": {"type": "string", "pattern": "Z$"},
+    "sampling_start_utc": {"type": ["string", "null"], "pattern": "Z$"},
+    "sampling_end_utc": {"type": ["string", "null"], "pattern": "Z$"},
+    "parameter": {
+      "enum": ["Pb", "Hg", "current_east", "current_north", "temperature",
+               "conductivity", "salinity", "pH", "turbidity", "mesh_tilt",
+               "battery_voltage"]
+    },
+    "unit": {"type": "string", "minLength": 1},
+    "matrix": {"enum": ["seawater", "porewater", "sediment", "sorbent", "instrument"]},
+    "fraction": {
+      "enum": ["not_applicable", "labile", "dissolved_filtered", "total_recoverable",
+               "dissolved_inorganic", "methylmercury", "sorbed_total"]
+    },
+    "acquisition_kind": {
+      "enum": ["in_situ_sensor", "grab_sample", "passive_sampler", "media_assay", "manual"]
+    },
+    "value": {"type": ["number", "null"]},
+    "uncertainty_std": {"type": ["number", "null"], "minimum": 0},
+    "qualifier": {"enum": ["quantified", "below_lod", "below_loq", "missing"]},
+    "lower_bound": {"type": ["number", "null"]},
+    "upper_bound": {"type": ["number", "null"]},
+    "quality_flag": {"enum": [1, 2, 3, 4, 9]},
+    "method_id": {"type": "string", "minLength": 1},
+    "calibration_id": {"type": ["string", "null"]},
+    "data_origin": {"enum": ["synthetic", "sensor", "laboratory", "external_model", "derived"]},
+    "source_ref": {"type": ["string", "null"]},
+    "x_m": {"type": ["number", "null"]},
+    "y_m": {"type": ["number", "null"]},
+    "depth_m": {"type": ["number", "null"]},
+    "crs": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"qualifier": {"const": "quantified"}}, "required": ["qualifier"]},
+      "then": {
+        "properties": {
+          "value": {"type": "number"},
+          "lower_bound": {"type": "null"},
+          "upper_bound": {"type": "null"}
+        },
+        "required": ["value"]
+      }
+    },
+    {
+      "if": {
+        "properties": {"qualifier": {"enum": ["below_lod", "below_loq"]}},
+        "required": ["qualifier"]
+      },
+      "then": {
+        "properties": {
+          "value": {"type": "null"},
+          "lower_bound": {"type": "number"},
+          "upper_bound": {"type": "number"}
+        },
+        "required": ["lower_bound", "upper_bound"]
+      }
+    },
+    {
+      "if": {"properties": {"qualifier": {"const": "missing"}}, "required": ["qualifier"]},
+      "then": {
+        "properties": {
+          "value": {"type": "null"},
+          "lower_bound": {"type": "null"},
+          "upper_bound": {"type": "null"},
+          "quality_flag": {"const": 9}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"acquisition_kind": {"const": "passive_sampler"}},
+        "required": ["acquisition_kind"]
+      },
+      "then": {
+        "properties": {
+          "sampling_start_utc": {"type": "string"},
+          "sampling_end_utc": {"type": "string"}
+        },
+        "required": ["sampling_start_utc", "sampling_end_utc"]
+      }
+    }
+  ]
+}
