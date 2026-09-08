@@ -38,7 +38,7 @@ python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.lock.txt
 .venv\Scripts\python.exe -m pip install -e . --no-deps
 
-# 1. the test suite: 430 tests, about two minutes
+# 1. the test suite: 434 tests, about two minutes
 .venv\Scripts\python.exe -m pytest -q
 
 # 2. a first look: one scenario, about 75 seconds

@@ -258,6 +258,20 @@ def _select(
     return sorted(out, key=lambda r: r.observed_at_utc)
 
 
+def _media_installed_at(known: OperatorKnownMat, tile_id: str) -> datetime:
+    """When this tile's current media went in.
+
+    The operator knows this without any simulator access: it is the latest
+    service event they accepted that named this tile, or the original deployment
+    if there has not been one.
+    """
+    latest = known.installed_at_utc
+    for event in known.accepted_service_events:
+        if tile_id in event.tile_ids and event.time_utc > latest:
+            latest = event.time_utc
+    return latest
+
+
 def _own_or_pooled(
     own: Sequence[ObservationRecord],
     pooled: Sequence[ObservationRecord],
@@ -272,7 +286,11 @@ def _own_or_pooled(
     mine = _select(own, **criteria)
     if mine:
         return mine, False
-    return _select(pooled, **criteria), True
+    borrowed = _select(pooled, **criteria)
+    # Borrowed only if something was actually borrowed. With no records anywhere
+    # the answer is "no evidence", and saying "extrapolated from another
+    # instrumented tile" would be a false statement in an operator-facing note.
+    return borrowed, bool(borrowed)
 
 
 def _age_s(records: Sequence[ObservationRecord], now: datetime) -> float | None:
@@ -370,7 +388,11 @@ def _estimate_one_tile(
     attenuation_interval: dict[str, tuple[float, float]] = {}
     breakthrough: dict[str, tuple[float, float] | None] = {}
 
-    installed = known.installed_at_utc
+    # Loading accumulates on the CURRENT media, not since the mat was first
+    # laid. A replaced tile starts empty, and integrating from the original
+    # deployment would have the estimator recommend replacing a tile it had just
+    # watched being replaced.
+    installed = _media_installed_at(known, tile_id)
     elapsed_s = max((now - installed).total_seconds(), 0.0)
 
     for element in elements:
@@ -602,6 +624,13 @@ def _integrate_capture(
     elapsed_s = max((now - installed).total_seconds(), 0.0)
     if not porewater_series:
         return _clip((fallback[0] * elapsed_s, fallback[1] * elapsed_s), 0.0, math.inf)
+
+    # A flux measured through the previous media says nothing about this one, so
+    # chamber records from before the replacement are dropped. The porewater
+    # series is kept whole: the sediment source does not reset when a tile does.
+    chamber_series = [
+        (time, interval) for time, interval in chamber_series if time >= installed
+    ]
 
     times = sorted(
         {time for time, _ in porewater_series} | {time for time, _ in chamber_series}

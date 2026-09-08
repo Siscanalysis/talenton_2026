@@ -94,7 +94,7 @@ A broken link on the landing page of a repository being handed to a jury.
 
 Said 262. The merge of `feat/observations`, which had been sitting unmerged with
 about 2,900 lines of tests, brought it to 412; the new maintenance tests bring
-it to 430.
+it to 434.
 
 ---
 

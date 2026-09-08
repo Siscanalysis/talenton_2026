@@ -156,7 +156,7 @@ sediment source. New media does not fix a source that grew.
 > production. We model that as a risk channel, never as a benefit, and if it
 > turns out to be real then this material is the wrong material.
 >
-> Everything on screen is reproducible from a clean clone: 430 tests, one
+> Everything on screen is reproducible from a clean clone: 434 tests, one
 > command, no network. The audit that found the problems in our own code is in
 > `docs/AUDIT.md`, including the two places where our model is more optimistic
 > than the measured literature.

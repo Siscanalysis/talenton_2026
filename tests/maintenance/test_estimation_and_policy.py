@@ -258,6 +258,56 @@ def test_an_unmeasured_tile_borrows_and_says_so(known):
     assert borrowed_width[1] / borrowed_width[0] > own_width[1] / own_width[0]
 
 
+def test_replacing_a_tile_resets_the_loading_it_is_judged_on(known):
+    """Otherwise the estimator recommends replacing a tile it just watched
+    being replaced.
+
+    Loading accumulates on the current media. Integrating from the original
+    deployment would carry the old media's consumed capacity into the new one.
+    """
+    from reactive_seabed_mat.contracts import ServiceEvent
+
+    config = default_run_config()
+    days = [30, 120, 210, 300, 390, 480, 570, 660]
+    records = _chemistry(days, porewater_ug_per_l=1000.0, flux_ug_per_m2_per_d=20.0)
+    now = START + timedelta(days=700)
+
+    before = estimate_tiles(records, known, config, now)[TILE]
+
+    serviced = replace(
+        known,
+        accepted_service_events=(
+            ServiceEvent(
+                event_id="SVC-1",
+                time_utc=START + timedelta(days=600),
+                tile_ids=(TILE,),
+                kind="partial_media_replacement",
+                old_media_id="media_A0",
+                new_media_id="media_A1",
+                retrieved_kg={"Pb": 1.0},
+                cost_eur=0.0,
+                triggered_by_recommendation_id=None,
+                execution_mode="simulation_only",
+            ),
+        ),
+    )
+    after = estimate_tiles(records, serviced, config, now)[TILE]
+
+    assert after.loading_kg_per_m2_interval["Pb"][1] < (
+        before.loading_kg_per_m2_interval["Pb"][1]
+    )
+    assert after.remaining_capacity_kg_per_m2["Pb"][1] >= (
+        before.remaining_capacity_kg_per_m2["Pb"][1]
+    )
+
+
+def test_no_evidence_anywhere_is_not_reported_as_extrapolation(known):
+    """"Borrowed from another tile" must not be said when nothing was borrowed."""
+    snapshot = estimate_tiles([], known, default_run_config(), START)[TILE]
+    assert "extrapolated" not in snapshot.notes
+    assert AmbiguityFlag.INSUFFICIENT_DATA in snapshot.ambiguity_flags
+
+
 def test_burial_is_flagged_rather_than_read_as_success(known):
     """A buried mat emits less.  That is a longer path, not better chemistry."""
     config = default_run_config()
