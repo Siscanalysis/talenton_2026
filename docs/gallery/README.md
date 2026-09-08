@@ -13,7 +13,10 @@ python tools/build_gallery.py --out docs/gallery
 ```
 
 and committed, so a reviewer can see the result before deciding whether to
-install anything.
+install anything. **That command takes about forty minutes**, which is exactly
+why the output is committed: nobody should have to run it to look at it. For a
+single scenario in about seventy-five seconds, use
+`python -m reactive_seabed_mat.cli quick --out results` instead.
 
 * **[`index.html`](index.html)** is the full page: every scenario, every map,
   interactive, offline, Plotly inlined once. GitHub will not render it in the

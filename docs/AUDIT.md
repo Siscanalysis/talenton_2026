@@ -15,10 +15,14 @@ self-contained report in about 75 seconds.
 
 | Severity | Count | Theme |
 |---|---|---|
-| High | 5 | Documented features that did not exist, and one that could not be imported |
-| Medium | 6 | Stale numbers, superseded documents, a broken link, a latent reporting bug |
+| High | 6 | Documented features that did not exist, one that could not be imported, and one crash they were hiding |
+| Medium | 7 | Stale numbers, superseded documents, a broken link, two latent reporting bugs |
 | Low | 4 | Terminology drift and tidying |
 | Not a finding | 3 | Checked and cleared |
+
+The most useful thing the audit did was not any single fix. It was that
+**removing a dead feature exposed a crash** (A1 to A8): the policy knob that did
+nothing was also the reason nothing ever reached the code path that failed.
 
 Two findings were scientific rather than editorial, and both are recorded in
 `docs/EVIDENCE_BASE.md` rather than fixed in code, because the honest response
@@ -95,6 +99,35 @@ A broken link on the landing page of a repository being handed to a jury.
 Said 262. The merge of `feat/observations`, which had been sitting unmerged with
 about 2,900 lines of tests, brought it to 412; the new maintenance tests bring
 it to 434.
+
+### A8 (High, fixed) Scenario F crashed as soon as the evidence loop existed
+
+`undersized_mat`, the deliberately poor design, lays a **2x2** mat. The default
+station list names a benthic chamber on `tile_2_2`, which a 2x2 mat does not
+have, and the observation generator correctly refuses a tile that is not in the
+scene. The run died with `KeyError` part-way through.
+
+Nothing reached that path until A1 was fixed, which is the point: the dead
+policy knob was also hiding a crash. Found by the gallery build, not by a test.
+
+*Fixed* by dropping stations whose tile does not exist, which is the physical
+answer, and which carries a consequence worth showing: the undersized design is
+also the least monitored one. Integration tests added over every scenario.
+
+### A9 (Medium, fixed) Two defects in the estimator written during this audit
+
+Found by re-reading the new code rather than by a failing test.
+
+* Loading was integrated from the mat's original deployment date, so a replaced
+  tile inherited the old media's consumed capacity. The estimator would have
+  recommended replacing a tile it had just watched being replaced. It now
+  integrates from the latest accepted service event naming that tile, and drops
+  benthic-chamber records from before it: a flux measured through the previous
+  media says nothing about this one. Porewater records are kept, because the
+  sediment source does not reset when a tile does.
+* The cross-tile fallback said "extrapolated from another instrumented tile"
+  even when the pool was also empty, putting a false statement into an
+  operator-facing note.
 
 ---
 

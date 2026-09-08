@@ -33,6 +33,10 @@ change it), **remove** (delete the claim instead of building it), **accept**
 | E4 | Arithmetic interval widening drove positive fluxes negative, destroying every downstream quotient | implement | done | 2026-09-08 | Switched to geometric widening for positive intervals. A flux is known to within a factor, not a difference. Guarded by a regression test. |
 | E5 | Nine tiles carry chemistry on one or two, so most tiles had no estimate at all | implement | done | 2026-09-08 | Pool chemistry across the mat, widen for the extrapolation, and say so in the notes. This is what a real monitoring programme does and what `LIMITATIONS.md` already warned about. |
 
+| A8 | Scenario F lays a 2x2 mat while the station list names a chamber on `tile_2_2`, so the run crashed with `KeyError` once the evidence loop existed | implement | done | 2026-09-08 | Drop stations whose tile was never deployed: you cannot put a chamber on a tile that is not there. The consequence is kept rather than hidden, because the undersized design being the least monitored one is a real property of it. Found by the gallery build; integration tests added so it cannot recur silently. |
+| A9 | Estimator integrated loading from the original deployment even after a tile was replaced, and reported extrapolation when nothing had been borrowed | implement | done | 2026-09-08 | The first would have had the estimator recommend replacing a tile it had just watched being replaced. The second put a false statement in an operator-facing note. Both found by re-reading the new code, and both now have regression tests. |
+| F1 | The gallery build takes about 40 minutes | accept | closed | 2026-09-08 | It is a one-off that produces committed output, so a reviewer never has to run it. The runtime is stated in `tools/build_gallery.py` and in the gallery README rather than discovered. |
+
 ## Supersessions
 
 None yet. Add a dated row here before changing any decision above.

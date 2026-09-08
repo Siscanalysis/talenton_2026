@@ -10,6 +10,12 @@ ships twice: `index.html` is the full interactive page for local viewing, and
 The PNGs are drawn with matplotlib rather than exported from Plotly, because
 Plotly's static export needs kaleido and this repository does not depend on it.
 They are previews. The HTML page and the per-scenario reports are the artefact.
+
+**This takes about forty minutes**: six scenarios plus a three-policy
+comparison, each running a multi-year reactive-layer timeline with the evidence
+loop, then short 2-D plume windows at named mat states. That is the reason the
+output is committed rather than generated on demand. Use `--max-years` to cap
+the timelines or `--skip-comparison` to drop the slowest part.
 """
 
 from __future__ import annotations
