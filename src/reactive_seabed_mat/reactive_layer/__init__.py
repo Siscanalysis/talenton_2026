@@ -38,10 +38,10 @@ Typical use, without a map and without hardware::
     step.flux_out_kg_per_m2_per_s["Pb"]     # the residual flux, kg m^-2 s^-1
     step.attenuation("Pb", exchange.bare_flux_kg_per_m2_per_s["Pb"])
 
-``design.py`` in this directory belongs to ``feat/optimisation`` and moves to
-``optimisation/sweep.py``.  It still references the deleted vertical-panel types
-and is deliberately **not** imported here, so importing this package does not
-drag a broken module in with it.
+A ``design.py`` used to sit here, carried over from the vertical-panel concept.
+It computed an interception efficiency over a frontal area, which is not what
+this mat does, and it could no longer be imported at all.  It was removed rather
+than ported; the design sweep is listed as open work in ``README.md``.
 """
 
 from __future__ import annotations

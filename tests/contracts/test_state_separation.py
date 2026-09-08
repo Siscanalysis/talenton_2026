@@ -15,8 +15,11 @@ import pytest
 SRC = Path(__file__).resolve().parents[2] / "src" / "reactive_seabed_mat"
 
 #: Packages that make operational recommendations.  They may read observations
-#: and their own estimates, never ``truth/``.
-OPERATIONAL_PACKAGES = ("feedback", "observations")
+#: and their own estimates, never ``truth/``.  ``estimation`` and ``maintenance``
+#: joined this list when they were written; before that the guard was checking
+#: an empty directory and a package that no longer exists, which is the failure
+#: mode a static guard is most prone to.
+OPERATIONAL_PACKAGES = ("estimation", "maintenance", "observations")
 
 #: Modules allowed to name the truth store: the layout definition itself, and
 #: the simulator that writes it.
@@ -54,8 +57,11 @@ def _operational_modules() -> list[Path]:
 
 def test_there_is_something_to_check():
     assert SRC.exists()
-    # observations/ always exists; feedback/ appears when its branch merges.
-    assert _operational_modules(), "no operational modules found to check"
+    found = {path.parent.name for path in _operational_modules()}
+    assert found >= set(OPERATIONAL_PACKAGES), (
+        "the state-separation guard is only as good as the list of packages it "
+        f"checks; missing {set(OPERATIONAL_PACKAGES) - found}"
+    )
 
 
 @pytest.mark.parametrize("module", _operational_modules(), ids=lambda p: p.name)
