@@ -7,7 +7,9 @@ name = "reactive-seabed-mat-demo"
 version = "0.2.0"
 description = "Offline presentation demonstrator for a sensor-informed selective reactive seabed mat (Pb first, Hg optional)"
 readme = "README.md"
-requires-python = ">=3.11,<3.14"
+# Tested on 3.12.13 and 3.14.4. The upper bound is a real bound, not a guess:
+# it is raised only after the suite has actually been run on the new version.
+requires-python = ">=3.11,<3.15"
 license = { text = "MIT" }
 
 # Pinned to the versions this repository was actually tested against on

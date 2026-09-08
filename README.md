@@ -26,9 +26,9 @@ here.
 
 ## Run it in five minutes
 
-Needs **Python 3.11, 3.12 or 3.13** and nothing else: no account, no API key, no
+Needs **Python 3.11 to 3.14** and nothing else: no account, no API key, no
 network at run time, no map tile server. Verified from a clean clone with plain
-`pip` on Windows 11 + CPython 3.12.13.
+`pip` on Windows 11, on CPython **3.12.13 and 3.14.4**.
 
 ```powershell
 git clone <this repository> talenton_2026
