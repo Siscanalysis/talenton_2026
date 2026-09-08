@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mesh-demo"
+version = "0.1.0"
+description = "Offline presentation demonstrator for a sensor-informed marine reactive mesh (Pb first, Hg optional)"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "MIT" }
+
+# Pinned to the versions this repository was actually tested against on
+# 8 September 2026 (Windows 11, CPython 3.12.13).  See requirements.lock.txt.
+dependencies = [
+  "numpy>=2.0,<3",
+  "scipy>=1.13,<2",
+  "fipy>=4.0,<5",
+  "jsonschema>=4.20,<5",
+  "plotly>=6.0,<8",
+  "streamlit>=1.40,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+ml = ["scikit-learn>=1.4,<2"]
+
+[project.scripts]
+mesh-demo = "mesh_demo.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+markers = [
+  "slow: full coupled runs; excluded from the fast contract suite",
+]
