@@ -473,9 +473,29 @@ def _observe_window(
     window_end = max(samples[-1][0] for samples in windows)
     duration_s = max((window_end - window_start).total_seconds(), 1.0)
 
+    # The station list is fixed while the tile layout is a design variable, so a
+    # smaller mat can leave a station attached to a tile that does not exist.
+    # Scenario F is exactly that case: it lays 2x2 tiles, and the default
+    # chamber station names tile_2_2. Physically you cannot put a benthic
+    # chamber on a tile that was never deployed, so the station produces no
+    # data. Dropping it is the honest behaviour, and it carries a real
+    # consequence the demonstration should show: the undersized design is also
+    # the least monitored one.
+    present = set(history)
+    stations = tuple(
+        station
+        for station in config.observations.stations
+        if station.tile_id is None or station.tile_id in present
+    )
+    observations = (
+        config.observations
+        if len(stations) == len(config.observations.stations)
+        else replace(config.observations, stations=stations)
+    )
+
     scene = scene_from_layer_history(history)
     generator = ObservationGenerator(
-        config.observations,
+        observations,
         seed=config.seed + 1000 * index,
         start_utc=window_start,
     )
