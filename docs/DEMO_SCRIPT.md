@@ -144,14 +144,14 @@ differs.
 | Policy | Pb into the water | Services | Assumed cost |
 |---|---|---|---|
 | no mat | 642.3 kg | 0 | EUR 0 |
-| fixed calendar servicing | 6.7 kg | 2 | EUR 3.73 M |
-| evidence-informed servicing | 26.4 kg | 0 | EUR 0 |
+| fixed calendar servicing | 15.9 kg | 2 | EUR 3.73 M |
+| evidence-informed servicing | 28.4 kg | 0 | EUR 0 |
 
 > The mat works: 642 kilograms down to single figures.
 >
-> But look at the third row. **Evidence-informed servicing let four times more
-> lead through than a calendar, and spent nothing.** It under-serviced. That is
-> not a bug we are about to fix, it is the finding.
+> But look at the third row. **Evidence-informed servicing let nearly twice as
+> much lead through as a calendar, and spent nothing.** It under-serviced. That
+> is not a bug we are about to fix, it is the finding.
 >
 > With chemistry on one tile out of nine, no seepage measurement, and a capacity
 > known only from a commissioning test, the estimated saturation never narrows

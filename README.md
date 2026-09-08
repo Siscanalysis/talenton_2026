@@ -152,14 +152,14 @@ in [`docs/EVIDENCE_BASE.md`](docs/EVIDENCE_BASE.md).
 Six years, same seed, same forcing, same hotspot, same sampling schedule. Only
 `PolicyConfig.kind` differs.
 
-| Policy | Pb into the water | Services | Assumed cost |
-|---|---|---|---|
-| no mat | 642.3 kg | 0 | EUR 0 |
-| fixed calendar servicing | 6.7 kg | 2 | EUR 3.73 M |
-| evidence-informed servicing | 26.4 kg | 0 | EUR 0 |
+| Policy | Pb into the water | Pb retained | Services | Assumed cost |
+|---|---|---|---|---|
+| no mat | 642.3 kg | 0 | 0 | EUR 0 |
+| fixed calendar servicing | 15.9 kg | 26.8 kg | 2 | EUR 3.73 M |
+| evidence-informed servicing | 28.4 kg | 10.3 kg | 0 | EUR 0 |
 
 The mat works. But **evidence-informed servicing under-services**: it let about
-four times more lead through than a calendar and spent nothing. That is the
+1.8 times more lead through than a calendar and spent nothing. That is the
 finding, not a defect. With chemistry on one tile out of nine, no seepage
 measurement, and a capacity known only from a commissioning test, the estimated
 saturation interval never narrows enough to justify sending a vessel. *The value

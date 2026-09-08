@@ -260,13 +260,16 @@ The comparison the brief asks for, scenario B over six years, same seed, same
 forcing, same hotspot schedule, same observation schedule, only
 `PolicyConfig.kind` differing:
 
-| Policy | Pb into the water | Services | Assumed cost | Final attenuation |
+| Policy | Pb into the water | Pb retained | Services | Assumed cost |
 |---|---|---|---|---|
-| none | 642.3 kg | 0 | EUR 0 | 0 % |
-| fixed | 6.7 kg | 2 | EUR 3,733,600 | 95.6 % |
-| evidence informed | 26.4 kg | 0 | EUR 0 | 94.4 % |
+| none | 642.3 kg | 0 | 0 | EUR 0 |
+| fixed | 15.94 kg | 26.84 kg | 2 | EUR 3,733,600 |
+| evidence informed | 28.44 kg | 10.28 kg | 0 | EUR 0 |
 
-The evidence-informed policy **under-services**: it let about four times more Pb
+Regenerated after copper and the geotextile-encapsulated core landed; the
+earlier two-element figures were 6.7 and 26.4 kg and are superseded.
+
+The evidence-informed policy **under-services**: it let about 1.8 times more Pb
 through than the calendar policy, and spent nothing. That is not a defect in the
 policy, and it is the most useful thing the demonstrator produces. With
 chemistry on one tile out of nine, no seepage measurement, and a capacity known
