@@ -408,10 +408,15 @@ class PlumeWindowConfig:
     ledgers are reported separately and labelled.
     """
 
-    window_s: float = 3.0 * _SECONDS_PER_DAY
-    dt_s: float = 300.0
-    #: Times, in years from the run start, at which to render a plume.
-    sample_years: Sequence[float] = (0.0, 2.0, 4.0, 6.0)
+    #: One day covers about two M2 tidal cycles, and the plume crosses the
+    #: domain in roughly two hours at these currents, so the field is well past
+    #: quasi-steady. A longer window costs time and shows nothing new.
+    window_s: float = 1.0 * _SECONDS_PER_DAY
+    dt_s: float = 600.0
+    #: Times, in years from the run start, at which to render a plume. Kept
+    #: short by default so a full scenario sweep stays in the minutes, not the
+    #: tens of minutes; the app renders further windows on demand.
+    sample_years: Sequence[float] = (0.0, 3.0)
 
 
 @dataclass(frozen=True, slots=True)

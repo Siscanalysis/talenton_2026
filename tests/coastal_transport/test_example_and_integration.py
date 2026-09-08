@@ -58,23 +58,27 @@ def test_the_example_runs_offline_and_writes_both_outputs(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Known defects in coordinator-owned code (not editable from this branch)
+# Regression: this branch found that results.ledger_to_dict still read the
+# pre-refactor MassLedger field names and raised AttributeError on the frozen
+# 0.2.0 contract.  It was reported in docs/handoffs/coastal_2d.md, fixed by the
+# coordinator during integration, and the test now guards the fix.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(
-    reason=(
-        "reactive_seabed_mat.results.ledger_to_dict is coordinator-owned and "
-        "still reads the pre-refactor MassLedger fields emitted_kg, "
-        "in_active_mesh_kg and in_retrieved_media_kg, so it raises "
-        "AttributeError on the frozen 0.2.0 contract. Reported in "
-        "docs/handoffs/coastal_2d.md; the example carries a local serialiser "
-        "until it is fixed."
-    ),
-    raises=AttributeError,
-)
 def test_results_ledger_to_dict_matches_the_frozen_mass_ledger():
     from reactive_seabed_mat.contracts import MassLedger
     from reactive_seabed_mat.results import ledger_to_dict
 
-    payload = ledger_to_dict(MassLedger(element="Pb", released_from_sediment_kg=1.0))
+    payload = ledger_to_dict(
+        MassLedger(
+            element="Pb",
+            released_from_sediment_kg=1.0,
+            retained_in_mat_kg=0.4,
+            boundary_out_kg=0.6,
+        )
+    )
     assert payload["released_from_sediment_kg"] == 1.0
+    assert payload["retained_in_mat_kg"] == 0.4
+    assert payload["boundary_out_kg"] == 0.6
+    # The pre-refactor names must be gone, not merely unused.
+    for stale in ("emitted_kg", "in_active_mesh_kg", "in_retrieved_media_kg"):
+        assert stale not in payload

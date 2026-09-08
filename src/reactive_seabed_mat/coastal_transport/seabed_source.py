@@ -99,7 +99,17 @@ DIAGNOSTIC_COMPONENTS: tuple[str, ...] = (
     "bare_reference",
     "effective_cover",
     "covered_fraction",
+    "clamped_negative_flux",
 )
+
+#: A clean layer under contaminated bottom water can take metal DOWNWARD out of
+#: the water column, giving a small negative outward flux.  As a source term
+#: that would be negative, which the coastal ledger does not model, so it is
+#: clamped to zero and the clamped amount is reported in
+#: ``components['clamped_negative_flux']`` rather than being silently dropped.
+#: Anything larger than this fraction of the bare reference flux is treated as
+#: an error, not as noise.
+NEGATIVE_FLUX_TOLERANCE: float = 1.0e-3
 
 #: ASSUMPTION, duplicated from :class:`~reactive_seabed_mat.config.DegradationConfig`
 #: because :class:`~reactive_seabed_mat.contracts.ResidualSourceFlux` is frozen
@@ -352,6 +362,7 @@ def residual_source_flux_detailed(
     cover_weight = np.zeros(shape)              # effective cover, all tiles
     footprint_weight = np.zeros(shape)          # any tile footprint at all
     covered_flux = {name: np.zeros(shape) for name in names}
+    clamped_flux = {name: np.zeros(shape) for name in names}
     bare_override = {name: np.zeros(shape) for name in names}
     bare_override_weight = np.zeros(shape)
     tiles_without_step: list[str] = []
@@ -390,11 +401,30 @@ def residual_source_flux_detailed(
             for name in names:
                 j_out = float(step.flux_out_kg_per_m2_per_s.get(name, 0.0))
                 if j_out < 0.0:
-                    raise ValueError(
-                        f"tile {tile.tile_id!r} reports a negative residual "
-                        f"flux for {name!r} ({j_out} kg/m2/s); the mat cannot "
-                        "pump contaminant back into the sediment"
+                    # A small negative outward flux is physically meaningful: a
+                    # clean layer under contaminated bottom water takes metal
+                    # DOWNWARD out of the water column. As a *source* term that
+                    # would be negative, which the coastal ledger does not model,
+                    # so it is clamped to zero and the clamped amount reported.
+                    # A large negative value is a different matter and still
+                    # fails loudly.
+                    reference = abs(
+                        float(
+                            (step.exchange.bare_flux_kg_per_m2_per_s.get(name, 0.0))
+                            if step.exchange is not None
+                            else 0.0
+                        )
                     )
+                    tolerance = max(NEGATIVE_FLUX_TOLERANCE * reference, 1e-30)
+                    if -j_out > tolerance:
+                        raise ValueError(
+                            f"tile {tile.tile_id!r} reports a negative residual "
+                            f"flux for {name!r} ({j_out} kg/m2/s), larger than "
+                            f"the {tolerance:.3e} tolerance; the mat cannot pump "
+                            "contaminant back into the sediment"
+                        )
+                    clamped_flux[name] += effective * (-j_out)
+                    j_out = 0.0
                 covered_flux[name] += effective * j_out
             exchange = step.exchange
             if exchange is not None:
@@ -456,6 +486,7 @@ def residual_source_flux_detailed(
             "bare_reference": j_bare,
             "effective_cover": cover_weight * hotspot_mask,
             "covered_fraction": covered_fraction * hotspot_mask,
+            "clamped_negative_flux": clamped_flux[name] * hotspot_mask,
         }
 
     notes = (

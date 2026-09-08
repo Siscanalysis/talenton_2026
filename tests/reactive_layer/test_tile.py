@@ -122,8 +122,13 @@ def test_the_two_elements_have_independent_capacities(tiles, materials, start_ut
     pb_capacity = tile.capacity_kg_per_m2(materials["Pb"])
     hg_capacity = tile.capacity_kg_per_m2(materials["Hg"])
     loading = tile.geometry.sorbent_loading_kg_per_m2
-    assert pb_capacity == pytest.approx(loading * 0.6 * 1.0e-3)
-    assert hg_capacity == pytest.approx(loading * 0.4 * 4.0e-4)
+    # Read the capacities from the material parameters rather than hard-coding
+    # them: the keratin values are literature-derated and are expected to move
+    # as the material evidence improves (docs/MATERIAL_KERATIN.md).
+    for element in ("Pb", "Hg"):
+        params = materials[element]
+        expected = loading * params.allocation_fraction * params.q_max_kg_per_kg
+        assert tile.capacity_kg_per_m2(params) == pytest.approx(expected)
     assert pb_capacity != hg_capacity
 
     # Loading one element must not touch the other's inventory or capacity.
