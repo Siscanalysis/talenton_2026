@@ -234,18 +234,38 @@ easiest way to mislead with this model.
 ## 3. Plume window: is the short 2-D run long enough?
 
 The mat state is held fixed and the coastal field is integrated for a few hours.
-If the window were too short the answer would still be moving.
 
 {_table(
-    ["window (h)", "peak with mat (ng/L)", "peak without (ng/L)", "ratio",
-     "mass imbalance"],
+    ["window (h)", "M2 cycles", "peak with mat (ng/L)", "peak without (ng/L)",
+     "ratio", "mass imbalance"],
     window,
     [lambda r: f"{r['hours']:.0f}",
+     lambda r: f"{r['hours'] * 3600.0 / 44712.0:.2f}",
      lambda r: f"{r['peak_with_mat_ng_per_l']:.4g}",
      lambda r: f"{r['peak_without_mat_ng_per_l']:.4g}",
      lambda r: _fmt(r["ratio"], 4),
      lambda r: f"{r['imbalance']:.2e}"],
 )}
+
+**This one does not converge, and that is the finding.** The forcing is tidal
+with an M2 period of 12.42 h, so the field never reaches a steady state: it
+oscillates. A *peak* concentration sampled at the end of a window therefore
+depends on which tidal phase the window happens to end in, and the windows above
+span fractional numbers of cycles. The peak swings by a factor of four across
+the table and the with-mat to without-mat ratio spans about
+{max(r["ratio"] for r in window) - min(r["ratio"] for r in window):.2f}.
+
+Three consequences, and they are not all bad:
+
+* The **mass ledgers are unaffected**: the imbalance column is zero at every
+  window length, because conservation does not care about tidal phase.
+* The **map snapshots are unaffected**: they are states at an instant, not
+  averages, and they are labelled with their time.
+* The **peak-ratio metric is window-dependent** and should not be quoted to
+  more than one significant figure, nor compared between runs with different
+  window lengths. A cycle-averaged or cycle-integrated metric would be the
+  right fix, and it is not implemented; this is recorded as a limitation rather
+  than papered over.
 
 ## 4. Decision cadence: does the maintenance outcome depend on how often you look?
 

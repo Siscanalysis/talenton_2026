@@ -1,26 +1,57 @@
 # Selective reactive seabed mat: demonstrator
 
 An offline, science-grounded **presentation demo** of a thin, modular,
-retrievable reactive mat laid over an authorised contaminated seabed area. The
-mat attenuates the Pb (and optionally Hg) flux from the sediment into the
-overlying water. The demonstrator simulates that flux, the four ways the mat
-degrades, the observations an operator would actually have, and the maintenance
-recommendation those observations support.
+retrievable reactive mat laid over an authorised contaminated seabed area. A
+keratin reactive core is encapsulated between two permeable carrier geotextiles;
+the mat attenuates the Pb, Hg and Cu flux from the sediment into the overlying
+water. The demonstrator simulates that flux, the four ways the mat degrades, the
+observations an operator would actually have, and the maintenance recommendation
+those observations support.
 
 ```
 authorised contaminated seabed hotspot
   -> contaminant flux through / near the seabed
-  -> reactive mat (1-D reactive layer, per tile)
+  -> carrier geotextile  (inert, diffusive resistance)
+  -> reactive keratin core  (1-D reactive layer, per tile)
+  -> carrier geotextile  (inert, diffusive resistance)
   -> residual flux into the overlying water
   -> 2-D coastal advection and diffusion
 ```
 
 **This is not a field-validated remediation system, and the basic idea is not
 new.** Reactive caps, permeable reactive barriers and activated-carbon sediment
-amendments already exist and are commercially deployed. See
-[`docs/PRIOR_ART.md`](docs/PRIOR_ART.md) for what is established practice and
+amendments already exist and are commercially deployed. The
+geotextile-core-geotextile construction in particular is sold as CETCO's
+patented REACTIVE CORE MAT and as HUESKER's Tektoseal Active, so **that name is
+not available to us** and no novelty is claimed for the architecture. What would
+be ours, if anything, is the *filling*: a waste-derived, sulfur-bearing keratin
+core rather than organoclay or zeolite. That is a materials claim and it is
+unproven. See [`docs/PRIOR_ART.md`](docs/PRIOR_ART.md) section 2.0 and
 [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) before quoting any number from
 here.
+
+### Three findings that work against the concept
+
+Stated here rather than in an appendix, because a demo that hides them is not
+evidence.
+
+1. **The sorbent does much less than the headline attenuation suggests.** At six
+   years the mat attenuates about 94 %, but a mat with no chemical capacity left
+   attenuates 94.3 % on geometry alone. The sorbent contributes **0.19 pp for
+   Pb, 0.58 pp for Hg and 0.00 pp for Cu**.
+2. **Copper is not removable by this chemistry.** Above 99 % of dissolved Cu in
+   seawater is locked in strong organic complexes with stability constants
+   around 10^15. Copper has the best published keratin capacity of the three
+   metals and the worst prospects in seawater.
+3. **The area is the problem.** The Bornholm primary dumpsite is 97 km².
+   Covering it would need about a fifth of one year's global wool clip. A
+   realistic deployment is one to two hectares, so the binding question is
+   *which* hectares. See [`docs/DEPLOYMENT_SCALE.md`](docs/DEPLOYMENT_SCALE.md).
+
+And one claim we deliberately do **not** make: that encapsulating the core
+prevents methylmercury formation. Activated-carbon capping cuts porewater MeHg
+but *raised sediment MeHg in five of seven studies*, and a sulfur-rich protein
+feeds the organisms responsible. It is a stop condition, not a feature.
 
 ---
 
@@ -96,7 +127,12 @@ Scenario F exists because a demonstration that always succeeds is not evidence.
 | **Effective reactive cover** | Why each cell emits: covered, uncovered, damaged, displaced or leaking round the edge. Tile outlines are colour-coded by fault. |
 | **Water concentration, with and against without** | The plume in ng/L on a shared colour scale, so the comparison is honest. |
 | **Remaining fraction of the untreated plume** | Treated over untreated, 0 to 1. A model comparison, explicitly **not** a compliance assessment. |
-| **Attenuation and saturation through time** | Multi-year curves. Attenuation starts above 99 % and falls to a plateau near 94 % as the medium loads. |
+| **Attenuation and saturation through time** | Multi-year curves, per element, against the barrier-only floor so the sorbent's own contribution is visible. |
+| **Mat construction in 3-D** | The geotextile / core / geotextile sandwich, with the vertical scale honestly labelled as exaggerated. |
+| **Sorbed load through the core, per tile** | A 3-D surface showing the sorption front sitting near the sediment face and working upward. |
+| **The plume as a 3-D surface** | The same field as the heatmap, given height, so the downstream footprint is readable. Height is concentration, not depth. |
+| **Documented dumping areas** | Where the contamination actually is, on a Baltic map, with marker area set by site area. Context and scale only: no deployment is proposed and nothing here concerns handling munitions. |
+| **Area to cover, log scale** | The demonstrator's hotspot against real designated areas. This is the figure that says area capping is not a plan. |
 
 The plateau is worth understanding: once the chemistry is exhausted the mat is
 still a **diffusive barrier**, so it keeps attenuating. The chemical
@@ -145,8 +181,10 @@ Every euro figure is an assumption. No supplier has been contacted.
 | `docs/DATA_CONTRACT.md` | The observation contract and the frozen module boundary |
 | `docs/ASSUMPTIONS.md` | Every default value, with its provenance label |
 | `docs/LIMITATIONS.md` | What this cannot do, including where the physics works against the concept |
-| `docs/EVIDENCE_BASE.md` | Every number against the measured literature, the open datasets, and the two places this model is more optimistic than reality |
-| `docs/MATERIAL_KERATIN.md` | The keratin parameters, their sources and their seawater derating |
+| `docs/EVIDENCE_BASE.md` | Every number against the measured literature, the open datasets, and the places this model is more optimistic than reality |
+| `docs/MATERIAL_KERATIN.md` | The keratin parameters for Pb, Hg and Cu, their sources and their seawater derating |
+| `docs/DEPLOYMENT_SCALE.md` | How much seabed there is, from official dumpsite geometries, and what covering it would take |
+| `docs/TIMESCALES.md` | Generated: numerical convergence, horizon dependence, plume window and decision cadence |
 | `docs/PRIOR_ART.md` | Existing reactive caps, and what may not be claimed as novel |
 | `docs/AUDIT.md`, `docs/AUDIT_DECISIONS.md` | The pre-publication audit and its decisions ledger |
 | `REFACTOR_PLAN.md` | The audited plan, and the five numerical probes that settled the scheme |
@@ -158,7 +196,9 @@ Every euro figure is an assumption. No supplier has been contacted.
 | `docs/gallery/` | The committed output: every scenario, every map, already generated |
 | `research/` | European supplier and interface evidence, materials, references |
 | `research/datasets/` | Open datasets that back the numbers, how to get them, and the two gaps where nothing exists |
+| `src/reactive_seabed_mat/deployment/` | Officially designated dumpsite geometries and what covering them would take |
 | `tools/build_gallery.py` | Regenerates `docs/gallery/` from scratch |
+| `tools/timescale_check.py` | Regenerates `docs/TIMESCALES.md` |
 | `tests/` | Contract, layer, transport, observation, estimation, maintenance and integration tests |
 
 **Not built yet**, and listed rather than implied: a design sweep over

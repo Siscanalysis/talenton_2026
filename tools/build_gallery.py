@@ -35,6 +35,7 @@ import matplotlib.pyplot as plt                                # noqa: E402
 import numpy as np                                             # noqa: E402
 
 from reactive_seabed_mat.config import config_hash             # noqa: E402
+from reactive_seabed_mat.deployment import scale_table         # noqa: E402
 from reactive_seabed_mat.scenarios import registry             # noqa: E402
 from reactive_seabed_mat.scenarios.run import run_scenario     # noqa: E402
 from reactive_seabed_mat.units import from_si_areal_flux       # noqa: E402
@@ -139,37 +140,99 @@ def _flux_png(result, path: Path) -> None:
 
 
 def _timeline_png(result, path: Path) -> None:
-    """Attenuation and media saturation on one pair of axes."""
+    """Attenuation per element against the barrier-only floor.
+
+    The shaded band between each element's curve and the dashed floor IS the
+    sorbent's contribution. Plotting only the total would credit the chemistry
+    with the geometry's work, and for copper the band is invisible because the
+    contribution really is zero.
+    """
     if not result.timeline:
         return
-    element = result.config.elements[0]
+    elements = list(result.config.elements)
     years = [point.elapsed_years for point in result.timeline]
-    attenuation = [100.0 * point.attenuation.get(element, np.nan)
-                   for point in result.timeline]
-    saturation = [100.0 * point.saturation.get(element, 0.0)
-                  for point in result.timeline]
+    colours = {"Pb": "#30d158", "Hg": "#0a84ff", "Cu": "#ff9f0a"}
 
     def draw():
-        fig, ax = plt.subplots(figsize=(6.6, 3.6))
+        fig, (top, bottom) = plt.subplots(
+            2, 1, figsize=(6.8, 5.2), sharex=True,
+            gridspec_kw={"height_ratios": [3, 2]},
+        )
         fig.patch.set_facecolor("#111418")
-        ax.set_facecolor("#111418")
-        ax.plot(years, attenuation, color="#30d158", lw=2,
-                label=f"{element} flux attenuation (%)")
-        ax.plot(years, saturation, color="#ff9f0a", lw=2, ls="--",
-                label=f"{element} media saturation (%)")
-        ax.set_xlabel("years since deployment", color="#c8d0d8")
-        ax.set_ylabel("per cent", color="#c8d0d8")
-        ax.set_ylim(-2, 102)
-        ax.grid(alpha=0.15, color="#5a6470")
-        ax.tick_params(colors="#c8d0d8")
-        for spine in ax.spines.values():
-            spine.set_color("#2c323a")
-        legend = ax.legend(facecolor="#1a1f26", edgecolor="#2c323a", fontsize=8)
-        for text in legend.get_texts():
-            text.set_color("#c8d0d8")
+        for ax in (top, bottom):
+            ax.set_facecolor("#111418")
+            ax.grid(alpha=0.15, color="#5a6470")
+            ax.tick_params(colors="#c8d0d8", labelsize=8)
+            for spine in ax.spines.values():
+                spine.set_color("#2c323a")
+
+        for element in elements:
+            colour = colours.get(element, "#e6e6e6")
+            total = [100.0 * p.attenuation.get(element, np.nan)
+                     for p in result.timeline]
+            barrier = [100.0 * p.barrier_attenuation.get(element, np.nan)
+                       for p in result.timeline]
+            top.plot(years, total, color=colour, lw=2, label=f"{element} total")
+            top.plot(years, barrier, color=colour, lw=1, ls=":", alpha=0.8)
+            top.fill_between(years, barrier, total, color=colour, alpha=0.18)
+            bottom.plot(
+                years,
+                [100.0 * p.saturation.get(element, 0.0) for p in result.timeline],
+                color=colour, lw=2, label=f"{element}",
+            )
+
+        top.set_ylabel("flux attenuation (%)", color="#c8d0d8", fontsize=9)
+        top.set_ylim(88, 101)
+        bottom.set_ylabel("media saturation (%)", color="#c8d0d8", fontsize=9)
+        bottom.set_xlabel("years since deployment", color="#c8d0d8", fontsize=9)
+        bottom.set_ylim(-2, 102)
+        for ax in (top, bottom):
+            legend = ax.legend(facecolor="#1a1f26", edgecolor="#2c323a", fontsize=7)
+            for text in legend.get_texts():
+                text.set_color("#c8d0d8")
+        top.text(
+            0.99, 0.03,
+            "dotted = barrier only, no capacity left; shaded = sorbent contribution",
+            transform=top.transAxes, ha="right", va="bottom",
+            color="#9aa4b0", fontsize=6.5,
+        )
+        fig.tight_layout()
         return fig
 
     _png(draw, path, title=f"{result.config.scenario}: through time")
+
+
+def _scale_png(rows, path: Path) -> None:
+    """Area to cover, log scale. The figure that says area capping is not a plan."""
+    names = [str(row["name"]).split(",")[0].replace("This demonstrator's", "this")
+             for row in rows]
+    areas = [float(row["area_km2"]) for row in rows]
+    tonnes = [float(row["sorbent_tonnes"]) for row in rows]
+
+    def draw():
+        fig, ax = plt.subplots(figsize=(7.4, 3.8))
+        fig.patch.set_facecolor("#111418")
+        ax.set_facecolor("#111418")
+        bars = ax.bar(range(len(names)), areas, color="#ff453a")
+        ax.set_yscale("log")
+        ax.set_xticks(range(len(names)))
+        ax.set_xticklabels(names, rotation=22, ha="right", fontsize=7.5)
+        ax.set_ylabel("area to cover (km2, log scale)", color="#c8d0d8", fontsize=9)
+        ax.grid(axis="y", alpha=0.15, color="#5a6470")
+        ax.tick_params(colors="#c8d0d8", labelsize=8)
+        for spine in ax.spines.values():
+            spine.set_color("#2c323a")
+        for bar, mass in zip(bars, tonnes):
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height() * 1.25,
+                f"{mass/1000:,.0f} kt" if mass >= 1000 else f"{mass:,.0f} t",
+                ha="center", color="#c8d0d8", fontsize=7,
+            )
+        fig.tight_layout()
+        return fig
+
+    _png(draw, path, title="Keratin needed to cover it. Every euro value is an assumption.")
 
 
 def _comparison_png(rows, path: Path, element: str) -> None:
@@ -305,6 +368,18 @@ def main() -> int:
                 }
             )
         _comparison_png(comparison_rows, out / "img" / "policy_comparison.png", element)
+
+    base_config = registry.build_scenario("fresh_mat")
+    _scale_png(
+        scale_table(
+            sorbent_loading_kg_per_m2=base_config.mat.sorbent_loading_kg_per_m2,
+            mat_material_eur_per_m2=base_config.costs.mat_material_eur_per_m2,
+            demo_hotspot_area_m2=(
+                base_config.hotspot.width_m * base_config.hotspot.length_m
+            ),
+        ),
+        out / "img" / "deployment_scale.png",
+    )
 
     comparison_table = "".join(
         "<tr>"

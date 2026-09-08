@@ -85,6 +85,71 @@ attenuation should be read as an upper bound set by the physics we chose to
 include, and the honest comparator for a real deployment is the factor of 2 to
 10 that thin-layer capping has actually achieved in a Norwegian harbour.*
 
+### 1.3 Seawater speciation, and the number it makes worst
+
+The three target metals are not equally available to a sorbent, and the ranking
+is the opposite of the ranking of their published capacities.
+
+| Metal | Speciation in seawater | Consequence | `available_fraction` |
+|---|---|---|---|
+| Pb | PbCO3(aq) about 41 % of dissolved Pb at pH 8.2; free Pb2+ a small minority, measured an order of magnitude below equilibrium predictions [K3] | partly available | 0.25 |
+| Hg | **above 99 % Hg-Cl complexes**, dominated by HgCl4(2-) [K10] | thiols still outcompete chloride, but the species is an anion approaching a negatively charged surface and four chlorides must be displaced | 0.10 |
+| Cu | **above 99 % bound to strong organic ligands**, conditional stability constants around 1e15, free Cu2+ below 6 pM [K11] | a carboxyl or amino site does not obviously compete | **0.02** |
+
+Copper has the **best** published keratin capacity of the three, 20 mg/g on wool
+keratin nanofibres [K9], and is the **worst** candidate for removal from
+seawater. Capacity is not availability. Over six simulated years the sorbent's
+contribution to copper attenuation is **0.00 percentage points**: copper passes
+through, and an inert mat of the same geometry would perform identically.
+
+**On this evidence a keratin core is not a copper technology.** Either the
+chemistry changes to something that competes with natural organic ligands, or
+the copper claim is dropped.
+
+### 1.4 The sorbent does much less of the work than the headline suggests
+
+Reporting attenuation alone credits the chemistry with the geometry's work. The
+model now reports both, per element, at six years:
+
+| Metal | Total attenuation | Barrier only, no capacity left | Sorbent contribution |
+|---|---|---|---|
+| Pb | 94.53 % | 94.34 % | **0.19 pp** |
+| Hg | 94.92 % | 94.34 % | **0.58 pp** |
+| Cu | 94.34 % | 94.34 % | **0.00 pp** |
+
+The barrier figure is the advective floor: the mat suppresses almost all of the
+diffusive exchange and passes the seepage-driven flux, which the sorbent must
+then capture. Measured against what actually *enters* the layer rather than
+against the bare flux, the picture is less bleak: the mat retained 10.3 kg of Pb
+out of 38.7 kg entering, about **27 %**. Both numbers are true and they answer
+different questions. The first is "how much less reaches the sea"; the second is
+"is the sorbent doing anything at all". Quoting only the second would be the
+flattering error, and quoting only the first would understate the chemistry.
+
+### 1.5 Capping and methylmercury: the claim to avoid
+
+Activated-carbon capping, the closest measured analogue, reduces porewater MeHg
+by 45 to 95 % and by more than 90 % at one month, **and increased sediment MeHg
+in five of seven studies**, by a mechanism the literature calls unclear [K12].
+In a salt-marsh field trial the effect lasted about a year.
+
+A keratin core is a harder case than activated carbon, not an easier one:
+activated carbon is refractory, whereas keratin supplies both labile organic
+carbon and reduced sulfur to the sulfate-reducing bacteria that methylate
+mercury. Encapsulation limits particle contact; it does not stop dissolved
+organic carbon leaching downward. **No claim that this design prevents
+methylation is supportable from the published record.** See
+`docs/LIMITATIONS.md`.
+
+### 1.6 The area is the problem, not the square metre
+
+The Bornholm primary dumpsite is a circle of radius 3 nautical miles, that is
+**96.98 km²**. Covering it would take about **388,000 tonnes** of keratin, a
+fifth of one year's global greasy-wool clip, and tens of billions of euro of mat
+material. A realistic first deployment is one to two hectares, about 0.02 % of
+that dumpsite. Full analysis, with the officially designated areas and their
+sources, in `docs/DEPLOYMENT_SCALE.md`.
+
 ---
 
 ## 2. Where the rest of the defaults stand

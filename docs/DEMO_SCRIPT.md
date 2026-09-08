@@ -16,21 +16,27 @@ it works offline, and it is the whole demonstration if the laptop misbehaves.
 
 ## 0:00 to 0:40 The problem, and what this is not
 
-> An authorised contaminated seabed area leaks lead and mercury into the water
-> above it. A reactive seabed mat is a thin, modular, retrievable cap laid over
-> that area: contaminant passes through a sorbent layer instead of straight into
-> the sea.
+> An authorised contaminated seabed area leaks lead, mercury and copper into the
+> water above it. The mat we model is a thin, modular, retrievable cap: a
+> keratin reactive core held between two permeable carrier geotextiles, laid
+> over that area so contaminant passes through the sorbent instead of straight
+> into the sea.
 >
-> Two things before anything else. **This is not a new idea.** Reactive caps,
-> permeable reactive barriers and activated-carbon sediment amendments are
-> deployed practice, and we claim no novelty for any of them. And **this is a
-> simulation, not a field trial.** No supplier has been contacted, no quotation
-> exists, and every material parameter is a literature value derated for
-> seawater rather than a measurement of our material.
+> Three things before anything else, and I would rather you heard them from me.
 >
-> What is ours is the question underneath: **a cap that consumes itself needs to
-> be maintained, and you cannot maintain what you cannot see.** That is what this
-> demonstrator is about.
+> **The architecture is not new, and the name is taken.** That
+> geotextile-core-geotextile sandwich is sold as CETCO's patented Reactive Core
+> Mat and as HUESKER's Tektoseal Active. We are not claiming it. What could be
+> ours is the *filling*: a waste-derived, sulfur-bearing keratin core instead of
+> organoclay. That is a materials claim and it is unproven.
+>
+> **This is a simulation, not a field trial.** No supplier has been contacted, no
+> quotation exists, and every material parameter is a literature value derated
+> for seawater rather than a measurement of our material.
+>
+> **And the honest headline is not the attenuation number.** It is that a cap
+> which consumes itself has to be maintained, and you cannot maintain what you
+> cannot see. That is what this demonstrator is actually about.
 
 Show the banner at the top of the report. It says all of this on the page.
 
@@ -55,11 +61,22 @@ Open the **Reactive medium** table in the report.
 > weight per cent sulfur. It is the weakest number in the model and the report
 > says so.
 >
-> Here is what the numbers then imply, and it is not what we expected. Against
-> this hotspot, **lead fills the mat in about two and a half years. Mercury
-> capacity would last about five hundred.** The replacement schedule is set by
-> lead. Mercury is not the binding constraint, which also means the mercury case
-> rests almost entirely on that unverified capacity.
+> Copper is the interesting one, and it is the one that goes against us.
+> Copper has the **best** published keratin capacity of the three, 20 mg/g on
+> wool keratin nanofibres. It is also the metal we are least able to remove from
+> seawater, because **above 99 per cent of dissolved copper is locked in strong
+> organic complexes** with stability constants around ten to the fifteenth. A
+> carboxyl group on a protein does not compete with that.
+>
+> Mercury is genuinely not in free form in seawater either: it is above 99 per
+> cent chloride-complexed, mostly as HgCl4 two-minus. That helps us in one way,
+> because those complexes methylate more slowly, and hurts us in another, because
+> the thing arriving at the surface is an anion approaching a negatively charged
+> fibre and four chlorides have to be displaced before it binds.
+>
+> So the model carries an availability fraction per metal: **0.25 for lead, 0.10
+> for mercury, 0.02 for copper.** Capacity is not availability, and that
+> distinction is the difference between a batch beaker and the Baltic.
 
 ## 1:40 to 2:40 What the mat does, and what it does not
 
@@ -71,22 +88,26 @@ Scroll to **Seabed residual flux** and **Effective reactive cover**.
 > Next to it, the plume with and without the mat, on a shared colour scale so
 > the comparison is honest.
 >
-> The model reports about 99 per cent attenuation for a fresh mat, falling to a
-> plateau near 94 per cent as the medium loads. **Two caveats, and I would rather
-> you heard them from me.**
+> The model reports about 97 per cent attenuation for a fresh mat, settling near
+> 94 per cent as the medium loads. **Now the number that matters, and it is not
+> that one.**
 >
-> First, that plateau. Once the chemistry is exhausted the mat is still a
-> physical diffusive barrier, so it keeps attenuating. The sorbent's chemical
-> contribution is the *difference* between those two figures, not the whole
-> thing.
+> The dotted line on this chart is what the same mat would do with **no chemical
+> capacity left at all**: pure geometry, an inert sandwich. It sits at 94.3 per
+> cent. So at six years the sorbent's own contribution is **0.19 percentage
+> points for lead, 0.58 for mercury, and zero for copper.** The shaded band is
+> the chemistry. For copper there is no band.
 >
-> Second, and more important: **99 per cent is above anything a real cap has
-> achieved.** In-situ thin-layer capping in Trondheim harbour reduced measured
+> Measured differently the chemistry looks better: of the lead that actually
+> *enters* the layer, the mat keeps about 27 per cent. Both numbers are true and
+> they answer different questions. I am showing you both because showing only
+> the second is the flattering error.
+>
+> And one more caveat: **97 per cent is above anything a real cap has achieved.**
+> In-situ thin-layer capping in Trondheim harbour reduced measured
 > sediment-to-water fluxes by a factor of two to ten, so 50 to 90 per cent. Our
 > model has uniform seepage, no bioturbation, no consolidation and perfect
-> contact. The honest reading is that our figure is an upper bound set by the
-> physics we chose to include. That comparison is written down in
-> `docs/EVIDENCE_BASE.md`, not buried.
+> contact. Our figure is an upper bound set by the physics we chose to include.
 
 ## 2:40 to 3:40 It degrades in four independent ways
 
@@ -146,7 +167,24 @@ If someone asks why the policy did not just replace the mat anyway: it also
 declines to replace when the same falling attenuation could be a stronger
 sediment source. New media does not fix a source that grew.
 
-## 4:40 to 5:00 What would change our minds
+## 4:40 to 4:55 The scale problem, said plainly
+
+Show the log-scale area chart.
+
+> Last thing, and it is the one that should shape what we ask for. The Bornholm
+> primary dumpsite is a circle three nautical miles across: **97 square
+> kilometres**. Covering it with this mat would take about **388,000 tonnes of
+> keratin, roughly a fifth of one year's global wool clip**, and tens of billions
+> of euro in material before a vessel sailed.
+>
+> Anyone presenting this as a way to clean up the Baltic is not doing arithmetic.
+>
+> A realistic first deployment is **one to two hectares**. Which means the
+> binding question was never "how good is the mat". It is **which two hectares**,
+> and that is a targeting and monitoring problem. Which is the problem this
+> demonstrator is actually built to address.
+
+## 4:55 to 5:00 What would change our minds
 
 > Six experiments would replace assumptions with measurements, and they are
 > listed in `docs/MATERIAL_KERATIN.md`. The first is the isotherm in real
