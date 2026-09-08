@@ -145,7 +145,8 @@ binding to a small number of sites.
 With 4 kg/m^2 of medium at 10 mm thickness:
 
 * **Pb capacity 2.4e-3 kg/m^2**, consumed by the modelled advective load in
-  about **3 years**. Pb is what limits the service life.
+  about **2.5 years** (2.54, recomputed from `default_run_config()`). Pb is what
+  limits the service life.
 * **Hg capacity 4.0e-3 kg/m^2** against a much smaller Hg load, giving a
   breakthrough time of **centuries** in the default scenario. Mercury is
   effectively a durable channel here, and the mat is not replaced because of it.
