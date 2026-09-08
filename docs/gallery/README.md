@@ -50,8 +50,33 @@ justify sending a vessel.
 *The value of evidence-informed maintenance is bounded by the monitoring
 programme that feeds it.*
 
+**It is not simply inert, though.** Look at scenario D below: when a tile is
+displaced and another punctured, the evidence-informed policy *does* service,
+because a damage class from an ROV inspection is unambiguous in a way that a
+falling flux number is not. It acts on what it can see and declines on what it
+cannot, which is the behaviour you would want and the reason the two cases look
+different.
+
 Every euro value is an assumption. No supplier has been contacted and no
 quotation exists.
+
+## All six scenarios at a glance
+
+| | Scenario | Years | Final attenuation | Media saturation | Effective coverage | Pb retained | Services |
+|---|---|---|---|---|---|---|---|
+| A | `fresh_mat` | 1.0 | 99.8 % | 68 % | 100 % | 10.5 kg | 0 |
+| B | `progressive_saturation` | 6.0 | 94.4 % | 98 % | 100 % | 15.1 kg | 0 |
+| C | `increased_leak` | 6.0 | 89.3 % | 100 % | 100 % | 15.4 kg | 0 |
+| D | `displaced_section` | 4.0 | 94.3 % | 97 % | 96 % | 16.4 kg | 1 |
+| E | `delayed_chemistry` | 4.0 | 94.3 % | 97 % | 100 % | 14.9 kg | 0 |
+| F | `undersized_mat` | 4.0 | 83.9 % | 98 % | 100 % | 1.36 kg | 0 |
+
+Scenario F is the honest one: a 45 % coverage, 2 mm mat over a seep three times
+stronger retains **1.36 kg** where the properly sized mat retains 15, and its
+attenuation is the worst of the six. It also ends up the least monitored,
+because a 2x2 mat has no tile for the benthic chamber station the larger layouts
+use. That was not designed in; it fell out of the same configuration and is left
+visible.
 
 ---
 
@@ -89,6 +114,12 @@ declines to replace the mat on this evidence.
 One tile displaced off its footprint, another punctured. The failure is local:
 those cells return to the bare flux while their neighbours keep working. Tile
 outlines are colour-coded: green intact, amber torn, red displaced, blue buried.
+
+**This is the scenario where evidence-informed servicing acts.** An ROV damage
+class is unambiguous, so the policy recommends replacing the affected tiles and
+leaves the other seven alone. Compare that with scenario C, where the flux rises
+for a reason the evidence cannot separate from a stronger source, and the policy
+asks for chemistry instead of a vessel.
 
 | Residual flux at the seabed | Through time |
 |---|---|

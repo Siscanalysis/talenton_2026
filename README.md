@@ -130,6 +130,11 @@ saturation interval never narrows enough to justify sending a vessel. *The value
 of evidence-informed maintenance is bounded by the monitoring programme that
 feeds it.*
 
+It is not inert, though. In scenario D, where a tile is displaced and another
+punctured, the same policy *does* service: an ROV damage class is unambiguous in
+a way a falling flux number is not. It acts on what it can see and declines on
+what it cannot.
+
 Every euro figure is an assumption. No supplier has been contacted.
 
 ## What is in here
