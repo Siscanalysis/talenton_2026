@@ -145,19 +145,41 @@ class HotspotConfig:
 
 @dataclass(frozen=True, slots=True)
 class ReactiveMediumConfig:
-    """Reduced reactive-medium parameters per element, with ranges.
+    """Reduced parameters for a **keratin-based** reactive medium, per element.
 
-    A synthetic baseline chosen so a multi-year demonstration shows loading,
-    breakthrough and maintenance.  Not transferred from [S01] or [S04] as
-    validated operating capacities.
+    Grounded in the published keratin biosorption literature and then derated
+    for seawater.  The full derivation, the sources and the caveats are in
+    ``docs/MATERIAL_KERATIN.md``; the short version:
+
+    * Published Pb(II) Langmuir capacities for keratin biofibres are 4 to
+      33 mg/g, measured **in deionised water at pH 4.0** [K1, K2].
+    * In seawater at pH 8.2 free Pb2+ is a small minority of dissolved lead
+      (PbCO3(aq) alone is about 41 %) and Ca and Mg outnumber it by orders of
+      magnitude [K3], so the operating capacity is set well below the
+      freshwater figures.
+    * No verified Hg(II) capacity for a keratin biosorbent was found. The Hg
+      capacity is instead a small fraction of the stoichiometric thiol ceiling
+      implied by keratin's 4 to 8 wt% sulfur [K4], which is about 125 mg/g if
+      every disulfide were reduced and accessible.
+
+    Every value remains an ASSUMPTION about our material, not a measurement of
+    it.  The intervals are wide on purpose.
     """
 
     element: str = Element.PB.value
-    kd_m3_per_kg: float = 5.0
-    kd_interval: tuple[float, float] = (1.0, 25.0)
-    #: Operating capacity, deliberately far below any literature maximum.
+    #: Derated from the Langmuir behaviour of keratin biofibres [K1].
+    kd_m3_per_kg: float = 3.0
+    kd_interval: tuple[float, float] = (0.5, 20.0)
+    #: Operating capacity: about one fifth of the lowest freshwater literature
+    #: value (4.29 mg/g, dog hair [K1]), derated for seawater speciation and
+    #: Ca/Mg competition.  The interval's upper end, 8.0e-3 kg/kg, is the best
+    #: published freshwater result (chicken feather, 8.02 mg/g [K1]), that is,
+    #: the optimistic case in which seawater costs nothing.
     q_max_kg_per_kg: float = 1.0e-3
-    q_max_interval: tuple[float, float] = (3.0e-4, 3.0e-3)
+    q_max_interval: tuple[float, float] = (3.0e-4, 8.0e-3)
+    #: Order of magnitude from pseudo-second-order kinetics reaching equilibrium
+    #: within 24 h in batch [K1].  In a mat the rate is set by intraparticle
+    #: transport, not by batch stirring, so this is uncertain.
     k_rate_per_s: float = 4.0e-4
     k_rate_interval: tuple[float, float] = (1.0e-4, 1.2e-3)
     d_eff_m2_per_s: float = 2.0e-10
@@ -167,7 +189,10 @@ class ReactiveMediumConfig:
     fouling_rate_kinetics: float = 0.8
     fouling_rate_diffusivity: float = 0.6
     provenance: str = ProvenanceLabel.ASSUMPTION.value
-    source_ref: str = "synthetic baseline, docs/MODEL_SPEC.md section 4"
+    source_ref: str = (
+        "keratin biosorption literature derated for seawater; "
+        "see docs/MATERIAL_KERATIN.md [K1-K4]"
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -189,6 +214,8 @@ class MatLayoutConfig:
     #: the poor-design scenario fails.
     coverage_fraction: float = 1.0
     thickness_m: float = 0.010
+    #: A wool-felt-like keratin nonwoven at about 0.5 porosity. Keratin solid
+    #: density is near 1300 kg/m^3, so a half-porous felt lands here.
     bulk_density_kg_per_m3: float = 400.0
     porosity: float = 0.5
     overlap_m: float = 0.10
@@ -204,17 +231,25 @@ class MatLayoutConfig:
         ReactiveMediumConfig(),
         ReactiveMediumConfig(
             element=Element.HG.value,
-            kd_m3_per_kg=12.0,
-            kd_interval=(1.0, 120.0),
-            q_max_kg_per_kg=4.0e-4,
-            q_max_interval=(8.0e-5, 1.6e-3),
+            # Thiol-Hg affinity is high enough to outcompete seawater chloride,
+            # which is why thiol sorbents are the established route for Hg in
+            # saline matrices. Strong binding to comparatively few sites.
+            kd_m3_per_kg=30.0,
+            kd_interval=(2.0, 300.0),
+            # 2 % of the 125 mg/g stoichiometric thiol ceiling implied by
+            # keratin's 4 wt% sulfur [K4]. NO verified Hg capacity for a keratin
+            # biosorbent was found, so this is the weakest number in the model
+            # and the interval spans 0.16 % to 20 % of that ceiling.
+            q_max_kg_per_kg=2.5e-3,
+            q_max_interval=(2.0e-4, 2.5e-2),
             k_rate_per_s=2.0e-4,
             k_rate_interval=(3.0e-5, 8.0e-4),
             allocation_fraction=0.4,
             source_ref=(
-                "synthetic baseline; Hg uptake depends strongly on sulfide, "
-                "chloride and dissolved organic matter [S04] and is not "
-                "transferable from a different sorbent"
+                "stoichiometric thiol ceiling from keratin sulfur content [K4], "
+                "not a measured Hg capacity: none was found. Hg uptake also "
+                "depends strongly on sulfide, chloride and dissolved organic "
+                "matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
             ),
         ),
     )
