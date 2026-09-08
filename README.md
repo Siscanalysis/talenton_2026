@@ -24,26 +24,48 @@ here.
 
 ---
 
-## Install and run
+## Run it in five minutes
+
+Needs **Python 3.11, 3.12 or 3.13** and nothing else: no account, no API key, no
+network at run time, no map tile server. Verified from a clean clone with plain
+`pip` on Windows 11 + CPython 3.12.13.
 
 ```powershell
-# Windows PowerShell, from this directory
-uv venv --python 3.12 .venv
-uv pip install --python .venv\Scripts\python.exe -r requirements.lock.txt
-uv pip install --python .venv\Scripts\python.exe -e . --no-deps
+git clone <this repository> talenton_2026
+cd talenton_2026
 
-# tests
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
+.venv\Scripts\python.exe -m pip install -e . --no-deps
+
+# 1. the test suite: 262 tests, about 90 seconds
 .venv\Scripts\python.exe -m pytest -q
 
-# scenarios A to F, offline, no account and no network
-.venv\Scripts\python.exe -m reactive_seabed_mat.cli run-all --out results
+# 2. a first look: one scenario, about 60 seconds
+.venv\Scripts\python.exe -m reactive_seabed_mat.cli quick --out results
+#    then open results\fresh_mat_quick\report\report.html in any browser
 
-# the local app
+# 3. the interactive app
 .venv\Scripts\streamlit.exe run app/streamlit_app.py
 ```
 
-Exact commands, timings and the five-minute narration are in
-[`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).
+On Linux or macOS use `.venv/bin/python` and `.venv/bin/streamlit` instead.
+
+```bash
+# all six scenarios (several minutes), or just one
+python -m reactive_seabed_mat.cli list
+python -m reactive_seabed_mat.cli run displaced_section --out results
+python -m reactive_seabed_mat.cli run-all --out results
+```
+
+Each run writes a **single self-contained HTML report** with every map and
+chart embedded: it opens offline, from a USB stick, with no internet.
+
+> **Windows note.** Clone to a short path such as `C:\dev\talenton_2026`.
+> Some dependencies ship deeply nested files and a very long parent path can
+> trip the 260-character limit during `pip install`.
+
+The five-minute narration is in [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).
 
 ## The six scenarios
 
@@ -57,6 +79,21 @@ Exact commands, timings and the five-minute narration are in
 | F | `undersized_mat` | A deliberately poor design: 45 % coverage, 2 mm thick, over a stronger seep. Poor capture, bad cost per kilogram |
 
 Scenario F exists because a demonstration that always succeeds is not evidence.
+
+## What you will see
+
+| View | What it shows |
+|---|---|
+| **Seabed residual flux** | How much Pb (or Hg) is still entering the water, per square metre, over the hotspot. A displaced or torn tile lights up here while its neighbours stay dark. |
+| **Effective reactive cover** | Why each cell emits: covered, uncovered, damaged, displaced or leaking round the edge. Tile outlines are colour-coded by fault. |
+| **Water concentration, with and against without** | The plume in ng/L on a shared colour scale, so the comparison is honest. |
+| **Remaining fraction of the untreated plume** | Treated over untreated, 0 to 1. A model comparison, explicitly **not** a compliance assessment. |
+| **Attenuation and saturation through time** | Multi-year curves. Attenuation starts above 99 % and falls to a plateau near 94 % as the medium loads. |
+
+The plateau is worth understanding: once the chemistry is exhausted the mat is
+still a **diffusive barrier**, so it keeps attenuating. The chemical
+contribution of the sorbent is the difference between the two figures, not the
+whole thing. The demo reports both rather than quoting the flattering one.
 
 ## What is in here
 
