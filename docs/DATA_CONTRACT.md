@@ -1,64 +1,137 @@
-# Shared contract v0.1
+# Shared contract v0.2 (seabed reactive mat)
 
-The observation format and units below are supplied now. Common model/result dataclasses must be frozen by the coordinator before parallel implementation. Keep functions plain and local: no web-service interface is necessary.
+Supersedes contract v0.1, which was written for a vertical reactive mesh
+intercepting a plume. The changes are recorded in `REFACTOR_PLAN.md`.
+
+The realisation of this document is
+`src/reactive_seabed_mat/contracts.py` (`CONTRACT_VERSION = "0.2.0-frozen-mat"`)
+and `src/reactive_seabed_mat/schemas/observation.schema.json`. Where this prose
+and the code disagree, the code is the contract and the prose is the bug.
 
 ## 1. Observation records
 
-One JSON object per line, one parameter per record. `observation.schema.json` supplies the machine-readable shape. `data/synthetic/observations.jsonl` contains **synthetic format/edge-case fixtures only**, not coherent sensor measurements or a dataset for fitting adsorption.
+One JSON object per line, one parameter per record.
+`data/synthetic/observations.jsonl` contains **synthetic format and edge-case
+fixtures only**, not coherent measurements and not a dataset for fitting
+sorption.
 
 | Field | Meaning |
 |---|---|
 | `record_id`, `station_id` | Stable unique record and station identifiers |
-| `sensor_id`, `sample_id`, `media_id` | Nullable hardware, collected sample and relevant material-installation identifiers |
-| `observed_at_utc` | Sampling/measurement timestamp, ISO 8601 UTC ending in Z |
-| `available_at_utc` | Earliest time the controller can access the result; never earlier than sampling |
-| `sampling_start_utc`, `sampling_end_utc` | Required for integrated passive-sampler exposure; otherwise null |
-| `parameter` | `Pb`, `Hg`, `current_east`, `current_north`, `temperature`, `conductivity`, `salinity`, `pH`, `turbidity`, `mesh_tilt`, `battery_voltage` |
-| `unit` | Explicit supported display unit; no automatic inference |
-| `matrix` | `seawater`, `porewater`, `sediment`, `sorbent`, `instrument` |
-| `fraction` | `not_applicable`, `labile`, `dissolved_filtered`, `total_recoverable`, `dissolved_inorganic`, `methylmercury`, `sorbed_total` |
-| `acquisition_kind` | `in_situ_sensor`, `grab_sample`, `passive_sampler`, `media_assay`, `manual` |
+| `sensor_id`, `sample_id`, `media_id` | Nullable hardware, collected sample and media-batch identifiers |
+| `tile_id` | Nullable mat tile. **Required for spatially local failure to be observable.** `media_id` is not a substitute: one media batch can be laid across many tiles |
+| `observed_at_utc` | Sampling or measurement timestamp, ISO 8601 UTC ending in Z |
+| `available_at_utc` | Earliest time the controller may use the result; never earlier than sampling |
+| `sampling_start_utc`, `sampling_end_utc` | Required for an integrated passive-sampler exposure and for a benthic-chamber deployment; otherwise null |
+| `parameter` | The measured quantity, including the mat-condition channels |
+| `quantity_kind` | **Declared, never inferred**: `aqueous_concentration`, `solid_loading`, `accumulated_mass`, `areal_flux`, `length`, `velocity`, `fraction`, `categorical`, `context` |
+| `unit` | Explicit supported unit from the ladder that `quantity_kind` implies |
+| `matrix` | `seawater`, `bottom_water`, `porewater`, `mat_porewater`, `sediment`, `sorbent`, `mat_structure`, `instrument` |
+| `fraction` | Operationally defined analytical fraction, including `dgt_labile` |
+| `acquisition_kind` | How it was obtained, including `benthic_chamber`, `rov_inspection`, `bathymetric_survey`, `acoustic_position`, `sediment_core` |
 | `value`, `uncertainty_std` | Number or null; uncertainty in the same unit, null when unknown |
-| `qualifier` | `quantified`, `below_lod`, `below_loq`, `missing` |
-| `lower_bound`, `upper_bound` | Censoring interval; non-detect is not a zero measurement |
-| `quality_flag` | 1 passed, 2 not evaluated, 3 suspect, 4 failed, 9 missing [S23–S24] |
-| `method_id`, `calibration_id` | Method definition and calibration reference; calibration may be null |
-| `data_origin`, `source_ref` | `synthetic`, `sensor`, `laboratory`, `external_model`, `derived`; provenance reference |
-| `x_m`, `y_m`, `depth_m`, `crs` | Metric horizontal coordinates and positive-down depth; declared CRS |
+| `qualifier` | `quantified`, `below_lod`, `below_loq`, `above_range`, `categorical`, `missing` |
+| `lower_bound`, `upper_bound` | Censoring interval. A non-detect is a bound, not a zero measurement |
+| `condition_class` | Controlled-vocabulary class for a categorical condition record |
+| `quality_flag` | 1 passed, 2 not evaluated, 3 suspect, 4 failed, 9 missing [S23-S24] |
+| `method_id`, `calibration_id` | Method definition and calibration reference |
+| `data_origin` | **The acquisition pathway only**: `sensor`, `laboratory`, `field_survey`, `external_model`, `derived`, `manual` |
+| `provenance` | **The truth status**: `measurement`, `external_model`, `literature`, `assumption`, `fitted`, `synthetic_demo` |
+| `source_ref` | Provenance reference |
+| `x_m`, `y_m`, `depth_m`, `vertical_datum`, `crs` | Metric coordinates, positive-down depth, **the datum that depth is measured from**, declared CRS |
+| `z_in_mat_m` | Position within the reactive-layer thickness, for a depth-resolved profile |
+| `chamber_area_m2` | Enclosed area of a benthic flux chamber; required to interpret its flux |
 
-`salinity` uses unit `1` for practical salinity in the fixture. Record the scale/method in `method_id`; do not silently mix practical salinity with absolute salinity in g/kg. pH is dimensionless but its measurement scale must also be specified in a real method record. Conductivity examples use mS/cm. Turbidity examples use NTU; a future FTU channel requires explicit contract extension, not a silent relabelling.
+`data_origin` and `provenance` are separate on purpose. A fabricated laboratory
+record is `data_origin: laboratory` with `provenance: synthetic_demo`. The
+previous contract could not express both at once, and its fixture therefore
+labelled invented numbers as laboratory results.
 
-The `Pb`/`Hg` name identifies the element; `matrix`, `fraction` and method determine what the number means. The schema allows sediment/media records for evidence, but the first aqueous adapter must reject them as water concentration inputs. For solid assays use ng/g or mg/kg with a separate mass-based conversion; never use the aqueous conversion.
+`depth_m` without a `vertical_datum` is rejected. In the previous contract a
+sediment sample at `depth_m: 5.0` was unresolvably ambiguous between the water
+column and below the sediment surface.
 
-For a raw passive sampler, an accumulated mass and sampling rate may be the correct observable. The first release may store its metadata and defer quantitative assimilation until a sampler-specific observation operator and schema extension exist. Do not force raw passive-sampler mass into ng/L.
+### Units
+
+Six ladders, and no conversion between them:
+
+| Ladder | SI | Examples |
+|---|---|---|
+| aqueous concentration | kg m^-3 | ng/L, ug/L, mg/L |
+| solid loading | kg kg^-1 | ng/g, mg/kg |
+| mass | kg | ng, ug, mg, g |
+| **areal flux** | kg m^-2 s^-1 | ng/m2/s, ug/m2/d, mg/m2/yr |
+| **length** | m | m, cm, mm |
+| **velocity** | m s^-1 | m/s, m/d, cm/yr |
+
+The last three are new in v0.2. Flux attenuation is the whole claim of a
+reactive cap and no flux value could previously be converted or range-checked;
+`m` sat among the unconverted context units, so a burial depth in centimetres
+would have passed every check as if it were metres; and a seepage velocity in
+cm/yr differs from m/s by nine orders of magnitude.
+
+`ng/g` is a mass fraction and must never be pushed through the aqueous
+conversion. For solid assays use ng/g or mg/kg with the mass-based ladder.
+
+`salinity` uses unit `1` for practical salinity; record the scale in
+`method_id` and do not mix practical salinity with absolute salinity in g/kg.
+Turbidity examples use NTU; an FTU channel requires an explicit contract
+extension, not a silent relabelling.
 
 ### Censoring
 
-- `quantified`: a finite value, no censoring interval.
-- `below_lod`/`below_loq`: this minimal canonical format stores `value: null` and a finite interval. A reported estimated value can be retained in raw provenance; do not silently assimilate it as an exact value.
-- `missing`: `value: null`, no interval, quality flag 9. A missing result contains no chemical information.
+* `quantified`: a finite value, no censoring interval.
+* `below_lod` / `below_loq`: `value: null` and a finite interval. A reported
+  estimated value belongs in `source_ref` or the laboratory's own file, not in a
+  field that the schema drops.
+* `above_range`: `value: null` and a lower bound only.
+* `categorical`: `value: null`, a `condition_class`, and
+  `quantity_kind: categorical`.
+* `missing`: `value: null`, no interval, quality flag 9. A missing result
+  contains no chemical information at all.
 
-The supplied validation utility checks these essentials, but future vendor ingestion must also validate model-specific metadata, ranges, messages and methods.
+### What each channel constrains
 
-## 2. Module boundary to freeze
+Only `Pb` and `Hg` records carry chemical information. Never infer a metal
+concentration from turbidity, conductivity, salinity, temperature, pH, redox or
+current.
 
-Use dataclasses or similarly explicit typed objects, not unstructured dictionaries passed everywhere. The coordinator implements their exact definitions and fixture factories on main first.
+| Channel | Constrains |
+|---|---|
+| porewater Pb/Hg at the sediment face | the driving condition `C_sed` |
+| bottom-water Pb/Hg above the mat | `C_water` and the residual flux |
+| benthic-chamber areal flux | `J_out` directly, the quantity the mat is judged on |
+| DGT accumulated mass over a window | a time-integrated labile pool, never a point ng/L |
+| retrieved-media assay | the loading of the **old** media, not the tile now in place |
+| ROV, survey and acoustic records | mat condition, degradation modes 3 and 4, per tile |
+| differential head | pore blockage, separating fouling from saturation |
+| environmental sensors | water conditions and QC only |
+
+A `total_recoverable` record is not assimilated against a `labile` model state
+unless an explicit, documented, uncertain ratio operator is switched on; by
+default such records are unassimilated evidence. `dgt_labile` and `labile` are
+different operationally defined pools and are never merged.
+
+## 2. Module boundary
+
+Frozen signatures, realised as Protocols in `contracts.py`:
 
 ```
-advance_panel(panel_state, contact_batch, material_parameters, dt_s)
-    -> PanelStep(new_state, uptake_kg_by_element, release_kg_by_element, diagnostics)
+advance_reactive_layer(tile_state, exchange, material_parameters, dt_s)
+    -> LayerStep(new_state, flux_in, flux_out, retained_delta, released, ...)
+
+build_seabed_exchange(field_state, tiles, hotspot, forcing, dt_s)
+    -> Sequence[SeabedExchange]
+
+residual_source_flux(grid, hotspot, tiles, layer_steps, time_utc)
+    -> SeabedSourceField          # the distributed source the water receives
 
 transport_step(field_state, forcing, sources, dt_s)
-    -> TransportStep(new_field, boundary_in_kg, boundary_out_kg, diagnostics)
-
-build_contacts(field_state, panels, forcing, dt_s)
-    -> contact_batches
-
-apply_transfers(field_state, panel_steps)
-    -> new_field                       # exactly one subtraction/addition per transfer
+    -> TransportStep(new_field, boundary_in_kg, boundary_out_kg,
+                     released_from_seabed_kg, diagnostics)
 
 observations_available(records, decision_time_utc)
-    -> records                         # preserves original IDs, flags and fractions
+    -> records                    # preserves original IDs, flags and fractions
 
 update_estimate(previous_estimate, available_observations, model_history)
     -> EstimateSnapshot
@@ -67,24 +140,64 @@ recommend(snapshot, policy, previous_actions)
     -> Recommendation
 ```
 
-`ContactBatch` includes panel ID, timestamp, total/accessible concentration interpretation, available mass per element, assumed/measured contact exchange, environment and allocating grid-cell IDs/weights. `PanelState` includes media ID, material allocation, retained kg, capacity kg and fouling. All model transfers are in kg, never displayed ng/L.
+The coupling direction is the opposite of v0.1. The reactive layer is the
+**source-term generator** for the coastal model. Nothing is subtracted from a
+water-column cell, and there is no `apply_transfers`.
 
-The independent micro branch can use a scripted contact sequence. The macro branch can use a zero-uptake stub. The observation branch can use a scripted model-history fixture. Such stubs must be labelled and replaced during integration.
+`SeabedExchange` carries the sediment-side porewater, the bottom-water
+concentration, the seepage velocity, the film coefficient and the uncapped
+reference flux. `MatTileState` carries the layer profiles plus four independent
+degradation fields: `fouling_index`, `integrity_index`, `burial_depth_m` and
+`displaced`. All model transfers are in kg or kg m^-2 s^-1, never a displayed
+ng/L.
 
 ## 3. Snapshot and action shape
 
-A snapshot contains estimated retained mass and uncertainty, remaining-life interval or null, model-data compatibility, data age, evidence IDs and ambiguity flags. It does not contain actual hidden event labels. Confidence levels/quantiles must be documented.
+A snapshot contains estimated loading, remaining capacity, residual flux, source
+flux, attenuation, breakthrough interval, fouling, integrity and effective
+permeability, each with an interval; plus data age, model-data compatibility,
+evidence IDs, ambiguity flags, and **weights for all four degradation modes side
+by side**. It contains no hidden event label. The interval level is documented
+in the snapshot itself.
 
-A recommendation contains UTC decision time, action enum, human-readable reason, evidence record IDs, uncertainty/rationale, `human_confirmation_required: true`, and `execution_mode: simulation_only`. An accepted simulated action has a separate action-event record. Duplicate recommendations must not create repeated replacements.
+Remaining life and breakthrough are intervals or `None`. A falsely precise
+remaining-life number is worse than an honest "not determined".
+
+A recommendation contains a UTC decision time, an action from
+`CONTINUE_MONITORING`, `TAKE_CHEMICAL_SAMPLE`, `CHECK_SENSOR`, `INSPECT_MAT`,
+`PLAN_PARTIAL_REPLACEMENT`, `REPLACE_ACTIVE_PANEL`, `PERFORMANCE_UNCERTAIN`; a
+human-readable reason; evidence record IDs; the target tile IDs; an uncertainty
+note; `human_confirmation_required: true`; and
+`execution_mode: simulation_only`. An accepted simulated action has a separate
+action-event record, so duplicate recommendations cannot create repeated
+replacements.
 
 ## 4. Configuration and provenance
 
-Each run records seed, simulation interval/time step, domain dimensions/CRS/depth, current/diffusion assumptions, source kg/s schedule, panel geometry/material allocations, parameter ranges and provenance, observation schedule/noise/detection assumptions, laboratory latency, service policy and assumed costs. Use one coordinator-owned config schema.
+One coordinator-owned schema, `config.RunConfig`. Each run records seed, time
+stepping, domain, forcing, the hotspot and its schedule, mat layout and
+reactive-medium parameters with ranges and provenance, degradation assumptions,
+observation schedule, noise and detection assumptions, laboratory latency,
+service policy, assumed costs and the plume-window settings.
 
-Mark illustrative fields explicitly. Do not fabricate a reference for an assumed number. A plot combining a real map, model currents and synthetic metal data must show all three origins.
+Mark illustrative fields explicitly. Do not fabricate a reference for an assumed
+number. A plot combining a real map, model currents and synthetic metal data
+must show all three origins.
 
 ## 5. Result contract
 
-Emit `manifest.json`, per-element mass ledger, material-state timeline, observation records, estimate timeline, action timeline, design comparison and a self-contained presentation report. A result manifest records implemented engine/version, dependency lock hash, data hashes, assumptions and all unsuccessful validation checks. The UI can consume these files without re-running a costly optimiser.
+Emit `manifest.json`, a per-element mass ledger, a mat-state timeline,
+observation records, an estimate timeline, an action timeline, the design
+comparison and a self-contained presentation report. The manifest records the
+implemented engines and versions, the dependency lock hash, data hashes,
+assumptions and **all unsuccessful validation checks**, including the numerical
+tolerances actually achieved. The UI consumes these files without re-running
+anything expensive.
 
-Keep `truth/` output separate from `observations/` and `estimates/`. The test harness may compare them; the operational recommendation function may not load `truth/`.
+Keep `truth/` output separate from `observations/` and `estimates/`. The test
+harness may compare them; the operational recommendation path may not load
+`truth/`.
+
+Because the mat and the plume run on different clocks, their ledgers are
+reported separately and each is labelled with its own window. Nothing may imply
+the coastal model was integrated for the whole mat timeline.
