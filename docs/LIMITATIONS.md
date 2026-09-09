@@ -1,169 +1,62 @@
 # Limitations
 
-Read this before quoting any number produced by this repository.
+Updated 9 September 2026. Read together with the [manuscript](../manuscript/manuscript.pdf), [assumptions](ASSUMPTIONS.md), [evidence base](EVIDENCE_BASE.md) and [paper traceability audit](PAPER_PARAMETER_TRACEABILITY.md).
 
-## What this is
+## Scope and validation status
 
-A small offline simulator and presentation demonstrator for a **selective
-reactive seabed mat**: a thin, modular, retrievable reactive cap over an
-authorised contaminated seabed area. It shows a hypothetical hotspot, a
-flux-attenuating reactive layer, four independent degradation modes, a synthetic
-observation stream and an uncertainty-aware maintenance recommendation. It is a
-way of reasoning about a monitoring and maintenance concept. It is not evidence
-that the concept works.
+This is an offline simulator of a hypothetical reactive seabed cap and a synthetic monitoring/maintenance workflow. It models Pb, inorganic Hg and Cu transport; the default chemical monitoring supports Pb and Hg. No simulated result has been validated against a deployment of the proposed keratin core. Existing caps and geotextile sorbent constructions are documented in [PRIOR_ART.md](PRIOR_ART.md).
 
-## What it is not
+The materials literature includes real uptake measurements on particular keratin formulations, including Cu on treated wool and Hg on reduced human hair. Those experiments do not calibrate the final wool/feather core in flowing seawater. A literature-supported mechanism, an assumed capacity and a fitted operational model are different levels of evidence.
 
-* **Not novel in its basic idea.** Reactive caps, permeable reactive barriers,
-  activated-carbon sediment amendments and reactive geotextile mats already
-  exist and are commercially deployed. No novelty is claimed for putting sorbent
-  in a mat, for a geotextile reactive cap, for activated carbon in sediment
-  remediation, or for monitoring a remediation site. See `docs/PRIOR_ART.md`.
-  The possible differentiation, listed there, is a hypothesis list, not a
-  result.
-* **Not field validation.** Simulated improvement is not measured improvement
-  [U01]. No part of this repository has been compared against a real deployment.
-* **Not a validated material model.** The capped linear isotherm with a
-  first-order approach to equilibrium is a synthetic baseline chosen because it
-  is auditable, not because it is the chemistry of any real medium. Seawater Pb
-  adsorption has been demonstrated for a *particular* polyurea-crosslinked
-  alginate material [S01], not for our composite, not as a mat, and not under
-  advective flux. Hg behaviour depends strongly on sulfide, chloride and
-  dissolved organic matter [S04]; the Hg parameters here are placeholders with
-  deliberately wide intervals.
-* **Not a validated hydrodynamic model.** The overlying current field is
-  prescribed and physically simple. It is not a calibrated coastal flow
-  solution.
-* **Not a claim about any real site.** The hotspot is hypothetical and labelled
-  as such in every export. Munitions-derived mercury has been measured in the
-  Baltic [S02] and ammunition-related compounds at a Dutch dump site [S03];
-  neither establishes a hotspot at any particular location.
-* **Not a statement that TNT and other energetic compounds are harmless.**
-  Restricting this demonstrator to Pb and Hg is a scope decision [S03].
-* **Not an ordnance study.** The source is an abstract authorised contaminant
-  hotspot. Nothing here simulates, locates or recommends the physical handling
-  of unexploded ordnance. Real deployment near historical marine munitions
-  requires specialist and environmental approval.
-* **Not a biodegradability claim.** No composite here has been tested. The
-  material in [S01] contained substantial synthetic polymer.
-* **Not a disposal route.** Metal-loaded media stay in the retrieved-media
-  ledger. Nothing is returned to the sea.
-* **Not an automated control system.** Every recommendation carries
-  `human_confirmation_required = True` and `execution_mode = "simulation_only"`.
-  No actuation path exists and none should be added without a safety case.
+The source does not locate contamination, simulate munitions or address their handling. TNT and other energetic compounds are outside the simulated chemical scope. Designated-area maps provide context rather than a measured Pb/Hg/Cu footprint or deployment recommendation. Recommendations have `human_confirmation_required = True` and `execution_mode = "simulation_only"`; there is no physical actuation.
 
-## Ecological limitation that works against the concept
+## Physical and numerical limitations
 
-Capping alters sediment redox conditions and can **increase** methylmercury
-production. This is a recognised risk of in-situ capping and amendment, not a
-detail. Ecological safety is therefore a validation constraint in this
-demonstrator, not an automatic benefit of treatment: the methylmercury channel
-is reported alongside the Pb and Hg attenuation and is treated as a risk. A cap
-that reduces total Hg flux while raising MeHg production could be a net harm,
-and the demonstrator is built so that outcome can be seen rather than hidden.
-
-### The evidence does not support a claim that this design prevents methylation
-
-It is tempting to argue that encapsulating the keratin between two geotextiles
-keeps the sulfur away from the sediment and therefore stops methylation. The
-published record does not support that, and it points the other way on the part
-that matters most.
-
-**What activated-carbon capping actually does to mercury**, which is the closest
-measured analogue:
-
-* Porewater MeHg **falls**, substantially. Field amendment at 2 to 7 % dry
-  weight reduced porewater MeHg by 45 to 95 %, and by more than 90 % at one
-  month.
-* Sediment MeHg **rose in five of seven studies**, apparently by shifting the
-  balance between MeHg production and degradation. The mechanism is stated in
-  the literature as unclear.
-* The effect **fades**. In a salt-marsh field trial the impact on porewater MeHg
-  and on MeHg partitioning was significant for only about the first year.
-
-So a sorbent cap reliably reduces the *mobile* pool and may simultaneously
-increase the *sediment* inventory, and its effect is not durable. Three separate
-reasons not to claim prevention.
-
-**Why a keratin core is a harder case than activated carbon, not an easier one.**
-Methylation is carried out largely by sulfate-reducing bacteria, which need
-labile organic carbon and sulfur. Activated carbon supplies neither: it is
-refractory. A keratin core supplies both. It is a biodegradable protein that is
-4 to 8 wt% sulfur, and the disulfides we would deliberately reduce to thiols to
-bind mercury are exactly the sulfur species those organisms use. Encapsulation
-limits particle contact; it does not stop dissolved organic carbon and reduced
-sulfur from leaching downward into the sediment beneath.
-
-**What can honestly be said.** Seawater mercury is above 99 % chloro-complexed,
-and those complexes are reported to resist reduction and methylation more than
-free Hg(II) does, so a mat that holds mercury as a thiolate rather than
-releasing it to porewater is *plausibly* better than doing nothing. Plausibly is
-the correct word. Until the experiment in `docs/MATERIAL_KERATIN.md` section 6
-item 6 is done, on this material, in this configuration, **methylmercury is a
-stop condition for the project and not a feature of it.** If a keratin core
-raises net MeHg production, keratin is the wrong core and the envelope should be
-filled with something else.
-
-## Known modelling limitations
-
-| Area | Limitation |
+| Area | Remaining limitation |
 |---|---|
-| Layer dimensionality | 1-D vertical per tile. Lateral flow within the layer, preferential channels and finger flow are absent. Real caps fail through preferential pathways that a 1-D model cannot represent. |
-| Advection | A single prescribed Darcy velocity. Real seepage is heterogeneous, tidally modulated, and often concentrated in a few percent of the area. Uniform seepage is the optimistic case. |
-| Sediment reservoir | Prescribed and never depleted. The model cannot show a source exhausting itself. |
-| Consolidation and settlement | Not modelled. A mat laid on soft sediment settles, and its thickness and contact change. |
-| Bioturbation and bioirrigation | Not modelled. Both can short-circuit a thin cap. |
-| Chemistry | One dissolved pool per element, a capped linear isotherm, no competition between Pb and Hg for sites, no speciation, no particulate exchange. Competitive adsorption is a stated future need, not a feature. PHREEQC [S05] is not used, and using it would first require checking the database contains the needed saline-water Pb/Hg reactions. |
-| Fractions | The simulated dissolved pool is treated as the labile pool, stated explicitly. Labile, DGT-labile and total recoverable are operationally different and the code refuses to merge them. |
-| Fouling | A single scalar per tile driving rate, capacity and diffusivity, plus a bypass coupling. Real biofouling is heterogeneous and can alter the local flow field. |
-| Edge effects | A single edge-leakage fraction. Real edge and seam behaviour is a geometry problem this model does not resolve. |
-| Coastal model | 2-D depth-averaged with one effective mixing depth and one effective diffusivity. No stratification, no near-bed structure. |
-| Two timescales | The mat is integrated for years; the coastal plume only for short windows at named mat states. The two ledgers are separate and labelled. Nothing implies the coastal model was run for years. |
-| Numerics | The layer scheme is fully implicit and converged under refinement; the coastal scheme is stable but diffusive at coarse resolution. Both report their clipping corrections. The refinement tests state the sensitivity actually measured. |
+| Source reservoir | Porewater concentrations and seepage are prescribed. The source never depletes, and sediment reactions do not respond to capping. |
+| Layer geometry | Each tile has a 1-D vertical column. Preferential paths, lateral flow, seam geometry, heterogeneous contact and sediment consolidation are unresolved. |
+| Chemistry | Independent dissolved Pb/Hg/Cu pools with capped linear equilibrium and first-order relaxation. No explicit multi-metal competition, speciation, precipitation, particulate exchange, pH feedback or microbial chemistry. |
+| Material allocation | Fixed per-element allocation avoids counting the same dry mass repeatedly, but is not a mechanistic shared-site competitive isotherm. Bulk density and porosity are independent assumptions. |
+| Full-capacity rule | A cell at its effective sorption capacity stops exchanging sorbed mass under the retained locking rule. This can produce a finite difference from a nearly full cell during flushing; reversible desorption of exhausted material is not validated. |
+| Fouling and burial | Scalar resistance, accessibility and bypass changes approximate complex biological and hydraulic processes. Lower flux under burial does not prove successful treatment. |
+| Damaged-area coupling | Whole-hotspot emission mixes full-column flux with uncovered, damaged and bypass fractions. Columns continue to evolve over their full represented footprint. This area approximation is not a fully coupled heterogeneous sediment/mat flow solution. |
+| Separate mass balances | Initial sorbed inventory, new column input, residual output, remaining media and retrieved media form a column ledger. Coastal windows have separate source/storage/export ledgers. Area-mixed hotspot emission is not a term that closes a single shared sediment/mat/water budget. |
+| Coastal hydrodynamics | Prescribed currents and 2-D depth-averaged transport with effective mixing depth/diffusivity. No stratification, resolved near-bed boundary layer or calibrated coastal flow solution. |
+| Two timescales | The mat evolves over years; the coastal model runs short windows at valid captured mat ages. Window phase and duration affect peaks and inventories. These windows are not a multi-year coastal trajectory and do not feed water concentrations back to the long column run. |
+| Numerical error | Implicit layer and coastal schemes still have truncation error. Independent temporal and spatial studies test specified cases, not every possible parameter combination. Stable or mass-conserving output is not sufficient evidence of accuracy. |
+| Interpolation and events | Column steps end at exact scheduled boundaries; source changes, damage and service can produce jumps. Monitoring histories use the documented sample-hold convention, including the first available state before a window's first sample. Fine transient structure below the recorded cadence is unresolved. |
 
-## A methodological warning this project learned the hard way
+The revised barrier reference uses the same discrete boundary fluxes as the layer. Its difference from transient reactive attenuation includes storage and history, so it need not stay positive after forcing changes. A plateau can reflect finite-affinity equilibrium below capacity. The historical approximately 3.09-year breakthrough is a separate numerical test fixture, not the default scenario's service life.
 
-The first reactive-layer scheme conserved mass to one part in 10^14 and was
-still wrong: refining the time step moved the predicted breakthrough from
-4.2 years to 1.0 years and made the attenuation curve oscillate. **Mass
-conservation alone does not validate a numerical scheme.** Every numerical
-result in this repository is therefore backed by a refinement test as well as a
-ledger test, and both are reported in the manifest.
+The [numerical audit data](../results/numerical-audit/reactive_numerical_audit.json), [timescale studies](TIMESCALES.md) and manuscript give the errors and sensitivities actually measured. A convergent benchmark does not establish a precise field prediction, and a phase-dependent plume peak must not be described as horizon-independent.
 
-## Known evidence and estimation limitations
+## Monitoring and inference limitations
 
-* Observation schedules are artificial. They are not verified instrument cycle
-  times for any product.
-* Detection and quantification limits are demonstration values. They are not any
-  manufacturer's specification, and no fresh-water limit has been treated as
-  sea-water performance.
-* The estimator constrains only what the observations plausibly constrain. It
-  does not reliably identify which of saturation, fouling, burial, displacement,
-  local damage, a stronger sediment source or a change in seepage velocity
-  occurred: several of them produce the same change in a single flux number.
-  When it cannot tell, it reports competing weights and says so.
-* Burial reduces the measured flux and can look like success. This is
-  represented explicitly, but it also means a monitoring programme built only on
-  flux measurements can be actively misled.
-* A benthic chamber measures a small enclosed area for a few hours. Scaling that
-  to a whole footprint over a year is an extrapolation, not a measurement.
-* No environmental-compliance threshold is invented anywhere.
+- Observation schedules, detection limits and noise are synthetic choices, not verified instrument performance. The hypothetical commissioning capacity interval was not obtained from a laboratory test.
+- The estimator uses available, compatible, QC-passed observations for known tiles. Default Pb porewater is dissolved filtered and Pb chamber output is total recoverable; mapping these operational fractions to the same simulated dissolved pool remains an observation-model approximation.
+- Inorganic Hg and MeHg are separate analytical channels. The MeHg values do not constrain the inorganic Hg loading estimate. Cu has no default chemical observations and cannot support a chemical maintenance decision.
+- A missing measurement is not zero. Legacy estimate fields can carry `(0, 0)` as an unavailable-source sentinel alongside `INSUFFICIENT_DATA`; that flag is authoritative. Such zeros are not measured absence or certainty.
+- Above-range measurements preserve an unbounded upper interval. Finite loading bounds may come from the assumed capacity ceiling. Strict JSON uses `null` with `_nonfinite_values` path metadata for non-finite endpoints; `null` alone must not be interpreted as a measured zero.
+- Missing reported chemical uncertainty uses an explicit assumed relative standard uncertainty of 0.50. Interval widening and attribution weights are heuristics rather than calibrated confidence probabilities. Estimated attenuation is clipped to [0,1], so it cannot describe net-release negative attenuation even when truth plots can. Fouling, permeability and compatibility estimates remain unavailable; channel ages are in snapshots while recommendation-level `data_age_s` remains null.
+- Numeric condition anomalies require a resolved two-standard-uncertainty deviation and reported uncertainty. Categorical damage has separate rules. The coupled timeline has no calibrated head or tilt proxy, so those fields are unavailable; stable zeros or a record's mere presence do not establish failure.
+- Current-media loading, chamber and condition inference excludes outgoing-media observations at replacement. Porewater history is retained as source evidence. A physical survey does not refresh missing or stale Pb/Hg chemistry.
+- Only compatible measured source and chamber channels with a computable ratio enter attenuation attribution. Several physical and chemical changes remain observationally confounded despite these gates.
+- A chamber samples a limited area over a finite exposure. Its default synthetic reading represents the column, whereas the displayed hotspot source includes area losses and bypass. Scaling chamber data to footprint-wide yearly emission requires additional assumptions.
+- Campaign schedules remain fixed. A recommendation for additional sampling is recorded but does not launch an adaptive measurement campaign. Cost calculations cover only the implemented categories and omit parts of real monitoring and mobilisation economics.
 
-## Known commercial limitations
+## Ecological response is not predicted
 
-* No supplier has been contacted. No quotation exists. Every euro value is an
-  assumption, and the cost comparison is a structure for future real numbers,
-  not a result.
-* Supplier evidence is a documentation review with access dates and explicit
-  status labels. A current listing is not stock, and historical capability
-  evidence is not present-day orderability.
-* No vendor register map, message format, detection limit or SDK is reproduced
-  or invented. Any protocol demonstration uses our own map, labelled
-  `SIMULATED_PROTOCOL` [S28].
+A synthetic MeHg channel does not simulate Hg methylation, demethylation, microbial response, redox, toxicity or biological uptake. Lower total Hg flux alone does not establish ecological benefit.
 
-## Reproducibility
+Laboratory estuarine microcosms showed increased methylmercury beneath a cap without a necessarily significant increase at the cap-water interface [Johnson et al., 2010](https://doi.org/10.1021/es100161p). Other sediment microcosms showed lower porewater MeHg and test-organism uptake after activated-carbon or thiol-silica amendment [Gilmour et al., 2013](https://doi.org/10.1021/es4021074). Neither result transfers directly to this keratin core.
 
-Runs are seeded and the configuration is hashed into `manifest.json` together
-with the dependency lock hash. Results were produced with CPython 3.12.13,
-NumPy 2.5.3, SciPy 1.18.1 and FiPy 4.0.3 on Windows 11. The tolerances actually
-achieved are recorded in the manifest rather than assumed.
+Leachables, degradation products and changes to sediment chemistry could affect net methylmercury release; the direction and magnitude must be measured. Encapsulation does not prove that dissolved products cannot move through a permeable carrier. No experiment here establishes that keratin increases methylation, prevents it or is environmentally benign.
+
+Benthic impacts also require assessment independently of chemical removal. A Grenland field study reported impaired benthic community function 49 months after powdered activated-carbon capping [Raymond et al., 2021](https://doi.org/10.1007/s11356-020-11607-0). That is a material- and setting-specific trade-off, not a prediction for keratin. Durability, retained-metal release, net MeHg transport and biological endpoints belong in validation before any ecological performance claim.
+
+## Commercial and reproducibility limits
+
+No supplier has been contacted and no quotation exists. Prices, pilot scale, logistics and decision thresholds are assumptions. A documented supplier capability is not a quotation, current stock or proof of suitability in seawater. Protocol demonstrations use the project's own simulated interface, not an invented vendor register map.
+
+Seeded runs, configuration hashes, dependency provenance and saved evidence records support reproduction of this implementation. They do not remove uncertainty in the model or validate field performance. Tests establish the specific contracts, numerical checks and cases exercised; broad physical and numerical generalisation requires additional evidence. The accompanying manuscript and generated manifests record the revision and checks used for the published outputs.

@@ -167,16 +167,17 @@ class ReactiveMediumConfig:
       (PbCO3(aq) alone is about 41 %) and Ca and Mg outnumber it by orders of
       magnitude [K3], so the operating capacity is set well below the
       freshwater figures.
-    * No verified Hg(II) capacity for a keratin biosorbent was found. The Hg
-      capacity is instead a small fraction of the stoichiometric thiol ceiling
-      implied by keratin's 4 to 8 wt% sulfur [K4], which is about 125 mg/g if
-      every disulfide were reduced and accessible.
-    * Cu(II) has the *best* published keratin capacities of the three, 20 mg/g
-      on wool keratin nanofibres [K9], and is nonetheless the *hardest* of the
-      three to take out of seawater, because above 99 per cent of dissolved Cu
-      is held by strong organic ligands with conditional stability constants
-      around 1e15 and free Cu2+ sits below 6 pM [K11]. Capacity is not
-      availability, and ``available_fraction`` is where that distinction lives.
+    * Reduced human hair has a reported Hg uptake of 476.7 mg/g [K15], but
+      the actual wool/feather core has no validated seawater capacity. The Hg
+      default remains 2% of a conditional 125 mg/g site calculation using
+      4 wt% sulfur and two sulfur atoms per Hg [K4], not a fitted capacity.
+    * Cu capacities depend on material and matrix: 20 mg/g for nanofibres
+      [K9] and 15.2 to 51.9 mg/g for untreated/sulfide-treated wool [K13].
+      Strong organic complexation in measured porewater samples [K11]
+      motivates testing low availability, but does not determine the default
+      fraction or establish that keratin cannot capture Cu in seawater.
+    * The supplied-paper audit is in docs/PAPER_PARAMETER_TRACEABILITY.md.
+      Its batch values are not imported into the operating defaults.
 
     Every value remains an ASSUMPTION about our material, not a measurement of
     it.  The intervals are wide on purpose.
@@ -189,17 +190,18 @@ class ReactiveMediumConfig:
     #: Operating capacity: about one fifth of the lowest freshwater literature
     #: value (4.29 mg/g, dog hair [K1]), derated for seawater speciation and
     #: Ca/Mg competition.  The interval's upper end, 8.0e-3 kg/kg, is the best
-    #: published freshwater result (chicken feather, 8.02 mg/g [K1]), that is,
-    #: the optimistic case in which seawater costs nothing.
+    #: chicken-feather result (8.02 mg/g [K1]). It is an assumed screening
+    #: interval, not a measured seawater confidence interval.
     q_max_kg_per_kg: float = 1.0e-3
     q_max_interval: tuple[float, float] = (3.0e-4, 8.0e-3)
-    #: What an operator would know after a commissioning isotherm on the actual
+    #: Hypothetical information an operator could obtain from an isotherm on the actual
     #: batch, in artificial seawater at pH 8.1 (experiment 1 of
     #: ``docs/MATERIAL_KERATIN.md``).  ``None`` means no such test was done, and
     #: the estimator then has to fall back on the literature interval above,
     #: which spans a factor of 27 and is too wide to run a replacement policy
     #: on.  That contrast is a result worth showing, not a nuisance: it puts a
-    #: number on what the laboratory work is worth.
+    #: number on what the laboratory work might be worth. No commissioning
+    #: measurements are present in this synthetic demonstration.
     commissioned_q_max_interval: tuple[float, float] | None = (7.5e-4, 1.3e-3)
     #: Order of magnitude from pseudo-second-order kinetics reaching equilibrium
     #: within 24 h in batch [K1].  In a mat the rate is set by intraparticle
@@ -289,22 +291,23 @@ class MatLayoutConfig:
             # than for a free ion. 0.10 with a wide interval.
             available_fraction=0.10,
             available_fraction_interval=(0.01, 0.4),
-            # 2 % of the 125 mg/g stoichiometric thiol ceiling implied by
-            # keratin's 4 wt% sulfur [K4]. NO verified Hg capacity for a keratin
-            # biosorbent was found, so this is the weakest number in the model
-            # and the interval spans 0.16 % to 20 % of that ceiling.
+            # 2 % of a conditional 125 mg/g site calculation assuming
+            # 4 wt% sulfur and two S atoms per Hg [K4]. Reduced human hair
+            # reaches 476.7 mg/g [K15], but it is a different material and
+            # does not validate this seawater core or its assumed interval.
             q_max_kg_per_kg=2.5e-3,
             q_max_interval=(2.0e-4, 2.5e-2),
-            # No verified keratin Hg capacity exists, so there is nothing for a
-            # commissioning test to confirm yet. Left as None on purpose: the
-            # Hg channel must not borrow the confidence the Pb channel earned.
+            # No commissioning information is supplied for the proposed core.
+            # Pb/Cu commissioning ranges are also synthetic assumptions;
+            # none of these channels has earned experimental confidence.
             commissioned_q_max_interval=None,
             k_rate_per_s=2.0e-4,
             k_rate_interval=(3.0e-5, 8.0e-4),
             allocation_fraction=0.3,
             source_ref=(
-                "stoichiometric thiol ceiling from keratin sulfur content [K4], "
-                "not a measured Hg capacity: none was found. Seawater Hg is "
+                "assumed fraction of a conditional sulfur-site calculation [K4]; "
+                "476.7 mg/g reported for reduced human hair [K15] is not a "
+                "validated capacity for this core in seawater. Seawater Hg is "
                 "above 99 per cent chloro-complexed [K10]. Hg uptake also "
                 "depends strongly on sulfide, chloride and dissolved organic "
                 "matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
@@ -312,9 +315,9 @@ class MatLayoutConfig:
         ),
         ReactiveMediumConfig(
             element=Element.CU.value,
-            # Copper has the best published keratin capacities of the three and
-            # is the hardest of the three to remove from seawater. Both are
-            # true, and the second matters more.
+            # Copper is assigned low availability as an explicit assumption.
+            # Capacities cannot be ranked across unlike keratin derivatives
+            # or transferred from batch tests into seawater operation.
             #
             # Published: 20 mg/g on wool keratin nanofibres [K9], 27.4 mg/g on
             # keratin-modified magnetite, and 61.7 to 103.5 mg/g on keratin/PA6
@@ -326,9 +329,8 @@ class MatLayoutConfig:
             kd_interval=(1.0, 60.0),
             q_max_kg_per_kg=3.0e-3,
             q_max_interval=(5.0e-4, 2.0e-2),
-            # A commissioning isotherm on our own batch is meaningful here,
-            # because unlike Hg there IS a measured keratin Cu capacity to
-            # confirm or refute.
+            # Synthetic commissioning information for an illustrative operator;
+            # no isotherm on our own batch was performed or used here.
             commissioned_q_max_interval=(2.0e-3, 4.5e-3),
             k_rate_per_s=5.0e-4,
             k_rate_interval=(1.0e-4, 1.5e-3),
@@ -522,9 +524,8 @@ class PlumeWindowConfig:
     ledgers are reported separately and labelled.
     """
 
-    #: One day covers about two M2 tidal cycles, and the plume crosses the
-    #: domain in roughly two hours at these currents, so the field is well past
-    #: quasi-steady. A longer window costs time and shows nothing new.
+    #: A 24-hour transient window. It is not an integer number of M2 cycles;
+    #: endpoint peaks depend on tidal phase. See docs/TIMESCALES.md.
     window_s: float = 1.0 * _SECONDS_PER_DAY
     dt_s: float = 600.0
     #: Times, in years from the run start, at which to render a plume. Kept
@@ -541,8 +542,8 @@ class RunConfig:
     start_utc: str = "2026-09-08T00:00:00Z"
     #: Mat timeline: multi-year, because that is the timescale a cap works on.
     duration_s: float = 6.0 * _SECONDS_PER_YEAR
-    #: Reactive-layer step.  The refinement study in the refactor plan shows the
-    #: answer is converged at 6 h and unchanged down to 0.5 h.
+    #: Default reactive-layer step; resolution sensitivity is measured by
+    #: tools/timescale_check.py rather than assumed to vanish for every input.
     dt_s: float = 6.0 * 3600.0
     domain: DomainConfig = field(default_factory=DomainConfig)
     forcing: ForcingConfig = field(default_factory=ForcingConfig)

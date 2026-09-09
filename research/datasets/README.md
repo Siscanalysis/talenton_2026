@@ -17,7 +17,7 @@ The model needs four kinds of measurement, and they are not equally available:
 | Contaminant concentrations in European marine sediment and water | **Good.** D1, D2, D4, D5 below. |
 | Benthic flux measurement method and data structure | **Good.** D6, D8. |
 | Reactive-cap performance for organic contaminants | **Adequate.** Published field trials, see `docs/EVIDENCE_BASE.md` references E1 and E2. |
-| **Reactive-cap flux attenuation for metals, in the sea** | **Missing.** See GAP1. |
+| Seawater metal-flux validation for the proposed keratin core | **Not identified in this review.** See GAP1 and GAP2. |
 
 ## Getting each one
 
@@ -31,10 +31,9 @@ the OSPAR CEMP and HELCOM COMBINE programmes.
   services also exist.
 * Licence: CC BY 4.0 for all public data.
 
-**Careful with this one.** DOME gives sediment *solid-phase* concentrations. The
-model needs *porewater* concentrations, and converting between them requires a
-partition coefficient that is itself a fitted quantity with its own uncertainty.
-Do not read a sediment mg/kg as a porewater ug/L.
+DOME includes multiple matrices. A sediment *solid-phase* concentration cannot
+be used as *porewater* concentration without a measured or fitted partition
+relationship and uncertainty. Do not read sediment mg/kg as porewater ug/L.
 
 ### D2. OSPAR CEMP assessment, 2024
 Quality-controlled assessed levels and trends.
@@ -70,8 +69,8 @@ context, not a location claim: this project asserts no hotspot anywhere.
 
 **Phosphorus only.** It contains no trace metal fluxes and must not be cited as
 a metals source. It is here as a chamber-lander method and data-structure
-reference, because the demonstrator's `benthic_chamber` acquisition kind
-imitates exactly this measurement.
+reference, because it illustrates chamber exposure and reporting conventions. The
+synthetic metal chamber is not calibrated to that phosphorus dataset.
 
 ### D7. US EPA, amendments at Superfund sediment sites
 <https://semspub.epa.gov/work/HQ/196704.pdf>
@@ -87,26 +86,41 @@ What a chamber does and does not measure. It is the basis for this repository
 refusing to treat a few hours over a small enclosed area as a whole-footprint
 annual flux.
 
-## The gaps, stated as findings
+## Gaps in the assembled evidence
 
-### GAP1. Measured metal flux attenuation across a marine reactive cap
-No open dataset was found. This is the quantity the demonstrator predicts. The
-closest available evidence is organic-contaminant flux attenuation in a
-Norwegian harbour field trial and Pb flux in a laboratory mesocosm with a carbon
-nanotube cap, both cited in `docs/EVIDENCE_BASE.md`.
+Updated 9 September 2026 after inspecting the supplied keratin papers. The
+[page-level traceability audit](../../docs/PAPER_PARAMETER_TRACEABILITY.md)
+records the revised material evidence and limits of parameter transfer.
 
-Searched: benthic flux chamber metal flux capping; reactive cap flux attenuation
-metals; EMODnet and ICES holdings; Zenodo; Mendeley Data. Checked 8 September
-2026.
+### GAP1. Metal-flux validation for the proposed seawater core
 
-### GAP2. Keratin biosorption in seawater
-Every published keratin capacity found is deionised water at acidic pH, and no
-verified keratin mercury capacity of any kind was found. This is the single
-largest uncertainty in the model, and `docs/MATERIAL_KERATIN.md` section 3
-records it as UNKNOWN rather than filling it from a different material.
+The assembled sources do not provide an openly accessible dataset validating
+Pb/Hg/Cu flux attenuation through the final wool/feather core under representative
+seawater flow. Organic-contaminant flux attenuation in a Norwegian harbour and
+Pb flux in a laboratory carbon-nanotube capping study are documented comparators,
+not calibration of this material. This review does not establish that no marine
+metal-cap measurements exist anywhere.
 
-Searched: Zenodo, Mendeley Data, CORE, AGRIS, and the keratin biosorption review
-literature.
+The original search covered benthic flux chamber metal flux capping, reactive
+cap flux attenuation metals, EMODnet and ICES holdings, Zenodo and Mendeley Data
+on 8 September 2026. The supplied-paper audit adds the literature inspected on
+9 September 2026; it is not a download of those monitoring datasets.
+
+### GAP2. Final-material seawater isotherms and flow-through uptake
+
+The earlier claim that every keratin experiment used acidic deionised water,
+and that no keratin Hg capacity had been verified, is superseded. The supplied
+feather-keratin/graphene-oxide study used pH 7.5 solution with NaCl and CaCl2 for
+a dilute Pb removal assay. A primary paper identified through the 2026 review
+reports Hg uptake on chemically reduced human hair. Treated sheep wool has
+quantified Cu isotherms at pH 5. Those materials and endpoints do not validate the
+proposed wool/feather core's isotherms or breakthrough in representative seawater.
+
+Published batch results are recorded in
+[paper_parameter_traceability.json](../references/paper_parameter_traceability.json).
+The remaining gap is the final material, matrix, concentration, flow and
+uncertainty required for operational calibration; it is not an absence of all
+keratin uptake measurements.
 
 ## If you add a dataset here
 

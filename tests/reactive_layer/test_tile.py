@@ -8,7 +8,7 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
-from reactive_seabed_mat.config import MatLayoutConfig
+from reactive_seabed_mat.config import HotspotConfig, MatLayoutConfig
 from reactive_seabed_mat.contracts import LayerStep, MatTileState
 from reactive_seabed_mat.reactive_layer import (
     advance_reactive_layer,
@@ -67,6 +67,34 @@ def test_a_partly_covering_mat_covers_less(hotspot_config, start_utc):
     covered = sum(tile.geometry.footprint_area_m2 for tile in tiles)
     assert covered == pytest.approx(0.45 * hotspot_config.area_m2)
     assert len(tiles) == 4
+
+
+@pytest.mark.parametrize("coverage", [1.0, 0.45])
+@pytest.mark.parametrize("size", [(80.0, 80.0), (120.0, 40.0)])
+def test_constructed_tiles_match_coastal_geometry_and_actual_coverage(
+    start_utc, coverage, size
+):
+    from reactive_seabed_mat.coastal_transport.seabed_source import (
+        plan_tile_layout, tile_bounds,
+    )
+
+    hotspot = HotspotConfig(width_m=size[0], length_m=size[1])
+    config = MatLayoutConfig(coverage_fraction=coverage)
+    tiles = build_tile_states(config, start_utc, build_material_map(config), hotspot=hotspot)
+    plans = plan_tile_layout(config, hotspot)
+    covered = 0.0
+    for tile, plan in zip(tiles, plans):
+        assert tile.tile_id == plan.tile_id
+        assert tile.geometry == plan.geometry
+        x0, y0, x1, y1 = tile_bounds(tile.geometry)
+        overlap = (max(0.0, min(x1, hotspot.x_m + hotspot.width_m) - max(x0, hotspot.x_m))
+                   * max(0.0, min(y1, hotspot.y_m + hotspot.length_m) - max(y0, hotspot.y_m)))
+        assert overlap == pytest.approx(tile.geometry.footprint_area_m2)
+        covered += overlap
+    assert covered == pytest.approx(coverage * hotspot.area_m2)
+    # Both scheduled failure targets must have real hotspot area to expose.
+    assert all(tile.geometry.footprint_area_m2 > 0 for tile in tiles
+               if tile.tile_id in {"tile_2_0", "tile_0_2"})
 
 
 def test_preload_lays_a_uniform_profile_and_refuses_to_exceed_capacity(
@@ -245,6 +273,36 @@ def test_the_residual_flux_interval_is_an_interval_and_brackets_the_nominal(
     assert interval.attenuation_interval[0] <= interval.attenuation_interval[1]
     assert interval.ensemble_size == 16
     assert "conditional on the current profile" in interval.notes
+
+
+@pytest.mark.parametrize("displaced", [False, True])
+def test_ensemble_nominal_matches_encapsulated_model(tiles, materials, start_utc, displaced):
+    tile = replace(tiles[0], burial_depth_m=0.003, fouling_index=0.4, displaced=displaced)
+    tile = replace(tile, porewater_kg_per_m3={
+        key: np.full(tile.n_nodes, 1.0e-5) for key in materials
+    })
+    exchange = scripted_exchange(tile, start_utc, DT_S, {key: 1.0e-3 for key in materials})
+    exchange = replace(exchange, environment={"burial_resistance_s_per_m": 8.0e8})
+    nominal = advance_reactive_layer(tile, exchange, materials, DT_S)
+    intervals = ensemble_flux_interval(tile, exchange, materials, DT_S, ensemble_size=4)
+    for key, interval in intervals.items():
+        assert interval.nominal_flux_out_kg_per_m2_per_s == nominal.flux_out_kg_per_m2_per_s[key]
+
+
+def test_zero_time_tile_evaluates_flux_without_advancing_inventory(tiles, materials, start_utc):
+    tile = replace(tiles[0], porewater_kg_per_m3={
+        key: np.full(tiles[0].n_nodes, 1.0e-5) for key in materials
+    })
+    exchange = scripted_exchange(tile, start_utc, DT_S, {key: 1.0e-3 for key in materials})
+    exchange = replace(exchange, environment={"fouling_growth_per_s": 1e-7, "burial_growth_m_per_s": 1e-8})
+    step = advance_reactive_layer(tile, exchange, materials, 0.0)
+    assert step.new_state.fouling_index == tile.fouling_index
+    assert step.new_state.burial_depth_m == tile.burial_depth_m
+    for key in materials:
+        np.testing.assert_array_equal(step.new_state.porewater_kg_per_m3[key], tile.porewater_kg_per_m3[key])
+        np.testing.assert_array_equal(step.new_state.sorbed_kg_per_kg[key], tile.sorbed_kg_per_kg[key])
+        assert step.flux_out_kg_per_m2_per_s[key] > 0.0
+        assert step.retained_delta_kg_per_m2[key] == 0.0
 
 
 # ---------------------------------------------------------------------------

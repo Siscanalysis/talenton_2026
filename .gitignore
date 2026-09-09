@@ -9,3 +9,17 @@ dist/
 results/*
 !results/.gitkeep
 data/cache/
+.test_tmp*/
+.revision_cache/
+.rewrite_*.py
+.revision_*.log
+manuscript/*.aux
+manuscript/*.log
+manuscript/*.out
+manuscript/*.toc
+manuscript/*.lof
+manuscript/*.lot
+manuscript/*.blg
+manuscript/.draft*
+manuscript/.pdf_draft/
+manuscript/draft.*

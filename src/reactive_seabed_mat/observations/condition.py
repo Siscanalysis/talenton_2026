@@ -298,6 +298,7 @@ class MatConditionGenerator(SyntheticRecordFactory):
         for moment in self.schedule(self.config.survey_period_s, duration_s):
             for tile_id in scene.tile_ids:
                 sample = scene.sample_at(tile_id, moment)
+                self.reading_rng("damage_class", moment, tile_id)
                 misread = float(self._rng.random())
                 direction = float(self._rng.random())
                 abort = float(self._rng.random())
@@ -358,6 +359,7 @@ class MatConditionGenerator(SyntheticRecordFactory):
         for moment in self.schedule(self.config.survey_period_s, duration_s):
             for tile_id in scene.tile_ids:
                 sample = scene.sample_at(tile_id, moment)
+                self.reading_rng("coverage", moment, tile_id)
                 noise = float(self._rng.normal(0.0, sigma))
                 abort = float(self._rng.random())
                 payload = self._tile_payload(station, scene, tile_id, moment, latency)
@@ -400,6 +402,7 @@ class MatConditionGenerator(SyntheticRecordFactory):
         for moment in self.schedule(self.config.survey_period_s, duration_s):
             for tile_id in scene.tile_ids:
                 sample = scene.sample_at(tile_id, moment)
+                self.reading_rng("burial", moment, tile_id)
                 noise = float(self._rng.normal(0.0, sigma_m))
                 abort = float(self._rng.random())
                 payload = self._tile_payload(station, scene, tile_id, moment, latency)
@@ -440,6 +443,7 @@ class MatConditionGenerator(SyntheticRecordFactory):
         for moment in self.schedule(self.config.survey_period_s, duration_s):
             for tile_id in scene.tile_ids:
                 sample = scene.sample_at(tile_id, moment)
+                self.reading_rng("scour", moment, tile_id)
                 noise = float(self._rng.normal(0.0, sigma_m))
                 payload = self._tile_payload(station, scene, tile_id, moment, latency)
                 payload.update(
@@ -481,6 +485,7 @@ class MatConditionGenerator(SyntheticRecordFactory):
         for moment in self.schedule(self.config.survey_period_s, duration_s):
             for tile_id in scene.tile_ids:
                 sample = scene.sample_at(tile_id, moment)
+                self.reading_rng("displacement", moment, tile_id)
                 noise = float(self._rng.normal(0.0, sigma))
                 payload = self._tile_payload(station, scene, tile_id, moment, latency)
                 payload.update(
@@ -519,6 +524,7 @@ class MatConditionGenerator(SyntheticRecordFactory):
         for moment in self.schedule(self.config.survey_period_s, duration_s):
             for tile_id in scene.tile_ids:
                 sample = scene.sample_at(tile_id, moment)
+                self.reading_rng("tilt", moment, tile_id)
                 noise = float(self._rng.normal(0.0, sigma))
                 payload = self._tile_payload(station, scene, tile_id, moment, 0.0)
                 payload.update(
@@ -537,6 +543,10 @@ class MatConditionGenerator(SyntheticRecordFactory):
                         ),
                     }
                 )
+                if sample.tilt_deg is None:
+                    payload.update(self.missing("the supplied scene has no tilt model or measurement"))
+                    records.append(self.build(payload))
+                    continue
                 records.append(
                     self.build(self._quantified(payload, sample.tilt_deg + noise, sigma))
                 )
@@ -562,6 +572,7 @@ class MatConditionGenerator(SyntheticRecordFactory):
         for moment in self.schedule(period, duration_s):
             for tile_id in scene.tile_ids:
                 sample = scene.sample_at(tile_id, moment)
+                self.reading_rng("differential_head", moment, tile_id)
                 noise = float(self._rng.normal(0.0, sigma_rel))
                 payload = self._tile_payload(station, scene, tile_id, moment, 0.0)
                 payload.update(
@@ -584,6 +595,10 @@ class MatConditionGenerator(SyntheticRecordFactory):
                 )
                 if self.in_dropout(moment):
                     payload.update(self.missing("simulated sensor dropout window"))
+                    records.append(self.build(payload))
+                    continue
+                if sample.differential_head_pa is None:
+                    payload.update(self.missing("the supplied scene has no hydraulic head model or measurement"))
                     records.append(self.build(payload))
                     continue
                 value = max(sample.differential_head_pa * (1.0 + noise), 0.0)

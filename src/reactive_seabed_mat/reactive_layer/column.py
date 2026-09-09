@@ -80,11 +80,11 @@ __all__ = [
     "top_conductance",
     "solve_column_step",
     "stored_kg_per_m2",
+    "discrete_steady_state_flux_kg_per_m2_per_s",
     "steady_state_flux_kg_per_m2_per_s",
 ]
 
-#: Picard sweeps used to settle the saturated / unsaturated branch mask.  Two
-#: is what the probe used and what the refinement study was measured with; the
+#: Picard sweeps used to settle the saturated / unsaturated branch mask. The
 #: loop exits early when the mask stops moving, so this is an upper bound.
 DEFAULT_PICARD_ITERATIONS = 6
 
@@ -305,6 +305,8 @@ def solve_column_step(
     Returns a :class:`ColumnStep` whose fluxes are evaluated at the new time
     level with the matrix's own coefficients, so
     ``stored_after - stored_before == (J_in - J_out) dt`` to round-off.
+    With ``dt_s == 0`` it evaluates instantaneous boundary fluxes on the supplied
+    profiles, with no integration or change in stored mass.
     """
     dt = float(dt_s)
     if dt < 0.0:
@@ -325,18 +327,30 @@ def solve_column_step(
 
     stored_before = stored_kg_per_m2(concentration, sorbed, params)
     if dt == 0.0:
+        g_bot = (bottom_conductance(params) if bottom_conductance_m_per_s is None
+                 else max(0.0, float(bottom_conductance_m_per_s)))
+        g_top = (top_conductance(params) if top_conductance_m_per_s is None
+                 else max(0.0, float(top_conductance_m_per_s)))
+        c_sed = float(sediment_porewater_kg_per_m3)
+        c_water = float(bottom_water_kg_per_m3)
+        velocity = params.seepage_velocity_m_per_s
         return ColumnStep(
             porewater_kg_per_m3=concentration,
             sorbed_kg_per_kg=sorbed,
-            flux_in_kg_per_m2_per_s=0.0,
-            flux_out_kg_per_m2_per_s=0.0,
+            flux_in_kg_per_m2_per_s=velocity * c_sed + g_bot * (c_sed - concentration[0]),
+            flux_out_kg_per_m2_per_s=velocity * concentration[-1] + g_top * (concentration[-1] - c_water),
             stored_before_kg_per_m2=stored_before,
             stored_after_kg_per_m2=stored_before,
             clip_correction_kg_per_m2=0.0,
             negative_clip_kg_per_m2=0.0,
             picard_iterations=0,
             picard_converged=True,
-            diagnostics={"note": "dt_s == 0, the state is returned unchanged"},
+            diagnostics={
+                "note": "dt_s == 0: instantaneous fluxes; state unchanged",
+                "locked_cells": int(np.count_nonzero(sorbed >= params.q_max_kg_per_kg)),
+                "top_conductance_m_per_s": g_top,
+                "bottom_conductance_m_per_s": g_bot,
+            },
         )
 
     theta = params.porosity
@@ -415,8 +429,14 @@ def solve_column_step(
             break
         guess = solution
 
-    # q^{n+1} uses the SAME branch mask the matrix used, so the discrete balance
-    # closes exactly even when the Picard sweep has not settled.
+    if not converged:
+        raise RuntimeError(
+            f"reactive-column sorption branches did not converge in {used_iterations} "
+            f"iterations at dt_s={dt:g}; reduce dt_s or increase picard_iterations"
+        )
+
+    # q^{n+1} uses the same converged branch mask as the matrix so the discrete
+    # balance closes exactly. An unconverged solve is refused above.
     q_eq = np.where(saturated, q_max, kd * solution)
     new_sorbed = np.where(locked, sorbed, (sorbed + dt * k_rate * q_eq) / relax)
 
@@ -498,6 +518,53 @@ def solve_column_step(
     )
 
 
+def discrete_steady_state_flux_kg_per_m2_per_s(
+    params: ColumnParameters,
+    sediment_porewater_kg_per_m3: float,
+    bottom_water_kg_per_m3: float = 0.0,
+    *,
+    top_conductance_m_per_s: float | None = None,
+    bottom_conductance_m_per_s: float | None = None,
+) -> float:
+    """Exact stationary barrier flux for this finite-volume discretisation.
+
+    The conservative upwind face law is ``J = (v + h) C_i - h C_{i+1}``,
+    where ``h = theta D / dz``. At the bottom,
+    ``J = (v + g_bot) C_sed - g_bot C_0``; at the top,
+    ``J = (v + g_top) C_last - g_top C_water``. Recursing downward from
+    ``C_last = a J + b C_water`` avoids growing exponentials and gives a
+    scalar boundary solve. There is no sorption, temporal approximation or
+    double-counted half cell. Nonzero bottom water retains the solver's
+    advective transport of absolute concentration.
+
+    This diagnostic isolates chemical storage from exactly the numerical
+    barrier used in the trajectory; it is not independent validation of the
+    spatial discretisation. The continuum helper remains a separate oracle.
+    """
+    velocity = params.seepage_velocity_m_per_s
+    g_top = (top_conductance(params) if top_conductance_m_per_s is None
+             else max(0.0, float(top_conductance_m_per_s)))
+    g_bot = (bottom_conductance(params) if bottom_conductance_m_per_s is None
+             else max(0.0, float(bottom_conductance_m_per_s)))
+    interior = params.porosity * params.d_eff_m2_per_s / params.dz_m
+    c_sed = float(sediment_porewater_kg_per_m3)
+    c_water = float(bottom_water_kg_per_m3)
+    if velocity == 0.0:
+        if g_top == 0.0 or g_bot == 0.0 or (params.n_nodes > 1 and interior == 0.0):
+            return 0.0
+        resistance = 1.0 / g_bot + 1.0 / g_top
+        if params.n_nodes > 1:
+            resistance += (params.n_nodes - 1) / interior
+        return (c_sed - c_water) / resistance
+    a = 1.0 / (velocity + g_top)
+    b = g_top * a
+    denominator = velocity + interior
+    for _ in range(params.n_nodes - 1):
+        a = (1.0 + interior * a) / denominator
+        b *= interior / denominator
+    return ((velocity + g_bot) * c_sed - g_bot * b * c_water) / (1.0 + g_bot * a)
+
+
 def steady_state_flux_kg_per_m2_per_s(
     params: ColumnParameters,
     sediment_porewater_kg_per_m3: float,
@@ -506,33 +573,25 @@ def steady_state_flux_kg_per_m2_per_s(
     top_conductance_m_per_s: float | None = None,
     bottom_resistance_s_per_m: float = 0.0,
 ) -> float:
-    """Analytic **continuum** steady-state flux through a non-sorbing layer.
+    """Analytic continuum oracle for the same advective boundary laws.
 
-    Solving ``v C - theta D C' = J`` on ``0 <= z <= L`` with ``C(0) = C_sed``
-    and ``J = (v + k_film)(C_L - C_water)`` gives::
+    Solve ``J = v C - theta D C'``, with bottom boundary
+    ``C(0) = (1 + v R_b) C_sed - R_b J`` and top boundary
+    ``J = v C_L + g (C_L - C_water)``. Put ``r = exp(-v L/(theta D))``::
 
-        a = v / (theta D) ,  E = exp(a L)
-        J = E (C_sed - C_water) / [ 1/(v + k_film) + (E - 1)/v ]
+        J = [(1 + v R_b) C_sed - r g C_water/(v+g)]
+            / [R_b + (1-r)/v + r/(v+g)]
 
-    This is the barrier limit a mat with no remaining chemical capacity tends
-    to, and it is the honest floor of the attenuation claim: the chemical
-    contribution of the sorbent is the *difference* between the fresh value and
-    this one, not the whole of it.
+    The decaying exponential avoids overflow at high Peclet number. This also
+    retains the advective flux for equal boundary concentrations, unlike a
+    formula expressed only in their difference. ``R_b`` represents the stated
+    sediment-face diffusive resistance with prescribed advective inflow, not a
+    separately resolved geotextile advection problem.
 
-    It is a **continuum** expression, so the discrete solver agrees with it only
-    to the order of ``dz`` (the discrete ``g_top`` folds half a cell of layer
-    porewater into the top conductance).  It is a sanity oracle and an
-    interpretation aid, never a substitute for the solver.  Pass
-    ``top_conductance_m_per_s`` to substitute a burial-reduced conductance for
-    ``k_film``.
-
-    ``bottom_resistance_s_per_m`` adds the sediment-face carrier geotextile as
-    a further series resistance.  That is exact as ``v -> 0`` and an
-    approximation otherwise, because an advective flux through a resistive layer
-    is not a pure series resistance.  The Peclet number across one geotextile is
-    about 0.3 at the seepage velocities used here, so the approximation is a
-    fair one; ``geotextile.geotextile_peclet`` is there to check rather than
-    assume it.
+    A top-conductance override must contain only external film/burial/carrier
+    resistance. Supplying the discrete half-cell resistance here counts that
+    portion of the continuum layer twice. Runtime tile diagnostics instead
+    use :func:`discrete_steady_state_flux_kg_per_m2_per_s`.
     """
     velocity = params.seepage_velocity_m_per_s
     conductance = (
@@ -540,9 +599,9 @@ def steady_state_flux_kg_per_m2_per_s(
         if top_conductance_m_per_s is None
         else float(top_conductance_m_per_s)
     )
-    driving = float(sediment_porewater_kg_per_m3) - float(bottom_water_kg_per_m3)
-    if driving == 0.0:
-        return 0.0
+    c_sed = float(sediment_porewater_kg_per_m3)
+    c_water = float(bottom_water_kg_per_m3)
+    driving = c_sed - c_water
     layer_resistance = (
         math.inf
         if params.d_eff_m2_per_s <= 0.0
@@ -553,13 +612,12 @@ def steady_state_flux_kg_per_m2_per_s(
     if velocity <= 0.0:
         total = layer_resistance + top_resistance + bottom_resistance
         return 0.0 if not math.isfinite(total) or total <= 0.0 else driving / total
-    if not math.isfinite(layer_resistance):
-        return 0.0
     exponent = velocity * layer_resistance
-    growth = math.exp(exponent)
+    decay = math.exp(-exponent)
     denominator = (
-        1.0 / (velocity + conductance)
-        + (growth - 1.0) / velocity
+        decay / (velocity + conductance)
+        - math.expm1(-exponent) / velocity
         + bottom_resistance
     )
-    return growth * driving / denominator
+    return ((1.0 + velocity * bottom_resistance) * c_sed
+            - decay * conductance * c_water / (velocity + conductance)) / denominator

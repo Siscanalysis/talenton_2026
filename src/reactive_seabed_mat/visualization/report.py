@@ -50,7 +50,7 @@ def figures_for_result(result) -> list[tuple[str, Any]]:
 
     for window in result.windows:
         grid = window.field_with_mat.grid
-        tiles = result.final_tiles
+        tiles = window.tiles
         figures.append(
             (
                 f"Seabed residual flux at {window.label}",
@@ -205,7 +205,10 @@ def _ledger_rows(result) -> str:
             "<tr>"
             f"<td>{html.escape(element)}</td>"
             f"<td>{ledger.released_from_sediment_kg:.6g}</td>"
+            f"<td>{ledger.boundary_in_kg:.6g}</td>"
             f"<td>{ledger.retained_in_mat_kg:.6g}</td>"
+            f"<td>{ledger.retained_in_retrieved_media_kg:.6g}</td>"
+            f"<td>{ledger.boundary_out_kg:.6g}</td>"
             f"<td>{ledger.numerical_correction_kg:.3g}</td>"
             f"<td>{ledger.relative_imbalance:.3e}</td>"
             "</tr>"
@@ -252,6 +255,14 @@ def _maintenance_section(result) -> str:
     )
 
     last = maintenance.recommendations[-1] if maintenance.recommendations else None
+    policy_explanation = (
+        "Replacement follows the configured fixed interval; observations do not control its timing."
+        if config.policy.kind == "fixed" else
+        "Saturation recommendations use the configured "
+        f"<code>{html.escape(config.policy.saturation_decision_bound)}</code> interval bound, "
+        "a stated risk posture. Recent severe physical damage can also support replacement. "
+        "Chemical decisions use supported Pb/Hg channels; Cu has no monitoring channel."
+    )
     latest = (
         f"<p class='caption'><strong>Most recent recommendation:</strong> "
         f"{html.escape(last.action.value)}. {html.escape(last.reason)}<br>"
@@ -262,10 +273,8 @@ def _maintenance_section(result) -> str:
 
     return f"""
 <h2>Maintenance under the <code>{html.escape(config.policy.kind)}</code> policy</h2>
-<p class="caption">{html.escape(config.policy.kind)}: the decision was taken on
-the <code>{html.escape(config.policy.saturation_decision_bound)}</code> end of
-the estimated saturation interval, which is a risk posture rather than a
-measurement. {maintenance.n_observations:,} synthetic observation records were
+<p class="caption">{policy_explanation}
+{maintenance.n_observations:,} synthetic observation records were
 generated; the controller saw only those whose <code>available_at_utc</code> had
 passed, so a laboratory result in transit could not influence an earlier
 decision.</p>
@@ -386,18 +395,22 @@ quotation exists. See the limitations at the foot of this page.</div>
 {_material_rows(config)}
 </table>
 <p class="caption">Published Pb capacities for keratin biofibres are 4 to 33 mg/g
-in deionised water at pH 4. No verified Hg capacity for a keratin biosorbent was
-found, so the Hg figure is a stated fraction of the stoichiometric thiol ceiling.
+in deionised water at pH 4. Modified human hair has a published laboratory Hg
+capacity of 476.7 mg/g (Liang et al., 2023), but the seawater wool/feather core
+has no validated capacity. Its Hg setting remains an operating assumption.
 Full derivation and sources: <code>docs/MATERIAL_KERATIN.md</code>.</p>
 
 <h2>Mat mass ledger, whole timeline</h2>
 <table>
 <tr><th>Element</th><th>released from sediment (kg)</th>
-    <th>retained in mat (kg)</th><th>numerical correction (kg)</th>
+    <th>initial column inventory (kg)</th>
+    <th>active mat (kg)</th><th>retrieved (kg)</th><th>column outflow (kg)</th><th>numerical correction (kg)</th>
     <th>relative imbalance</th></tr>
 {_ledger_rows(result)}
 </table>
-<p class="caption">The mat ledger covers the whole simulated timeline. The water
+<p class="caption">Initial column inventory plus sediment inflow equals active
+and retrieved inventory, column outflow and numerical correction. The mat ledger
+covers the whole simulated timeline. The water
 ledgers below each plume window cover that window only. The two are never added
 together, because the coastal model was not integrated for years.</p>
 

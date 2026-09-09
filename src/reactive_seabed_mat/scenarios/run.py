@@ -15,6 +15,8 @@ nothing implies the coastal model was integrated for years.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from copy import deepcopy
+from bisect import bisect_right
 from datetime import timedelta
 from typing import Any, Mapping, Sequence
 
@@ -42,6 +44,7 @@ from ..estimation import estimate_tiles
 from ..maintenance import PolicyState, accepted_service_tiles, recommend
 from ..observations.generator import ObservationGenerator, scene_from_layer_history
 from ..observations.records import observations_available
+from ..observations.qc import run_qc, apply_qc_flags
 from ..reactive_layer import (
     RetrievedMediaLedger,
     advance_reactive_layer,
@@ -88,6 +91,8 @@ class MatTimelinePoint:
     mean_integrity: float
     mean_coverage: float
     n_tiles_active: int
+    column_attenuation: Mapping[str, float] = field(default_factory=dict)
+    event: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -109,6 +114,8 @@ class MatTimelinePoint:
             "mean_integrity_index": self.mean_integrity,
             "mean_coverage_fraction": self.mean_coverage,
             "n_tiles_active": self.n_tiles_active,
+            "column_attenuation": dict(self.column_attenuation),
+            "event": self.event,
         }
 
 
@@ -126,6 +133,7 @@ class PlumeWindowResult:
     ledger_without_mat: Mapping[str, MassLedger]
     window_s: float
     diagnostics: Mapping[str, Any] = field(default_factory=dict)
+    tiles: Sequence[MatTileState] = ()
 
     def peak_concentration(self, element: str, *, with_mat: bool = True) -> float:
         state = self.field_with_mat if with_mat else self.field_without_mat
@@ -155,6 +163,10 @@ class MatTimelineResult:
     #: The last estimate per tile, for the report.  Estimated, never true.
     final_estimates: Mapping[str, EstimateSnapshot] = field(default_factory=dict)
     n_observations: int = 0
+    hotspot_into_water_kg: Mapping[str, float] = field(default_factory=dict)
+    observations: Sequence[ObservationRecord] = ()
+    estimate_history: Sequence[EstimateSnapshot] = ()
+    degradation_events: Sequence[Mapping[str, Any]] = ()
 
     def __iter__(self):
         """Backwards compatibility with the original five-tuple return."""
@@ -186,6 +198,7 @@ class ScenarioResult:
     #: built by an older caller.
     maintenance: "MatTimelineResult | None" = None
     checks: Sequence[Any] = ()
+    hotspot_into_water_kg: Mapping[str, float] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -196,240 +209,235 @@ def _mean_over_tiles(values: Sequence[float]) -> float:
     return float(np.mean(values)) if len(values) else 0.0
 
 
-def run_mat_timeline(
-    config: RunConfig,
-    *,
-    sample_every_s: float | None = None,
-    progress: bool = False,
-) -> MatTimelineResult:
-    """Advance the reactive layer over the whole simulated duration.
+def _hotspot_weights(grid, hotspot, tiles):
+    """Exact footprint fractions on the same wet-cell hotspot as the maps."""
+    mask = np.zeros((grid.ny, grid.nx), dtype=float)
+    mask.reshape(-1)[list(hotspot.cell_indices)] = 1.0
+    return {tile.tile_id: float(np.sum(ss.cell_area_weights(grid, tile.geometry) * mask)
+                               / np.sum(mask)) for tile in tiles}
 
-    Under a policy other than ``none`` this also runs the evidence loop on its
-    own clock: every ``PolicyConfig.decision_period_s`` the simulator emits the
-    observations that window would have produced, the estimator reads only the
-    ones that have *arrived*, the policy recommends, and an accepted
-    recommendation is applied as a real tile replacement.
 
-    The three clocks are deliberately separate. The layer steps at ``dt_s``, the
-    evidence arrives on campaign intervals of weeks to months, and a laboratory
-    result becomes usable only after its latency has passed. That last gap is
-    what makes scenario E behave differently from a run where the controller can
-    see everything immediately.
+def _layer_steps(config, field_state, tiles, hotspot, forcing, materials, dt_s):
+    """Advance distinct column states once, preserving each tile's identity.
+
+    Reuse is local to this call and requires exact profile bytes and every
+    input used by ``advance_reactive_layer``. No quantisation or approximate
+    matching is used. Geometry position, media identity and installation date
+    do not enter the column equations and are retained from the target tile.
+    Returned mutable arrays and diagnostics remain independent per tile.
+    """
+    exchanges = ss.build_seabed_exchange(
+        field_state, tiles, hotspot, forcing, max(dt_s, config.dt_s))
+    by_tile = {exchange.tile_id: replace(exchange, environment={
+        **exchange.environment,
+        "burial_resistance_s_per_m": config.degradation.burial_resistance_s_per_m,
+        "fouling_bypass_coupling": config.degradation.fouling_bypass_coupling,
+    }) for exchange in exchanges}
+    environment_keys = ("burial_resistance_s_per_m", "fouling_bypass_coupling",
+                        "fouling_growth_per_s", "burial_growth_m_per_s")
+
+    def profiles_key(profiles):
+        return tuple((name, value.shape, value.dtype.str, value.tobytes())
+                     for name, array in sorted(profiles.items())
+                     for value in (np.asarray(array),))
+
+    memo, steps = {}, []
+    for tile in tiles:
+        exchange = by_tile.get(tile.tile_id)
+        if exchange is None:
+            continue
+        key = (replace(tile.geometry, x_m=0.0, y_m=0.0),
+               tile.fouling_index, tile.integrity_index, tile.burial_depth_m,
+               tile.displacement_m, tile.displaced, tile.active, tile.n_nodes,
+               profiles_key(tile.porewater_kg_per_m3), profiles_key(tile.sorbed_kg_per_kg),
+               tuple(sorted(exchange.sediment_porewater_kg_per_m3.items())),
+               tuple(sorted(exchange.bottom_water_kg_per_m3.items())),
+               tuple(sorted(exchange.bare_flux_kg_per_m2_per_s.items())),
+               exchange.seepage_velocity_m_per_s, exchange.film_transfer_m_per_s,
+               exchange.driving_is_measured,
+               tuple((name, exchange.environment.get(name)) for name in environment_keys))
+        prototype = memo.get(key)
+        if prototype is None:
+            step = advance_reactive_layer(tile, exchange, materials, dt_s)
+            memo[key] = step
+        else:
+            updated = prototype.new_state
+            state = replace(tile,
+                porewater_kg_per_m3={name: array.copy() for name, array in updated.porewater_kg_per_m3.items()},
+                sorbed_kg_per_kg={name: array.copy() for name, array in updated.sorbed_kg_per_kg.items()},
+                fouling_index=updated.fouling_index, burial_depth_m=updated.burial_depth_m)
+            diagnostics = deepcopy(prototype.diagnostics)
+            diagnostics.update(tile_id=tile.tile_id, media_id=tile.media_id, time_utc=exchange.time_utc)
+            step = replace(prototype, new_state=state, exchange=exchange,
+                flux_in_kg_per_m2_per_s=dict(prototype.flux_in_kg_per_m2_per_s),
+                flux_out_kg_per_m2_per_s=dict(prototype.flux_out_kg_per_m2_per_s),
+                retained_delta_kg_per_m2=dict(prototype.retained_delta_kg_per_m2),
+                released_kg_per_m2=dict(prototype.released_kg_per_m2), diagnostics=diagnostics)
+        steps.append(step)
+    return steps
+
+
+def run_mat_timeline(config: RunConfig, *, sample_every_s: float | None = None,
+                     progress: bool = False) -> MatTimelineResult:
+    """Integrate exactly [0, T], resolving source, damage and decision boundaries.
+
+    Samples at t=0 describe the commissioned state. Observations have one global
+    campaign clock and seed; only arrived, QC-screened records reach decisions.
+    The full-footprint column ledger and the area-mixed hotspot emission are
+    separate diagnostics, not a claimed globally coupled sediment mass budget.
     """
     materials = build_material_map(config.mat)
-    elements = [element for element in config.elements]
-    start = config.start_datetime
-
+    elements = list(config.elements)
+    start, duration, dt = config.start_datetime, config.duration_s, config.dt_s
+    if dt <= 0 or duration < 0 or config.policy.decision_period_s <= 0:
+        raise ValueError("duration must be nonnegative and time steps positive")
     bundle = dm.build_domain(config, elapsed_s=0.0)
-    grid, land_mask = bundle.grid, bundle.land_mask
-    field_state = bundle.field_state
+    grid, land_mask, field_state = bundle.grid, bundle.land_mask, bundle.field_state
+    tiles = list(build_tile_states(config.mat, start, materials,
+                 hotspot=config.hotspot, elements=elements)) if config.policy.kind != "none" else []
+    deployed = bool(tiles)
+    known = _operator_known_mat(config, tiles, grid) if deployed else None
+    sample_every_s = sample_every_s or max(dt, duration / 240.0)
+    want_years = sorted({float(y) for y in config.plume.sample_years
+                         if 0 <= float(y) * _SECONDS_PER_YEAR <= duration}
+                        | {duration / _SECONDS_PER_YEAR})
+    capture_times = {year * _SECONDS_PER_YEAR for year in want_years}
+    decision_times = set(float(t) for t in np.arange(
+        config.policy.decision_period_s, duration + 1e-7, config.policy.decision_period_s))
+    source_times = {float(entry.start_s) for entry in config.hotspot.schedule}
+    event_times = {float(event.start_s) for event in config.degradation.events}
+    boundaries = sorted({0.0, duration} | {float(t) for t in np.arange(dt, duration, dt)}
+                        | {t for t in decision_times | source_times | event_times if 0 <= t <= duration}
+                        | {year * _SECONDS_PER_YEAR for year in want_years})
+    hotspot0 = dm.build_hotspot(config, elapsed_s=0, grid=grid,
+                               land_mask=land_mask, elements=elements)
+    weights = _hotspot_weights(grid, hotspot0, tiles)
+    hotspot_area = dm.hotspot_area_m2(grid, hotspot0)
+    zero = lambda: {element: 0.0 for element in elements}
+    entered, left, correction = zero(), zero(), zero()
+    hotspot_released, into_water = zero(), zero()
+    initial_inventory = {e: sum(tile.retained_kg(e) for tile in tiles) for e in elements}
+    timeline, captured, degradation_log = [], {}, []
+    policy_state, media_ledger = PolicyState(), RetrievedMediaLedger()
+    all_records, recommendations, service_events, estimate_history = [], [], [], []
+    estimates, history = {}, {}
+    present = {tile.tile_id for tile in tiles}
+    observation_config = replace(config.observations, stations=tuple(
+        station for station in config.observations.stations
+        if station.tile_id is None or station.tile_id in present))
+    generator = ObservationGenerator(observation_config, seed=config.seed, start_utc=start)
+    observed_until, next_sample, previous = 0.0, 0.0, 0.0
 
-    deploy_mat = config.policy.kind != "none"
-    tiles = (
-        list(
-            build_tile_states(
-                config.mat, start, materials, hotspot=config.hotspot, elements=elements
-            )
-        )
-        if deploy_mat
-        else []
-    )
+    def sample(elapsed, hotspot, steps, event=""):
+        return _sample_point(elapsed, start + timedelta(seconds=elapsed), tiles,
+            steps, hotspot, materials, elements, weights=weights,
+            fouling_bypass_coupling=config.degradation.fouling_bypass_coupling, event=event)
 
-    dt = config.dt_s
-    n_steps = config.n_steps
-    if sample_every_s is None:
-        sample_every_s = max(dt, config.duration_s / 240.0)
-
-    want_years = sorted(set(float(y) for y in config.plume.sample_years))
-    captured: dict[float, list] = {}
-
-    # The MAT ledger is the budget of the reactive layer's own control volume:
-    # what entered through the sediment face equals what is retained plus what
-    # left into the water. The gross mass leaving the hotspot as a whole,
-    # including the part that never touches a tile, is a different quantity and
-    # is tracked separately as ``hotspot_released``.
-    entered = {element: 0.0 for element in elements}
-    left = {element: 0.0 for element in elements}
-    hotspot_released = {element: 0.0 for element in elements}
-    retained_delta = {element: 0.0 for element in elements}
-    correction = {element: 0.0 for element in elements}
-
-    timeline: list[MatTimelinePoint] = []
-    degradation_log: list[dict[str, Any]] = []
-    next_sample = 0.0
-
-    # --- the evidence loop's own state ------------------------------------
-    known = _operator_known_mat(config, tiles, grid) if deploy_mat else None
-    policy_state = PolicyState()
-    media_ledger = RetrievedMediaLedger()
-    all_records: list[ObservationRecord] = []
-    recommendations: list[Recommendation] = []
-    service_events: list[ServiceEvent] = []
-    estimates: dict[str, EstimateSnapshot] = {}
-    window_history: dict[str, list[tuple[Any, LayerStep]]] = {}
-    next_decision = config.policy.decision_period_s
-    decision_index = 0
-
-    for step in range(n_steps + 1):
-        elapsed = step * dt
+    for index, elapsed in enumerate(boundaries):
         now = start + timedelta(seconds=elapsed)
-
-        hotspot = dm.build_hotspot(
-            config, elapsed_s=elapsed, grid=grid, land_mask=land_mask, elements=elements
-        )
+        if index:
+            interval = elapsed - previous
+            prior_hotspot = dm.build_hotspot(config, elapsed_s=previous, grid=grid,
+                                            land_mask=land_mask, elements=elements)
+            forcing = dm.forcing_at(config.forcing, grid, land_mask, previous, start)
+            steps = _layer_steps(config, field_state, tiles, prior_hotspot, forcing, materials, interval)
+            # Implicit column flux with the condition used during this interval.
+            interval_sample = sample(elapsed, prior_hotspot, steps)
+            for e in elements:
+                hotspot_released[e] += prior_hotspot.bare_flux_kg_per_m2_per_s[e] * hotspot_area * interval
+                into_water[e] += interval_sample.mean_residual_flux[e] * hotspot_area * interval
+            advanced = {step.new_state.tile_id: step.new_state for step in steps}
+            for step in steps:
+                area = step.new_state.geometry.footprint_area_m2
+                for e in elements:
+                    entered[e] += step.flux_in_kg_per_m2_per_s.get(e, 0.0) * area * interval
+                    left[e] += step.flux_out_kg_per_m2_per_s.get(e, 0.0) * area * interval
+                    correction[e] += step.diagnostics.get("clip_correction_kg_per_m2", {}).get(e, 0.0) * area
+            tiles = [grow_burial(grow_fouling(advanced.get(tile.tile_id, tile),
+                        config.degradation.fouling_growth_per_s, interval),
+                        config.degradation.burial_growth_m_per_s, interval) for tile in tiles]
+        hotspot = dm.build_hotspot(config, elapsed_s=elapsed, grid=grid,
+                                   land_mask=land_mask, elements=elements)
         forcing = dm.forcing_at(config.forcing, grid, land_mask, elapsed, start)
-
-        tiles, fired = apply_degradation_events(
-            tiles, config.degradation.events, elapsed, elapsed + dt
-        )
-        tiles = list(tiles)
-        if fired:
+        if elapsed > 0 and elapsed in source_times:
+            before_source = dm.build_hotspot(config, elapsed_s=np.nextafter(elapsed, -np.inf),
+                grid=grid, land_mask=land_mask, elements=elements)
+            before_steps = _layer_steps(config, field_state, tiles, before_source,
+                                        forcing, materials, 0.0)
+            timeline.append(sample(elapsed, before_source, before_steps, "before source change"))
+        steps = _layer_steps(config, field_state, tiles, hotspot, forcing, materials, 0.0)
+        changed = elapsed in event_times and deployed
+        if changed:
+            timeline.append(sample(elapsed, hotspot, steps, "before degradation"))
+            tiles, fired = apply_degradation_events(tiles, config.degradation.events,
+                                                    elapsed, np.nextafter(elapsed, np.inf))
+            tiles = list(tiles)
             degradation_log.extend(fired)
-
-        exchanges = ss.build_seabed_exchange(field_state, tiles, hotspot, forcing, dt)
-        by_tile = {exchange.tile_id: exchange for exchange in exchanges}
-
-        layer_steps: list[LayerStep] = []
-        new_tiles: list[MatTileState] = []
-        for tile in tiles:
-            exchange = by_tile.get(tile.tile_id)
-            if exchange is None:
-                new_tiles.append(tile)
-                continue
-            layer_step = advance_reactive_layer(tile, exchange, materials, dt)
-            layer_steps.append(layer_step)
-            if deploy_mat:
-                window_history.setdefault(tile.tile_id, []).append((now, layer_step))
-            advanced = grow_fouling(
-                layer_step.new_state, config.degradation.fouling_growth_per_s, dt
-            )
-            advanced = grow_burial(
-                advanced, config.degradation.burial_growth_m_per_s, dt
-            )
-            new_tiles.append(advanced)
-
-            area = tile.geometry.footprint_area_m2
-            for element in elements:
-                entered[element] += (
-                    float(layer_step.flux_in_kg_per_m2_per_s.get(element, 0.0))
-                    * area
-                    * dt
-                )
-                left[element] += (
-                    float(layer_step.flux_out_kg_per_m2_per_s.get(element, 0.0))
-                    * area
-                    * dt
-                )
-                retained_delta[element] += (
-                    layer_step.retained_delta_kg_per_m2.get(element, 0.0) * area
-                )
-                correction[element] += float(
-                    layer_step.diagnostics.get("clip_correction_kg_per_m2", {}).get(
-                        element, 0.0
-                    )
-                    if isinstance(layer_step.diagnostics.get("clip_correction_kg_per_m2"), dict)
-                    else 0.0
-                ) * area
-        tiles = new_tiles
-
-        hotspot_area = dm.hotspot_area_m2(grid, hotspot)
-        for element in elements:
-            bare = hotspot.bare_flux_kg_per_m2_per_s.get(element, 0.0)
-            hotspot_released[element] += bare * hotspot_area * dt
-
-        if elapsed >= next_sample or step == n_steps:
-            timeline.append(
-                _sample_point(elapsed, now, tiles, layer_steps, hotspot, materials, elements)
-            )
-            next_sample = elapsed + sample_every_s
-
-        # --- the evidence loop ------------------------------------------
-        if deploy_mat and known is not None and elapsed >= next_decision:
-            decision_index += 1
-            all_records.extend(
-                _observe_window(config, window_history, decision_index)
-            )
-            window_history = {}
-            # The controller sees only what has ARRIVED. A laboratory result
-            # sampled last month but still in transit is not evidence yet.
+            steps = _layer_steps(config, field_state, tiles, hotspot, forcing, materials, 0.0)
+        for step in steps:
+            history.setdefault(step.new_state.tile_id, []).append((now, step))
+        if deployed and (elapsed in decision_times or elapsed == duration):
+            all_records.extend(generator.generate_window(scene_from_layer_history(history),
+                observed_until, elapsed, include_environmental=False, include_dgt=True))
+            observed_until = elapsed
+            # Keep a predecessor and enough history for a campaign whose
+            # exposure straddles the next decision boundary. This bounds memory
+            # without truncating any chamber/DGT integration interval.
+            lookback = max(observation_config.porewater_sample_period_s,
+                observation_config.chamber_deployment_period_s,
+                observation_config.dgt_deployment_period_s,
+                observation_config.bottom_water_probe_period_s,
+                observation_config.survey_period_s,
+                observation_config.environmental_period_s) + max(
+                    observation_config.dgt_exposure_s, 86400.0)
+            cutoff = now - timedelta(seconds=lookback)
+            for tile_id, samples in history.items():
+                keep = max(0, bisect_right(samples, cutoff, key=lambda item: item[0]) - 1)
+                history[tile_id] = samples[keep:]
             visible = list(observations_available(all_records, now))
-            estimates = estimate_tiles(visible, known, config, now)
-            batch = recommend(
-                estimates, known, config, now, elapsed, policy_state
-            )
-            recommendations.extend(batch)
-
-            accepted = accepted_service_tiles(batch)
-            if accepted:
-                tiles, event = replace_tiles(
-                    tiles,
-                    accepted,
-                    now,
-                    ledger=media_ledger,
-                    costs=config.costs,
-                    triggered_by_recommendation_id=batch[0].recommendation_id,
-                )
-                tiles = list(tiles)
-                service_events.append(event)
-                policy_state.last_service_s = elapsed
-                policy_state.accepted_events.append(event.event_id)
-                known = replace(
-                    known,
-                    accepted_service_events=tuple(service_events),
-                )
-            next_decision = elapsed + config.policy.decision_period_s
-
+            qc = run_qc(visible, now_utc=now)
+            estimates = estimate_tiles(apply_qc_flags(visible, qc), known, config, now)
+            estimate_history.extend(estimates.values())
+            if elapsed in decision_times:
+                batch = recommend(estimates, known, config, now, elapsed, policy_state)
+                recommendations.extend(batch)
+                accepted = accepted_service_tiles(batch)
+                if accepted:
+                    timeline.append(sample(elapsed, hotspot, steps, "before service"))
+                    tiles, event = replace_tiles(tiles, accepted, now, ledger=media_ledger,
+                        costs=config.costs, triggered_by_recommendation_id=batch[0].recommendation_id)
+                    tiles = list(tiles)
+                    service_events.append(event)
+                    policy_state.last_service_s = elapsed
+                    policy_state.accepted_events.append(event.event_id)
+                    known = replace(known, accepted_service_events=tuple(service_events))
+                    steps = _layer_steps(config, field_state, tiles, hotspot, forcing, materials, 0.0)
+                    for step in steps:
+                        history.setdefault(step.new_state.tile_id, []).append((now, step))
+                    changed = True
+        if elapsed >= next_sample or elapsed in capture_times or changed or elapsed in source_times:
+            timeline.append(sample(elapsed, hotspot, steps,
+                                   "after event/service" if changed else
+                                   "after source change" if elapsed > 0 and elapsed in source_times else ""))
+            next_sample = elapsed + sample_every_s
         for year in want_years:
-            if year not in captured and elapsed >= year * _SECONDS_PER_YEAR - 0.5 * dt:
-                captured[year] = [replace(tile) for tile in tiles]
-
-        if progress and step % max(1, n_steps // 10) == 0:
-            print(f"  mat timeline {100.0 * step / max(1, n_steps):5.1f} %")
-
-    for year in want_years:
-        captured.setdefault(year, [replace(tile) for tile in tiles])
-
-    ledger = {
-        element: MassLedger(
-            element=element,
-            # Inflow through the sediment face of every tile.
-            released_from_sediment_kg=entered[element],
-            # Still held in the active layer.
-            retained_in_mat_kg=float(
-                sum(tile.retained_kg(element) for tile in tiles)
-            ),
-            # Residual flux that left the layer into the overlying water.
-            boundary_out_kg=left[element],
-            numerical_correction_kg=correction[element],
-        )
-        for element in elements
-    }
-    # Metal already moved into retrieved media has left the active layer, so
-    # the layer's own budget must count it as retained somewhere. It is added
-    # here rather than to boundary_out_kg, because it did not enter the water.
-    if media_ledger.totals_kg:
-        ledger = {
-            element: replace(
-                entry,
-                retained_in_mat_kg=entry.retained_in_mat_kg
-                + media_ledger.total_kg(element),
-            )
-            for element, entry in ledger.items()
-        }
-
-    return MatTimelineResult(
-        timeline=timeline,
-        final_tiles=tiles,
-        mat_ledger=ledger,
-        captured_tiles=captured,
-        hotspot_released_kg=hotspot_released,
-        recommendations=tuple(recommendations),
-        service_events=tuple(service_events),
-        retrieved_kg=dict(media_ledger.totals_kg),
-        assumed_service_cost_eur=media_ledger.assumed_cost_eur,
-        final_estimates=estimates,
-        n_observations=len(all_records),
-    )
+            if abs(elapsed - year * _SECONDS_PER_YEAR) < 1e-6:
+                captured[year] = list(tiles)
+        previous = elapsed
+        if progress and index % max(1, len(boundaries) // 10) == 0:
+            print(f"  mat timeline {100 * elapsed / max(duration, 1):5.1f} %", flush=True)
+    ledger = {e: MassLedger(element=e, released_from_sediment_kg=entered[e],
+        boundary_in_kg=initial_inventory[e],
+        retained_in_mat_kg=sum(tile.retained_kg(e) for tile in tiles),
+        retained_in_retrieved_media_kg=media_ledger.total_kg(e),
+        boundary_out_kg=left[e], numerical_correction_kg=correction[e]) for e in elements}
+    return MatTimelineResult(timeline=timeline, final_tiles=tiles, mat_ledger=ledger,
+        captured_tiles=captured, hotspot_released_kg=hotspot_released,
+        recommendations=tuple(recommendations), service_events=tuple(service_events),
+        retrieved_kg=dict(media_ledger.totals_kg), assumed_service_cost_eur=media_ledger.assumed_cost_eur,
+        final_estimates=estimates, n_observations=len(all_records),
+        hotspot_into_water_kg=into_water, observations=tuple(all_records),
+        estimate_history=tuple(estimate_history), degradation_events=tuple(degradation_log))
 
 
 def _operator_known_mat(
@@ -459,134 +467,39 @@ def _operator_known_mat(
     )
 
 
-def _observe_window(
-    config: RunConfig,
-    history: Mapping[str, Sequence[tuple[Any, LayerStep]]],
-    index: int,
-) -> list[ObservationRecord]:
-    """Emit the observations this decision window would actually have produced.
-
-    The generator is a *simulator* component and legitimately sees truth. Its
-    output is the only thing the estimator is ever shown, and every record
-    carries its own ``available_at_utc``, so the separation survives even though
-    both live in the same process.
-
-    The hourly environmental stream is switched off here: it is context, it does
-    not constrain Pb or Hg, and generating tens of thousands of context records
-    per run would cost minutes to tell the policy nothing.
-    """
-    if not history:
-        return []
-    windows = [samples for samples in history.values() if samples]
-    if not windows:
-        return []
-    window_start = min(samples[0][0] for samples in windows)
-    window_end = max(samples[-1][0] for samples in windows)
-    duration_s = max((window_end - window_start).total_seconds(), 1.0)
-
-    # The station list is fixed while the tile layout is a design variable, so a
-    # smaller mat can leave a station attached to a tile that does not exist.
-    # Scenario F is exactly that case: it lays 2x2 tiles, and the default
-    # chamber station names tile_2_2. Physically you cannot put a benthic
-    # chamber on a tile that was never deployed, so the station produces no
-    # data. Dropping it is the honest behaviour, and it carries a real
-    # consequence the demonstration should show: the undersized design is also
-    # the least monitored one.
-    present = set(history)
-    stations = tuple(
-        station
-        for station in config.observations.stations
-        if station.tile_id is None or station.tile_id in present
-    )
-    observations = (
-        config.observations
-        if len(stations) == len(config.observations.stations)
-        else replace(config.observations, stations=stations)
-    )
-
-    scene = scene_from_layer_history(history)
-    generator = ObservationGenerator(
-        observations,
-        seed=config.seed + 1000 * index,
-        start_utc=window_start,
-    )
-    records = generator.generate(
-        scene, duration_s, include_environmental=False, include_dgt=True
-    )
-    # Each window builds a fresh generator, so its record ids restart. Stamping
-    # the window keeps them unique across the run, which matters because a
-    # recommendation cites record ids as its evidence.
-    return [
-        replace(record, record_id=f"W{index:03d}-{record.record_id}")
-        for record in records
-    ]
-
-
-def _sample_point(
-    elapsed: float,
-    now,
-    tiles: Sequence[MatTileState],
-    layer_steps: Sequence[LayerStep],
-    hotspot,
-    materials: Mapping[str, Any],
-    elements: Sequence[str],
-) -> MatTimelinePoint:
-    mean_out: dict[str, float] = {}
-    mean_bare: dict[str, float] = {}
-    attenuation: dict[str, float] = {}
-    barrier_attenuation: dict[str, float] = {}
-    saturation: dict[str, float] = {}
-    retained: dict[str, float] = {}
-
+def _sample_point(elapsed, now, tiles, layer_steps, hotspot, materials, elements,
+                  *, weights, fouling_bypass_coupling=0.35, event="") -> MatTimelinePoint:
+    by_tile = {step.new_state.tile_id: step for step in layer_steps}
+    out, bare_map, attenuation, barrier_a, saturation, retained, column_a = {}, {}, {}, {}, {}, {}, {}
     for element in elements:
         bare = float(hotspot.bare_flux_kg_per_m2_per_s.get(element, 0.0))
-        barriers = [
-            float(
-                step.diagnostics.get("barrier_flux_kg_per_m2_per_s", {}).get(
-                    element, float("nan")
-                )
-            )
-            for step in layer_steps
-        ]
-        barrier = _mean_over_tiles([b for b in barriers if b == b]) if barriers else bare
-        barrier_attenuation[element] = (
-            (1.0 - barrier / bare) if bare > 0.0 else float("nan")
-        )
-        outs = [
-            float(step.flux_out_kg_per_m2_per_s.get(element, 0.0))
-            for step in layer_steps
-        ]
-        # No layer step means no reactive layer stood between the sediment and
-        # the water, so the residual flux IS the bare flux.  Averaging an empty
-        # list to zero here would report perfect attenuation for a mat that does
-        # not exist, which is the exact opposite of the truth.
-        out = _mean_over_tiles(outs) if outs else bare
-        mean_out[element] = out
-        mean_bare[element] = bare
-        attenuation[element] = (1.0 - out / bare) if bare > 0.0 else float("nan")
+        mixed, barrier, column_values = bare, bare, []
+        for tile in tiles:
+            step = by_tile.get(tile.tile_id)
+            if step is None or tile.coverage_fraction <= 0:
+                continue
+            effective = weights[tile.tile_id] * tile.coverage_fraction * (1 - ss.bypass_fraction(
+                tile, fouling_bypass_coupling=fouling_bypass_coupling))
+            flux = float(step.flux_out_kg_per_m2_per_s.get(element, 0.0))
+            barrier_flux = float(step.diagnostics.get("barrier_flux_kg_per_m2_per_s", {}).get(element, bare))
+            mixed += effective * (flux - bare)
+            barrier += effective * (barrier_flux - bare)
+            column_values.append(flux)
+        out[element], bare_map[element] = mixed, bare
+        attenuation[element] = 1 - mixed / bare if bare > 0 else float("nan")
+        barrier_a[element] = 1 - barrier / bare if bare > 0 else float("nan")
+        column_a[element] = 1 - np.mean(column_values) / bare if bare > 0 and column_values else 0.0
         params = materials.get(element)
-        saturation[element] = (
-            _mean_over_tiles([tile.saturation_fraction(params) for tile in tiles])
-            if params is not None
-            else 0.0
-        )
-        retained[element] = float(sum(tile.retained_kg(element) for tile in tiles))
-
-    return MatTimelinePoint(
-        elapsed_s=elapsed,
-        elapsed_years=elapsed / _SECONDS_PER_YEAR,
-        time_utc=now,
-        mean_residual_flux=mean_out,
-        mean_bare_flux=mean_bare,
-        attenuation=attenuation,
-        barrier_attenuation=barrier_attenuation,
-        saturation=saturation,
-        retained_kg=retained,
+        saturation[element] = _mean_over_tiles([tile.saturation_fraction(params) for tile in tiles]) if params else 0.0
+        retained[element] = sum(tile.retained_kg(element) for tile in tiles)
+    return MatTimelinePoint(elapsed_s=elapsed, elapsed_years=elapsed / _SECONDS_PER_YEAR,
+        time_utc=now, mean_residual_flux=out, mean_bare_flux=bare_map, attenuation=attenuation,
+        barrier_attenuation=barrier_a, saturation=saturation, retained_kg=retained,
         mean_fouling=_mean_over_tiles([tile.fouling_index for tile in tiles]),
         mean_integrity=_mean_over_tiles([tile.integrity_index for tile in tiles]),
-        mean_coverage=_mean_over_tiles([tile.coverage_fraction for tile in tiles]),
-        n_tiles_active=sum(1 for tile in tiles if tile.active and not tile.displaced),
-    )
+        mean_coverage=sum(weights[tile.tile_id] * tile.coverage_fraction for tile in tiles),
+        n_tiles_active=sum(tile.active and not tile.displaced for tile in tiles),
+        column_attenuation=column_a, event=event)
 
 
 # ---------------------------------------------------------------------------
@@ -616,13 +529,14 @@ def run_plume_window(
     )
 
     dt = config.plume.dt_s
-    n_steps = max(1, int(round(config.plume.window_s / dt)))
+    n_steps = max(1, int(np.ceil(config.plume.window_s / dt)))
 
     results = {}
     for with_mat in (True, False):
         field_state = dm.initial_field_state(
             config, grid=grid, land_mask=land_mask, elements=elements
         )
+        field_state = replace(field_state, time_utc=start + timedelta(seconds=elapsed_s))
         initial_state = field_state
         active_tiles = list(tiles) if with_mat else []
         transport_steps = []
@@ -634,23 +548,17 @@ def run_plume_window(
         now0 = start + timedelta(seconds=elapsed_s)
         forcing0 = dm.forcing_at(config.forcing, grid, land_mask, elapsed_s, start)
         if with_mat and active_tiles:
-            exchanges = ss.build_seabed_exchange(
-                field_state, active_tiles, hotspot, forcing0, config.dt_s
-            )
-            by_tile = {exchange.tile_id: exchange for exchange in exchanges}
-            layer_steps = [
-                advance_reactive_layer(tile, by_tile[tile.tile_id], materials, config.dt_s)
-                for tile in active_tiles
-                if tile.tile_id in by_tile
-            ]
+            layer_steps = _layer_steps(config, field_state, active_tiles, hotspot,
+                                       forcing0, materials, 0.0)
         else:
             layer_steps = []
-        source = ss.residual_source_flux(grid, hotspot, active_tiles, layer_steps, now0)
+        source = ss.residual_source_flux_detailed(grid, hotspot, active_tiles, layer_steps, now0,
+            fouling_bypass_coupling=config.degradation.fouling_bypass_coupling)
 
         for step in range(n_steps):
             elapsed = elapsed_s + step * dt
             forcing = dm.forcing_at(config.forcing, grid, land_mask, elapsed, start)
-            transport = fe.transport_step(field_state, forcing, source, dt)
+            transport = fe.transport_step(field_state, forcing, source, min(dt, config.plume.window_s - step * dt))
             transport_steps.append(transport)
             field_state = transport.new_field
 
@@ -677,6 +585,7 @@ def run_plume_window(
         ledger_with_mat=ledger_mat,
         ledger_without_mat=ledger_bare,
         window_s=config.plume.window_s,
+        tiles=tuple(tiles),
     )
 
 
@@ -704,5 +613,6 @@ def run_scenario(config: RunConfig, *, progress: bool = False) -> ScenarioResult
         final_tiles=mat.final_tiles,
         mat_ledger=mat.mat_ledger,
         hotspot_released_kg=mat.hotspot_released_kg,
+        hotspot_into_water_kg=mat.hotspot_into_water_kg,
         maintenance=mat,
     )

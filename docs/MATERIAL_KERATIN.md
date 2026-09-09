@@ -1,18 +1,24 @@
 # Keratin as the reactive medium: what the literature actually supports
 
-The candidate medium for the mat is a **keratin-based polymer**, most plausibly
-derived from waste wool or feather. This document sets the model parameters from
-published measurements, states exactly how far those measurements can be
-carried, and derates them for seawater. Checked 8 September 2026.
+The candidate medium is a **keratin-based polymer**, potentially derived from
+waste wool or feathers. Published experiments motivate material screening;
+the operating parameters remain assumptions about a core that has not been
+tested in seawater. Checked 9 September 2026.
 
-**Nothing here is a measurement of our material.** Every published value below
-was obtained on raw or lightly processed keratin biofibres, in deionised water,
-at an acidic optimum pH, in a batch reactor. Our application is a porous mat in
-seawater at pH ~8.1 under advective flow. The gap between those two situations
-is the main scientific risk of the project, and it is quantified rather than
-ignored.
+**Literature correction, 9 September 2026.** The three supplied papers were
+checked against the parameter history. The 2026 review was already cited as
+K5, but its numerical tables were not used to calibrate the simulations.
+A primary paper on reduced human hair reports Hg uptake, correcting the
+previous incomplete search. The newly inspected Pb composite includes calcium
+competition and must not be described as salt-free or as neat keratin.
+See [the source-by-source audit](PAPER_PARAMETER_TRACEABILITY.md) for page
+locations, conversions and experimental discrepancies. Defaults are unchanged.
 
----
+**Nothing here is a measurement of our material.** The cited materials include
+raw fibres, chemically treated wool, nanofibres and composites. Their matrices,
+pH, concentration, dosage and contact times differ. The proposed application
+is a porous mat in seawater under flow; no supplied paper establishes its
+capacity, hydraulic properties or field service life.
 
 ## 1. Why keratin is a reasonable candidate
 
@@ -52,14 +58,16 @@ better. It cites Kong et al. for a keratin/hide-waste biosorbent at
 A separate study on brut keratin powder from sheep horn reports a monolayer
 Pb(II) capacity of **33.33 mg/g at 298 K** [K2].
 
-**Literature envelope for Pb on keratin: about 4 to 33 mg/g
-(4e-3 to 3.3e-2 kg/kg), in fresh water at acidic pH.**
+**Selected older Pb biofibre/powder results: about 4 to 33 mg/g
+(4e-3 to 3.3e-2 kg/kg), principally freshwater batch conditions.**
+This is the subset that motivated the original default, not the complete
+capacity envelope for all modified keratin composites in the supplied review.
 
 Kinetics: biosorption fitted the **pseudo-second-order** model in almost every
 metal and biosorbent combination, with equilibrium reached within 24 hours in
 batch [K1]. Isotherms fitted **Langmuir**, supporting sorption at specific
-sites, which is what the capped linear isotherm in `docs/MODEL_SPEC.md`
-approximates.
+sites. The capped linear law in `docs/MODEL_SPEC.md` is a computational
+approximation, not a fitted version of those experimental Langmuir curves.
 
 Regeneration: Pb-loaded biofibres were eluted with EDTA or HNO3 (around 100 %
 recovery for chicken feathers), but **capacity fell from 97 % to 72 % on the
@@ -67,164 +75,140 @@ second cycle** for feathers and wool, and human and dog hair lost about half
 [K1]. This matters for the maintenance model: a retrieved mat is not a
 like-for-like reusable asset.
 
-## 3. Published mercury capacities: not found
+## 3. Published mercury evidence and the remaining material gap
 
-**No verified Hg(II) capacity for a keratin biosorbent was found in this
-check.** Keratin materials are frequently *listed* as candidate biosorbents for
-mercury among other metals [K1, K5], but the searches did not return a primary
-study reporting a measured Hg(II) Langmuir capacity for wool, feather or hair
-keratin. This is recorded as **UNKNOWN** rather than filled with a number from a
-different material.
+The earlier statement that no verified keratin-derived Hg capacity had been
+found is superseded. The supplied review [K5, p. 5] cites Liang et al. [K15]:
+mechanically activated human hair reduced with ammonium thioglycolate has a
+reported **476.7 mg/g Hg uptake** in the primary publisher's highlights.
+This is a particular modified material; it does not validate the proposed
+wool/feather core in seawater. Full primary experimental methods were not
+retrieved in this audit.
 
-For scale only, thiol-functionalised materials that are **not keratin** reach
-78.5 mg/g (Hg-imprinted thiol mesoporous sorbent) and 1325 mg/g
-(thiol-functionalised cellulose) [K7, K8]. Those figures must not be transferred
-to keratin.
+The remaining unknown is **Hg capacity and kinetics for the actual core under
+flowing seawater conditions**. The model retains 2.5 mg/g as an assumption,
+without presenting it as a fit to [K15].
 
-### A defensible ceiling from the sulfur content
+### The conditional sulphur-site calculation used by the default
 
-Instead of borrowing a number, the model uses a **stoichiometric ceiling** from
-the measured sulfur content, which is a property of keratin itself:
+The original calculation assumes a 4 wt% sulphur content [K4], full conversion
+to accessible sites and two sulphur atoms per captured Hg:
 
-```
-sulfur content            4 wt% (conservative end of the 4-8 wt% range [K4])
-                          0.04 g S / g / 32.06 g/mol = 1.25e-3 mol S / g
-all cystine reduced       1.25e-3 mol SH / g
-Hg binds as Hg(SR)2       6.2e-4 mol Hg / g
-                          x 200.59 g/mol = 0.125 g/g = 125 mg/g
+```text
+0.04 g S/g / 32.06 g/mol / 2 * 200.59 g Hg/mol
+    = 0.125 g Hg/g = approximately 125 mg/g
 ```
 
-**125 mg/g is a theoretical ceiling, not a capacity.** It assumes every
-disulfide is reduced and every resulting thiol is sterically accessible to a
-hydrated Hg species, which no real material achieves. The model therefore takes
-a small accessible fraction of it, with a very wide interval, and says so.
+This is an **idealised bound for those assumptions**, not a universal ceiling
+for chemically modified keratin. The material, binding stoichiometry and final
+sulphur content must be measured. Taking 2% of this value gives the assumed
+2.5 mg/g; that accessibility fraction has not been measured either.
 
-## 3b. Copper: the best published capacity and the hardest job
+## 3b. Copper and lead: material form and experimental endpoint matter
 
-Copper was added as a third channel because corroding brass and copper-alloy
-fuzes and driving bands are a documented component of dumped conventional
-munitions. It is instructive, because it is the clearest case in this project of
-**capacity and availability being different things.**
+Published Cu results from the original evidence chain include 20 mg/g on wool
+keratin nanofibres and 27.4 mg/g on keratin-modified magnetite [K9]. The supplied
+Enkhzaya study [K13, Table 2] adds a more directly relevant wool comparison:
 
-Published Cu(II) capacities on keratin materials:
+| Material | Langmuir maximum, mg Cu/g | Test context |
+|---|---:|---|
+| Untreated sheep wool | 15.19 | pH 5, 303 K, batch, 48 h |
+| 0.05 M Na2S-treated wool | 51.92 | same conditions; 44.24% preparation mass loss |
+| 0.02 M Na2S-treated wool | 17.03 | same conditions; 1.51% preparation mass loss |
 
-| Material | Langmuir q_max | Note |
-|---|---|---|
-| Wool keratin nanofibres | **20 mg/g** | fits Langmuir [K9] |
-| Keratin/PA6 blend nanofibres, 50 / 70 / 90 % keratin | 61.7 / 90 / 103.5 mg/g | [K9] |
-| Wool-keratin-modified magnetite powder | 27.4 mg/g at 323 K | [K9] |
+The source uses 10 mg material in 15 mL and 1 to 100 mg/L initial Cu. It does
+not test a marine mat. Its pre-proof contains figure/table and kinetic-inventory
+discrepancies recorded in the traceability audit, so the fits should not be
+silently reused as validation data. The simulator's 3 mg/g Cu capacity and
+0.02 available fraction remain separate assumptions. Strong organic Cu
+complexation in measured porewaters [K11] motivates testing low availability;
+it does not prove that all keratin chemistries fail to remove Cu from seawater.
 
-Those are the **best** numbers in this whole document, several times the Pb
-figures. Two reasons not to use them as they stand:
+The supplied Zubair composite [K14] is feather keratin with
+acrylamide-functionalised graphene oxide, **not neat keratin**. It removed
+99.21% of Pb after 24 h at pH 7.5, with 600 micrograms/L initial Pb and 0.1 g
+composite in 10 mL. Its matrix contains 0.02 M NaCl and 0.01 M CaCl2, at ionic
+strength 0.05 M. It includes calcium competition but is not complete seawater.
 
-1. **They are nanofibres.** A nanofibre mat has a specific surface area far
-   above a needle-punched felt core. The model takes 3.0 mg/g, an order of
-   magnitude below the lowest nanofibre value, as the bulk-core estimate.
-2. **Almost none of the copper in seawater is available.** Above 99 % of
-   dissolved Cu is bound to strong organic ligands, with conditional stability
-   constants around 1e15, and free Cu2+ measured below 6 pM [K11]. A carboxyl or
-   amino group on keratin does not obviously outcompete a ligand that strong.
+The batch balance gives **0.059526 mg Pb/g** captured at that dose. This is
+neither a Langmuir maximum nor a 99.21% mat-flux attenuation. No Cu or Hg was
+tested. Four acid-regeneration cycles concern that composite in the laboratory;
+they do not establish equivalent regeneration of a deployed core [K14].
 
-The second point dominates. The model expresses it through
-`available_fraction = 0.02` for Cu: one fiftieth of the dissolved pool, with the
-interval reaching 0.002. **This is the most pessimistic number in the model, and
-it is the one the simulation then vindicates:** over six years the sorbent's
-contribution to copper attenuation is 0.00 percentage points. Copper passes
-through. What little the mat does for copper, an inert mat of the same geometry
-would also do.
+## 3c. Mercury speciation is not a fixed free-ion percentage
 
-That is a result, not a failure of the model, and it should be said out loud
-rather than buried: **on this evidence, a keratin core is not a copper
-technology.** If copper is a target, the honest options are a different ligand
-chemistry chosen to compete with natural organic ligands, or dropping the claim.
+Chloride complexes can dominate Hg(II) in saline oxic water [K10], while
+organic ligands and sulphide change binding and availability in other settings.
+The frequently quoted fraction above 99% chloride-complexed is not a universal
+porewater composition. Thiol groups can exchange ligands with Hg complexes,
+so neither free-ion concentration nor the need to displace chloride directly
+sets the amount accessible over a mat's contact time.
 
-## 3c. Mercury is not free in seawater, and that cuts both ways
+The model's `available_fraction = 0.10` and interval 0.01 to 0.4 for Hg are
+assumptions. Its 30 m^3/kg partition slope is also assumed. Experiments on
+activated carbon show that chloride, sulphide and dissolved organic matter
+can change uptake [S04 in `REFERENCES.md`], but they do not calibrate keratin.
+The updated human-hair evidence [K15] strengthens the material-screening
+rationale without resolving seawater-core transport or speciation.
 
-The claim is correct and it is worth stating precisely. Thermodynamic
-calculations put Hg(II) at **above 99 % chloro-complexes** in seawater,
-dominated by the tetrachloride HgCl4(2-), with HgCl3(-) and HgCl2 making up most
-of the rest [K10]. Free Hg2+ is a vanishing fraction.
+## 4. Why freshwater evidence does not set operating seawater parameters
 
-**In our favour.** Chloro-complexed mercury is reported to resist reduction and
-methylation more than free Hg(II) does. And the thiol-Hg bond is strong enough
-that thiol ligands still outcompete chloride, which is precisely why
-thiol-functionalised sorbents are the established route for mercury in saline
-matrices. The model reflects this with a partition coefficient an order of
-magnitude above lead's.
+Zhang's biofibre Pb values [K1] were measured at pH 4 in deionised water.
+Other cited materials and matrices differ, including the salt-containing
+pH-7.5 composite assay [K14]. The earlier blanket description of every keratin
+experiment as salt-free and acidic is therefore incorrect.
 
-**Against us, and absent from every batch isotherm.** The species arriving at
-the surface is an **anion**, approaching a keratin surface that is negatively
-charged at pH 8, and a binding site must displace four chlorides before it takes
-the mercury. Neither the electrostatic penalty nor the ligand-exchange kinetics
-appear in a capacity measured on free Hg(2+) in deionised water at pH 4. The
-model carries them as `available_fraction = 0.10` for Hg, interval 0.01 to 0.4.
+Pb carbonate/chloride complexes, organic ligands and abundant competing ions
+all matter. Typical seawater Ca and Mg concentrations are about 10.3 and
+53 mmol/L, respectively. The new composite experiment includes 10 mmol/L Ca,
+but not the complete marine major-ion or organic-ligand matrix. More negative
+surface charge at higher pH can favour cation binding while speciation and
+competition act differently. These mechanisms do not supply a unique derating
+factor from batch capacity to seawater capacity.
 
-The net effect in the simulation is that mercury behaves better than copper and
-worse than the freshwater literature implies: the sorbent adds about 0.6
-percentage points of attenuation at six years, against 0.2 for lead and 0.0 for
-copper.
+The operating capacities, partition slopes and available fractions below
+remain deliberately explicit assumptions. They must be varied separately in
+sensitivity work and ultimately measured together for a defined material.
+An assumed low value is not necessarily conservative for every model outcome:
+reducing uptake also changes breakthrough, retrieval and the estimator's
+uncertainty. The simulation cannot confirm its own chemical parameter choices.
 
-## 4. The seawater derating, and why it is large
+## 5. Parameters used in the model
 
-Every capacity in section 2 was measured at **pH 4.0 in deionised water**. Our
-application is seawater. Three effects push the effective capacity down, and
-they are not small:
+All values below have provenance `assumption`. They are screening parameters,
+not measured seawater estimates or confidence intervals.
 
-**Speciation.** In seawater at pH 8.2, dissolved lead is dominated by the
-uncharged carbonate complex **PbCO3(aq), about 41 % of total dissolved Pb**,
-with about 16 % as Pb(CO3)Cl- and 5 to 10 % as chloride complexes [K3]. Free
-Pb2+, the species biosorption ion-exchange chemistry actually binds, is a small
-minority of the total. Measured free Pb2+ has been reported an order of
-magnitude below equilibrium-model predictions [K3].
+| Parameter | Pb | Hg | Cu |
+|---|---:|---:|---:|
+| Operating `q_max`, kg/kg | 0.001 | 0.0025 | 0.003 |
+| `q_max` interval, kg/kg | 0.0003 to 0.008 | 0.0002 to 0.025 | 0.0005 to 0.020 |
+| `Kd`, m^3/kg | 3 | 30 | 8 |
+| `Kd` interval, m^3/kg | 0.5 to 20 | 2 to 300 | 1 to 60 |
+| First-order `k_rate`, 1/s | 0.0004 | 0.0002 | 0.0005 |
+| Available fraction | 0.25 | 0.10 | 0.02 |
+| Sorbent allocation | 0.60 | 0.30 | 0.10 |
 
-**Competition.** Seawater contains roughly 10.3 mmol/L Ca2+ and 53 mmol/L Mg2+,
-five to seven orders of magnitude more than the trace Pb, competing for the same
-carboxyl and amino sites. The published experiments had no such competition.
+The bulk density is assumed to be 400 kg/m^3 and thickness 0.010 m, giving
+4 kg/m^2 of core. Porosity 0.5 is a separate assumption; it is not obtained by
+combining that bulk density with a 1300 kg/m^3 solid density. Those quantities
+need joint measurement for the finished composite.
 
-**pH.** The optimum in [K1] was pH 4.0, chosen partly to avoid hydroxide
-precipitation. Seawater sits near pH 8.1. Wool keratin's isoelectric point is
-acidic, so at pH 8 the surface is more negatively charged, which helps
-electrostatically, but the speciation and competition effects dominate.
+The allocated nominal inventories are 0.0024 kg Pb/m^2, 0.0030 kg Hg/m^2 and
+0.0012 kg Cu/m^2. Dividing these by an assumed advective input gives a
+capacity-to-load ratio, **not a breakthrough or replacement prediction**.
+Finite affinity, reversible uptake, porewater storage, bypass and the selected
+service policy also determine the time response. In particular, a simulation
+may reach a low-occupancy steady state before exhausting nominal capacity.
 
-**For mercury the derating is different and probably smaller.** In seawater Hg
-is dominated by chloride complexes, but the thiol-Hg bond is strong enough that
-thiol ligands outcompete chloride. This is precisely why thiol sorbents are the
-established route for Hg in saline matrices. The Hg channel is therefore modelled
-with a *higher* partition coefficient and a *lower* capacity than Pb: strong
-binding to a small number of sites.
-
-## 5. The parameters the model now uses
-
-| Parameter | Pb | Hg | Label | Basis |
-|---|---|---|---|---|
-| `q_max` operating capacity | 1.0e-3 kg/kg (1.0 mg/g) | 2.5e-3 kg/kg (2.5 mg/g) | assumption | Pb: about one fifth of the lowest freshwater literature value [K1], derated for section 4. Hg: 2 % of the 125 mg/g thiol ceiling. |
-| `q_max` interval | 3.0e-4 to 8.0e-3 kg/kg | 2.0e-4 to 2.5e-2 kg/kg | assumption | Pb upper bound is the best freshwater result [K1], that is, the optimistic case where seawater costs nothing. Hg spans 0.16 % to 20 % of the thiol ceiling. |
-| `Kd` partition slope | 3.0 m^3/kg | 30.0 m^3/kg | assumption | Derated from Langmuir behaviour [K1]; Hg an order higher for thiol affinity. |
-| `Kd` interval | 0.5 to 20 m^3/kg | 2 to 300 m^3/kg | assumption | |
-| `k_rate` | 4.0e-4 1/s | 2.0e-4 1/s | assumption | Order of magnitude from pseudo-second-order equilibrium within 24 h in batch [K1]. In a mat the rate is set by intraparticle transport, not by batch kinetics. |
-| Bulk density | 400 kg/m^3 | | assumption | A wool-felt-like nonwoven at about 0.5 porosity; keratin solid density is near 1.3 g/cm^3. |
-| Allocation | 0.6 | 0.4 | assumption | The same medium is never counted twice. |
-
-### What these parameters imply, and it is worth saying out loud
-
-With 4 kg/m^2 of medium at 10 mm thickness:
-
-* **Pb capacity 2.4e-3 kg/m^2**, consumed by the modelled advective load in
-  about **2.5 years** (2.54, recomputed from `default_run_config()`). Pb is what
-  limits the service life.
-* **Hg capacity 4.0e-3 kg/m^2** against a much smaller Hg load, giving a
-  breakthrough time of **centuries** in the default scenario. Mercury is
-  effectively a durable channel here, and the mat is not replaced because of it.
-
-That asymmetry is a genuine result of the numbers, not a modelling artefact, and
-it is a useful thing to be able to say: **for this hotspot, the mat's
-replacement schedule is set by lead, while mercury capacity is not the binding
-constraint.** It also means the Hg case rests almost entirely on the *unverified*
-capacity assumption, which is the honest weak point.
+The Pb and Cu `commissioned_q_max_interval` values represent hypothetical
+information for a synthetic operator. No commissioning experiment was
+performed. Hg has no commissioned range in the default scenario, but that
+software choice does not imply that Hg commissioning is scientifically
+impossible or that no keratin-derived Hg literature exists.
 
 ## 6. What must be measured before any of this is a claim
 
-1. Pb and Hg isotherms for **our** keratin polymer in **real or artificial
+1. Pb, Hg and Cu isotherms for **our** keratin polymer in **real or artificial
    seawater** at pH 8.1, with Ca and Mg present. This is the single most
    important experiment.
 2. Whether the disulfides are reduced in the final material, and what fraction
@@ -235,12 +219,13 @@ capacity assumption, which is the honest weak point.
    which set `D_eff` and the advective flux and are currently pure assumptions.
 5. Whether a keratin mat survives months of seawater immersion at all:
    biodegradation, microbial attack and mechanical integrity are unaddressed
-   here, and a protein that degrades releases its bound metal back.
-6. Whether the mat alters sediment redox enough to promote **methylmercury**
-   production. A protein-rich, sulfur-rich layer over anoxic sediment is a
-   plausible substrate for sulfate-reducing bacteria, which are the main
-   methylators. This is a specific and serious risk for a keratin mat, and it
-   works against the concept rather than for it.
+   here. Degradation can change capacity, leaching and retained-metal release;
+   the released fraction and its fate must be measured.
+6. Whether the final material changes **methylmercury** formation, degradation
+   and net release. Leachables and altered sediment chemistry could affect
+   microbial processes, but their direction and magnitude cannot be inferred
+   from total sulphur or protein content alone. Measure net transport and
+   biological effects alongside total Hg removal.
 
 Point 6 deserves emphasis: adding a biodegradable, sulfur-rich organic layer on
 top of contaminated anoxic sediment is not obviously ecologically neutral. See
@@ -256,11 +241,14 @@ top of contaminated anoxic sediment is not obviously ecologically neutral. See
 | K2 | *Modeling isotherm and mechanism adsorption of heavy metals from water using brut keratin powder prepared from Algerian sheep horns*, ScienceDirect. https://www.sciencedirect.com/science/article/pii/S1944398624081219 (Pb monolayer capacity 33.33 mg/g at 298 K; figure taken from the indexed summary, full text not retrieved in this check) |
 | K3 | Lead speciation in seawater: PbCO3(aq) about 41 % of dissolved Pb at pH 8.2, free Pb2+ a small minority. https://doi.org/10.3390/w17101470 and https://nap.nationalacademies.org/read/24898/chapter/5 |
 | K4 | Wool keratin sulfur content 4 to 8 wt%, cystine 7 to 20 % of residues. https://ift.onlinelibrary.wiley.com/doi/10.1111/1541-4337.13087 ; NIST, *Role of cystine in the structure of the fibrous protein, wool*, https://nvlpubs.nist.gov/nistpubs/jres/27/jresv27n1p89_A1b.pdf |
-| K5 | *Keratin-derived bio-adsorbents for water remediation: current and future trends*, ScienceDirect. https://www.sciencedirect.com/science/article/pii/S2589014X25004918 |
+| K5 | Zubair, M., Rauf, Z., Ullah, A. (2026), *Keratin-derived bio-adsorbents for water remediation: Current and future trends*, Bioresource Technology Reports 33, 102508. https://doi.org/10.1016/j.biteb.2025.102508. Supplied full review inspected; its numerical tables did not calibrate the original defaults. |
 | K6 | *Characterisation of reduction state of cystine linkages on wool fibre surface*, ScienceDirect. https://www.sciencedirect.com/science/article/pii/S0142941821003810 |
 | K7 | Hg(II)-imprinted thiol-functionalised mesoporous sorbent, 78.5 mg/g. https://www.sciencedirect.com/science/article/abs/pii/S0039914006002074 (NOT keratin) |
 | K8 | Thiol-functionalised cellulose, 1325 mg/g Hg(II). https://www.sciencedirect.com/science/article/pii/S0045653524007847 (NOT keratin) |
-| K9 | Keratin Cu(II) capacities. Wool keratin nanofibres, 20 mg/g, Langmuir: https://www.sciencedirect.com/science/article/abs/pii/S0014305711002394 (keratin/PA6 blend nanofibres, 61.7 / 90 / 103.5 mg/g at 50 / 70 / 90 wt% keratin). Wool-keratin-modified magnetite, 27.4 mg/g at 323 K: https://doi.org/10.3390/nano11051068. All nanofibre or nanoparticle forms, NOT a bulk felt core. |
-| K10 | Mercury speciation in seawater: Hg(II) above 99 % Hg-Cl complexes, dominated by HgCl4(2-); halide complexes reduce and methylate more slowly than other Hg(II) forms. *Mercury in Marine and Oceanic Waters, a Review*, Water Air Soil Pollut (2016), DOI 10.1007/s11270-016-3060-3, https://pmc.ncbi.nlm.nih.gov/articles/PMC5013138/ |
-| K11 | Copper speciation: above 99 % of dissolved Cu organically complexed, free Cu2+ below 6 pM in pore waters; strong ligand (L1) conditional stability constants around 1e15. *Copper-binding ligands in deep-sea pore waters of the Pacific Ocean*, Scientific Reports (2021), https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8446087/ ; see also *Sources, sinks, and cycling of dissolved organic copper binding ligands in the ocean*, Commun Earth Environ (2022), https://www.nature.com/articles/s43247-022-00597-1 |
-| K12 | Activated carbon and methylmercury: porewater MeHg reduced 45 to 95 % (above 90 % at one month) but **sediment MeHg increased in five of seven studies**, mechanism unclear; salt-marsh field trial effects significant for only about the first year. https://pubmed.ncbi.nlm.nih.gov/24156748/ , https://www.sciencedirect.com/science/article/abs/pii/S004896971733108X |
+| K9 | Aluigi et al. (2012), *Wool Keratin Nanofibres for Copper(II) Adsorption*, https://doi.org/10.1166/jbmb.2012.1204: pure wool-keratin nanofibres, 20 mg/g Cu uptake in batch at pH 6. The distinct keratin/PA6 blend study, https://www.sciencedirect.com/science/article/abs/pii/S0014305711002394, reports 61.7 / 90 / 103.5 mg/g at 50 / 70 / 90 wt% keratin; these are different materials. Zhang et al. (2021), https://doi.org/10.3390/nano11051068: wool-keratin-modified magnetite, 27.4 mg/g at pH 5 and 293 K after 90 min (primary paper conclusions). None is a bulk felt core or a seawater-core calibration. |
+| K10 | Mercury speciation depends on chloride, sulphide, dissolved organic matter and redox. *Mercury in Marine and Oceanic Waters, a Review*, Water Air Soil Pollut (2016), DOI 10.1007/s11270-016-3060-3, https://pmc.ncbi.nlm.nih.gov/articles/PMC5013138/. The frequently quoted chloride fraction is not a universal value for organic-rich reducing porewater or a measured sorbent-accessible fraction. |
+| K11 | Paul et al. (2021), *Copper-binding ligands in deep-sea pore waters of the Pacific Ocean*, Scientific Reports, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8446087/. More than 99% organically complexed Cu and free Cu below 6 pM in eight of nine fitted samples; strong ligand conditional constants around 1e15. These sample-specific results do not identify the model's 0.02 availability factor. See also https://www.nature.com/articles/s43247-022-00597-1. |
+| K12 | Gilmour et al. (2013), *Activated Carbon Mitigates Mercury and Methylmercury Bioavailability in Contaminated Sediments*, https://doi.org/10.1021/es4021074: sediment microcosms with activated carbon/thiol-silica amendments at 2?7% dry mass; porewater MeHg reduced 45?95% and test-organism uptake 30?90%. Johnson et al. (2010), https://doi.org/10.1021/es100161p: increased MeHg beneath a cap in laboratory estuarine microcosms, without a necessarily significant cap-water-interface effect. Neither validates keratin ecological behaviour. |
+| K13 | Enkhzaya, S., Shiomori, K., Oyuntsetseg, B. (2020), *Effective adsorption of Au(III) and Cu(II) by chemically treated sheep wool and the binding mechanism*, Journal of Environmental Chemical Engineering 8(5), 104021. https://doi.org/10.1016/j.jece.2020.104021. Supplied pre-proof Tables 1 to 3 and methods inspected; see traceability audit for discrepancies. |
+| K14 | Zubair, M., Roopesh, M. S., Ullah, A. (2025; online 2024), *Green Nanoengineered Keratin Derived Bio-Adsorbent for Heavy Metals Removal from Aqueous Media*, Advanced Sustainable Systems 9, 2400491. https://doi.org/10.1002/adsu.202400491. Supplied full article; CFK-SMGO composite, Pb batch percentage rather than capacity maximum. |
+| K15 | Liang, X. et al. (2023), *Mechanochemical-assisted reduction of human hair for efficient and selective removal of aqueous Hg(II) to the ppb level*, Journal of Molecular Liquids 371, 121124. https://doi.org/10.1016/j.molliq.2022.121124. Primary publisher abstract/highlights verified; full methods and marine-core transfer not verified. |

@@ -56,10 +56,10 @@ def _tile_shapes(tiles: Sequence[MatTileState]) -> list[dict[str, Any]]:
     shapes: list[dict[str, Any]] = []
     for tile in tiles:
         geometry = tile.geometry
-        x0 = geometry.x_m - geometry.width_m / 2.0
-        x1 = geometry.x_m + geometry.width_m / 2.0
-        y0 = geometry.y_m - geometry.length_m / 2.0
-        y1 = geometry.y_m + geometry.length_m / 2.0
+        x0 = geometry.x_m
+        x1 = geometry.x_m + geometry.width_m
+        y0 = geometry.y_m
+        y1 = geometry.y_m + geometry.length_m
         if tile.displaced or not tile.active:
             colour, dash = "#ff2d55", "dot"
         elif tile.integrity_index < 0.999:
@@ -213,6 +213,9 @@ def risk_ratio_map(
     )
     ratio = np.where(untreated > floor, treated / np.maximum(untreated, floor), np.nan)
     ratio = np.where(field_with_mat.land_mask, np.nan, ratio)
+    finite_ratio = ratio[np.isfinite(ratio)]
+    ratio_min = min(0.0, float(np.min(finite_ratio))) if finite_ratio.size else 0.0
+    ratio_max = max(1.0, float(np.max(finite_ratio))) if finite_ratio.size else 1.0
     x, y = _axes_m(grid)
 
     figure = go.Figure(
@@ -221,8 +224,8 @@ def risk_ratio_map(
             x=x,
             y=y,
             colorscale="RdYlGn_r",
-            zmin=0.0,
-            zmax=1.0,
+            zmin=ratio_min,
+            zmax=ratio_max,
             colorbar={"title": "treated /<br>untreated"},
             hovertemplate=(
                 "east %{x:.0f} m<br>north %{y:.0f} m<br>"
@@ -298,6 +301,12 @@ def attenuation_timeline(timeline: Sequence[Any], elements: Sequence[str]):
 
     figure = go.Figure()
     years = [point.elapsed_years for point in timeline]
+    values = np.array([point.attenuation.get(element, np.nan)
+                       for point in timeline for element in elements], dtype=float)
+    finite = values[np.isfinite(values)]
+    lower = min(0.0, float(np.min(finite))) if finite.size else 0.0
+    upper = max(1.0, float(np.max(finite))) if finite.size else 1.0
+    padding = 0.02 * max(upper - lower, 1.0)
     for element in elements:
         figure.add_trace(
             go.Scatter(
@@ -309,15 +318,15 @@ def attenuation_timeline(timeline: Sequence[Any], elements: Sequence[str]):
         )
     figure.update_layout(
         title={
-            "text": "Contaminant-flux attenuation<br>"
-            "<sub>1 - J_out / J_bare. The plateau is the diffusive barrier that "
-            "remains after the chemistry is exhausted, not a chemical effect.</sub>",
+            "text": "Whole-hotspot contaminant-flux attenuation<br>"
+            "<sub>Includes uncovered area, damage and edge bypass. "
+            "Column attenuation is a separate diagnostic.</sub>",
             "x": 0.01,
             "xanchor": "left",
         },
         xaxis_title="years since deployment",
         yaxis_title="attenuation (dimensionless)",
-        yaxis_range=[0.0, 1.02],
+        yaxis_range=[lower - padding if lower < 0.0 else 0.0, upper + padding],
         template="plotly_dark",
         margin={"l": 60, "r": 20, "t": 90, "b": 50},
     )

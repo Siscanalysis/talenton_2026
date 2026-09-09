@@ -39,4 +39,23 @@ change it), **remove** (delete the claim instead of building it), **accept**
 
 ## Supersessions
 
-None yet. Add a dated row here before changing any decision above.
+The entries above remain the historical record. The following dated decisions
+supersede their scientific interpretation where stated.
+
+| ID | Supersedes | Date | Decision and evidence |
+|---|---|---|---|
+| R1 | B2 | 2026-09-09 | Reopened and fixed. The earlier assertion of 100% actual overlap was wrong: inconsistent centre/lower-left conventions affected source mapping. Shared lower-left geometry, aspect-ratio preservation and real-column/source-map regressions now verify the configured footprint. |
+| R2 | A1, B3, E1 | 2026-09-09 | Policy emission comparisons now use the same whole-hotspot area-mixed source for all policies. Raw column outflow and bare-reference hotspot release were previously different denominators. Regenerated policy results replace the old table. |
+| R3 | C1 | 2026-09-09 | 2,592 micrograms/m2/day is only the default Pb advective component. The full clean-water bare reference is 45,792 micrograms/m2/day. Field diffusive fluxes represent a different process/site and do not validate the configured source. |
+| R4 | C2 | 2026-09-09 | Remove the unsupported universal comparison with every field cap. Concentration, flux and whole-area reductions are distinct metrics, and different contaminants/materials are not interchangeable. |
+| R5 | C4, E2 | 2026-09-09 | The supplied 2026 review identifies Liang et al. 2023, Hg uptake476.7mg/g in chemically modified human hair. Blanket no-capacity claim is superseded. No validated finished wool/feather seawater-core capacity is established; defaults and commissioning ranges remain assumptions. See the paper parameter register. |
+| R6 | E1, E5, A9 | 2026-09-09 | Correct experiment-wide observation scheduling, analytical compatibility, QC, resolved burial, supported-channel attribution, missing head/tilt, and current-media service boundaries. Previous zero-service explanations mixed sparse evidence with integration defects and are superseded by rerun results. |
+| R7 | Numerical claims | 2026-09-09 | Exact [0,T] integration and valid-age snapshots replace the extra initial/final step and capture fallback. Frozen source diagnostics no longer advance columns. Independent nonlinear/steady references and current temporal/coastal refinement replace stale convergence claims. |
+| R8 | Barrier interpretation | 2026-09-09 | Use the stationary discrete operator for the barrier diagnostic. The continuum expression remains an independent limiting reference. Retain and expose the unvalidated exactly-full capacity-lock discontinuity. Fail explicitly on unresolved Picard branch masks. |
+| R9 | Inventory presentation | 2026-09-09 | Active and retrieved inventories are distinct fields; commissioned preload is an initial transfer. The full-column ledger and area-mixed long-term source remain separate control volumes, not a claimed global sediment budget. |
+| R10 | F1 | 2026-09-09 | Cache independent runs with source/configuration fingerprints and parallel workers. Scientific outputs, complete histories and the LaTeX/PDF manuscript are regenerated and retained; elapsed timings describe the actual recorded build. |
+
+The revised scientific scope and verification artefacts are indexed in
+[SCIENTIFIC_REVISION.md](SCIENTIFIC_REVISION.md). Complete test and numerical
+results are recorded with the manuscript rather than inferred from the older
+test count above.

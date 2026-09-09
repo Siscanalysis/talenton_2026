@@ -37,6 +37,7 @@ from ..contracts import (
     AmbiguityFlag,
     DegradationMode,
     EstimateSnapshot,
+    Fraction,
     Matrix,
     ObservationRecord,
     OperatorKnownMat,
@@ -47,7 +48,9 @@ from ..contracts import (
     StateOrigin,
 )
 from ..observations.condition import CONDITION_MODE, integrity_band_for_class
-from ..units import to_si_areal_flux, to_si_aqueous_concentration
+from ..observations.operator import OperatorConfig, classify_record
+from ..observations.records import observations_available
+from ..units import to_si_areal_flux, to_si_aqueous_concentration, to_si_length
 
 __all__ = [
     "EstimationAssumptions",
@@ -81,6 +84,7 @@ _USABLE_FLAGS = (QualityFlag.PASSED,)
 #: measurement.  Deliberately generous: an operator who has not measured the
 #: seepage does not know it to better than a factor of a few.
 _SEEPAGE_WIDTH = (0.4, 2.5)
+_UNREPORTED_CHEMISTRY_RELATIVE_SIGMA = 0.5
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,6 +126,8 @@ class EstimationAssumptions:
 
 def interval_product(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
     """Product of two intervals, by endpoints."""
+    if a[0] >= 0.0 and b[0] >= 0.0:
+        return (a[0] * b[0], 0.0 if a[1] == 0.0 or b[1] == 0.0 else a[1] * b[1])
     candidates = (a[0] * b[0], a[0] * b[1], a[1] * b[0], a[1] * b[1])
     return (min(candidates), max(candidates))
 
@@ -136,6 +142,8 @@ def interval_quotient(
     """
     if b[0] <= 0.0 <= b[1]:
         return None
+    if a[0] >= 0.0 and b[0] > 0.0:
+        return (a[0] / b[1], a[1] / b[0])
     candidates = (a[0] / b[0], a[0] / b[1], a[1] / b[0], a[1] / b[1])
     return (min(candidates), max(candidates))
 
@@ -155,6 +163,8 @@ def _widen(interval: tuple[float, float], factor: float) -> tuple[float, float]:
     if factor <= 0.0:
         return interval
     low, high = interval
+    if math.isinf(high):
+        return (max(low, 0.0) / (1.0 + factor), math.inf)
     if low > 0.0 and high > 0.0:
         geometric_mean = math.sqrt(low * high)
         spread = (high / low) ** (0.5 * (1.0 + factor))
@@ -192,8 +202,7 @@ def _value_interval_si(record: ObservationRecord) -> tuple[float, float] | None:
     ``quantified``   -> value +/- k*sigma
     ``below_lod``    -> [0, LOD]
     ``below_loq``    -> [LOD, LOQ] when both are carried, else [0, LOQ]
-    ``above_range``  -> [top, 3*top], an explicit lower bound with an admitted
-                        arbitrary upper one, never a point
+    ``above_range``  -> [top, infinity], a lower bound with no invented upper
     """
     if record.quantity_kind is QuantityKind.AQUEOUS_CONCENTRATION:
         convert = to_si_aqueous_concentration
@@ -205,7 +214,8 @@ def _value_interval_si(record: ObservationRecord) -> tuple[float, float] | None:
     lower = record.lower_bound
     upper = record.upper_bound
     if record.qualifier is Qualifier.QUANTIFIED and record.value is not None:
-        sigma = record.uncertainty_std or 0.0
+        sigma = (record.uncertainty_std if record.uncertainty_std is not None
+                 else abs(record.value) * _UNREPORTED_CHEMISTRY_RELATIVE_SIGMA)
         return (
             convert(max(record.value - 2.0 * sigma, 0.0), record.unit),
             convert(record.value + 2.0 * sigma, record.unit),
@@ -220,9 +230,7 @@ def _value_interval_si(record: ObservationRecord) -> tuple[float, float] | None:
         bottom = lower if lower is not None else record.value
         if bottom is None:
             return None
-        # No upper bound exists.  Three times the top of range is an admitted
-        # convention, recorded in the notes rather than hidden in a constant.
-        return (convert(bottom, record.unit), convert(3.0 * bottom, record.unit))
+        return (convert(bottom, record.unit), math.inf)
     return None
 
 
@@ -241,6 +249,7 @@ def _select(
     quantity: QuantityKind | None = None,
     matrix: Matrix | None = None,
     parameter: Parameter | None = None,
+    fraction: Fraction | None = None,
 ) -> list[ObservationRecord]:
     out = []
     for record in records:
@@ -250,6 +259,8 @@ def _select(
             continue
         if matrix is not None and record.matrix is not matrix:
             continue
+        if fraction is not None and record.fraction is not fraction:
+            continue
         if parameter is not None and record.parameter is not parameter:
             continue
         if element is not None and record.parameter.value != element:
@@ -258,7 +269,7 @@ def _select(
     return sorted(out, key=lambda r: r.observed_at_utc)
 
 
-def _media_installed_at(known: OperatorKnownMat, tile_id: str) -> datetime:
+def _media_installed_at(known: OperatorKnownMat, tile_id: str, now: datetime) -> datetime:
     """When this tile's current media went in.
 
     The operator knows this without any simulator access: it is the latest
@@ -267,7 +278,8 @@ def _media_installed_at(known: OperatorKnownMat, tile_id: str) -> datetime:
     """
     latest = known.installed_at_utc
     for event in known.accepted_service_events:
-        if tile_id in event.tile_ids and event.time_utc > latest:
+        if (tile_id in event.tile_ids and latest < event.time_utc <= now
+                and "replacement" in event.kind):
             latest = event.time_utc
     return latest
 
@@ -319,12 +331,14 @@ def estimate_tiles(
 ) -> dict[str, EstimateSnapshot]:
     """One :class:`EstimateSnapshot` per tile, from observations only.
 
-    ``records`` must already be time-gated with
-    :func:`~reactive_seabed_mat.observations.records.observations_available`;
-    this function does not look at ``available_at_utc`` again, and passing it
-    future records is a caller bug that no assertion here can catch.
+    Availability is checked here as well as at the controller boundary. The
+    observation operator excludes incompatible fractions and matrices before
+    any interval is formed. QC must have run before calling this function.
     """
     assumptions = assumptions or EstimationAssumptions()
+    records = [record for record in observations_available(records, now)
+               if record.tile_id in known.tile_ids
+               and classify_record(record).assimilable]
     grouped = _by_tile(records)
     elements = [str(element) for element in config.elements]
     media_by_element = {medium.element: medium for medium in config.mat.media}
@@ -387,17 +401,31 @@ def _estimate_one_tile(
     source_interval: dict[str, tuple[float, float]] = {}
     attenuation_interval: dict[str, tuple[float, float]] = {}
     breakthrough: dict[str, tuple[float, float] | None] = {}
+    measured_attenuation: set[str] = set()
 
     # Loading accumulates on the CURRENT media, not since the mat was first
     # laid. A replaced tile starts empty, and integrating from the original
     # deployment would have the estimator recommend replacing a tile it had just
     # watched being replaced.
-    installed = _media_installed_at(known, tile_id)
+    installed = _media_installed_at(known, tile_id, now)
     elapsed_s = max((now - installed).total_seconds(), 0.0)
+
+    def current_media_record(record: ObservationRecord) -> bool:
+        # The controller observes before executing a service. A record stamped
+        # exactly at replacement therefore still describes the outgoing media.
+        after = (record.observed_at_utc > installed if installed > known.installed_at_utc
+                 else record.observed_at_utc >= installed)
+        window_matches = (record.sampling_start_utc is None
+                          or record.sampling_start_utc >= installed)
+        return after and window_matches
 
     for element in elements:
         chamber, chamber_borrowed = _own_or_pooled(
-            records, pooled, element=element, quantity=QuantityKind.AREAL_FLUX
+            [record for record in records if current_media_record(record)],
+            [record for record in pooled if current_media_record(record)],
+            element=element, quantity=QuantityKind.AREAL_FLUX,
+            matrix=Matrix.BOTTOM_WATER,
+            fraction=OperatorConfig().flux_fraction.get(element, Fraction.TOTAL_RECOVERABLE),
         )
         porewater, porewater_borrowed = _own_or_pooled(
             records,
@@ -405,6 +433,7 @@ def _estimate_one_tile(
             element=element,
             quantity=QuantityKind.AQUEOUS_CONCENTRATION,
             matrix=Matrix.POREWATER,
+            fraction=OperatorConfig().porewater_fraction.get(element, Fraction.DISSOLVED_FILTERED),
         )
         borrow_widening = assumptions.cross_tile_widening
         if chamber_borrowed or porewater_borrowed:
@@ -418,6 +447,9 @@ def _estimate_one_tile(
         data_age[f"{element}|porewater"] = porewater_age
         evidence_ids.extend(record.record_id for record in chamber[-4:])
         evidence_ids.extend(record.record_id for record in porewater[-4:])
+        if any(record.qualifier is Qualifier.QUANTIFIED and record.uncertainty_std is None
+               for record in chamber + porewater):
+            notes.append(f"{element}: unreported chemistry uncertainty uses an assumed 50% relative standard deviation; it is not an exact measurement.")
 
         # --- the source side ------------------------------------------------
         pore_interval = _latest_interval(porewater)
@@ -472,6 +504,8 @@ def _estimate_one_tile(
             attenuation_interval[element] = _clip(
                 (1.0 - ratio[1], 1.0 - ratio[0]), 0.0, 1.0
             )
+            if pore_interval is not None and chamber_interval is not None:
+                measured_attenuation.add(element)
 
         # --- loading and remaining capacity ---------------------------------
         captured = (
@@ -501,16 +535,18 @@ def _estimate_one_tile(
                 + (borrow_widening if porewater_borrowed else 0.0)
             ),
         )
-        loading_estimate[element] = 0.5 * (
-            loading_interval[element][0] + loading_interval[element][1]
-        )
-
         medium = media_by_element.get(element)
         if medium is None:
+            loading_estimate[element] = loading_interval[element][0]
             remaining_interval[element] = (0.0, 0.0)
             breakthrough[element] = None
             continue
         capacity = capacity_kg_per_m2(medium, loading_kg_per_m2)
+        # An unbounded source measurement does not justify an infinite stock:
+        # the installed media's stated capacity bounds sorbed loading. This is
+        # a material assumption, distinct from a measurement range limit.
+        loading_interval[element] = _clip(loading_interval[element], 0.0, capacity[1])
+        loading_estimate[element] = 0.5 * sum(loading_interval[element])
         remaining_interval[element] = _clip(
             (
                 capacity[0] - loading_interval[element][1],
@@ -535,12 +571,14 @@ def _estimate_one_tile(
                 remaining_interval[element][1] / captured[0],
             )
 
-    integrity, coverage_seen, condition_ids, condition_modes = _condition_from_records(
-        records
-    )
+    condition_records = [record for record in records
+                         if current_media_record(record)
+                         and record.parameter.value in CONDITION_MODE]
+    integrity, coverage_seen, condition_ids, condition_modes = _condition_from_records(condition_records)
+    chemistry_record_count = len(set(evidence_ids))
     evidence_ids.extend(condition_ids)
     data_age["condition"] = _age_s(
-        _select(records, quantity=QuantityKind.CATEGORICAL), now
+        _select(condition_records, quantity=QuantityKind.CATEGORICAL), now
     )
 
     weights, mode_flags, mode_notes = _attribute(
@@ -548,8 +586,9 @@ def _estimate_one_tile(
         coverage_seen=coverage_seen,
         condition_modes=condition_modes,
         attenuation_interval=attenuation_interval,
+        measured_attenuation=measured_attenuation,
         source_interval=source_interval,
-        records=records,
+        records=condition_records,
         assumptions=assumptions,
     )
     flags.extend(mode_flags)
@@ -581,10 +620,10 @@ def _estimate_one_tile(
             "seepage_interval_m_per_s": list(seepage_interval),
             "elapsed_since_install_s": elapsed_s,
             "n_records_considered": len(records),
-            "above_range_convention": (
-                "an above-range result is treated as [top, 3*top]: the lower "
-                "bound is real, the upper bound is an admitted convention"
-            ),
+            "chemistry_record_count": chemistry_record_count,
+            "measured_attenuation_elements": sorted(measured_attenuation),
+            "above_range_convention": "lower bound only; upper endpoint is unbounded",
+            "unreported_chemistry_relative_sigma_assumption": _UNREPORTED_CHEMISTRY_RELATIVE_SIGMA,
         },
     )
 
@@ -622,6 +661,8 @@ def _integrate_capture(
     rather than a smaller number.
     """
     elapsed_s = max((now - installed).total_seconds(), 0.0)
+    if elapsed_s == 0.0:
+        return (0.0, 0.0)
     if not porewater_series:
         return _clip((fallback[0] * elapsed_s, fallback[1] * elapsed_s), 0.0, math.inf)
 
@@ -699,18 +740,40 @@ def _condition_from_records(
     ids: list[str] = []
     modes: set[DegradationMode] = set()
 
+    latest = {}
     for record in sorted(records, key=lambda r: r.observed_at_utc):
         if not _usable(record):
             continue
+        latest[record.parameter] = record
+    for record in latest.values():
         mode = CONDITION_MODE.get(record.parameter.value)
-        if mode is not None:
-            modes.add(mode)
-            ids.append(record.record_id)
+        ids.append(record.record_id)
         if record.condition_class is not None:
             integrity = integrity_band_for_class(record.condition_class)
-            ids.append(record.record_id)
+            if record.condition_class != "intact":
+                modes.add(DegradationMode.LOCAL_DAMAGE)
         if record.parameter.value == "mat_coverage_fraction":
-            coverage_seen = True
+            coverage_seen = record.uncertainty_std is not None
+            if record.value is not None and record.uncertainty_std is not None and record.value + 2.0 * record.uncertainty_std < 0.98:
+                modes.add(DegradationMode.DISPLACEMENT)
+        if record.parameter in (Parameter.MAT_DISPLACEMENT, Parameter.MAT_UPLIFT, Parameter.MAT_TILT):
+            if record.value is not None and record.uncertainty_std is not None and abs(record.value) > 2.0 * record.uncertainty_std:
+                modes.add(DegradationMode.DISPLACEMENT)
+        if mode is DegradationMode.FOULING:
+            candidates = [item for item in records if _usable(item)
+                          and item.parameter is record.parameter and item.value is not None
+                          and item.unit == record.unit]
+            baseline = min(candidates, key=lambda item: item.observed_at_utc) if candidates else None
+            if (baseline is not None and baseline.observed_at_utc < record.observed_at_utc
+                    and record.value is not None and record.uncertainty_std is not None
+                    and baseline.uncertainty_std is not None):
+                baseline_low = baseline.value - 2.0 * (baseline.uncertainty_std or 0.0)
+                baseline_high = baseline.value + 2.0 * (baseline.uncertainty_std or 0.0)
+                low = record.value - 2.0 * (record.uncertainty_std or 0.0)
+                high = record.value + 2.0 * (record.uncertainty_std or 0.0)
+                if ((record.parameter is Parameter.DIFFERENTIAL_HEAD and low > baseline_high)
+                        or (record.parameter is Parameter.MAT_PERMEABILITY and high < baseline_low)):
+                    modes.add(DegradationMode.FOULING)
     return integrity, coverage_seen, ids, modes
 
 
@@ -720,6 +783,7 @@ def _attribute(
     coverage_seen: bool,
     condition_modes: set[DegradationMode],
     attenuation_interval: Mapping[str, tuple[float, float]],
+    measured_attenuation: set[str],
     source_interval: Mapping[str, tuple[float, float]],
     records: Sequence[ObservationRecord],
     assumptions: EstimationAssumptions,
@@ -741,11 +805,11 @@ def _attribute(
     notes: list[str] = []
 
     worst_attenuation = min(
-        (interval[0] for interval in attenuation_interval.values()), default=1.0
+        (attenuation_interval[element][0] for element in measured_attenuation), default=1.0
     )
     performance_lost = worst_attenuation < 0.9
 
-    if integrity is not None and integrity[1] < 0.9:
+    if DegradationMode.LOCAL_DAMAGE in condition_modes:
         weights[DegradationMode.LOCAL_DAMAGE.value] += 3.0
         flags.append(AmbiguityFlag.TEAR_PUNCTURE)
         notes.append(
@@ -764,22 +828,26 @@ def _attribute(
         for record in records
         if _usable(record) and record.parameter.value == "burial_depth"
     ]
-    if burial:
+    latest_burial = max(burial, key=lambda item: item.observed_at_utc) if burial else None
+    if (latest_burial is not None and latest_burial.value is not None
+            and latest_burial.uncertainty_std is not None
+            and to_si_length(latest_burial.value - 2.0 * (latest_burial.uncertainty_std or 0.0), latest_burial.unit) > 0.0):
         flags.append(AmbiguityFlag.BURIAL)
         notes.append(
-            "Burial was surveyed. A buried mat emits less because the path is "
+            "The latest survey resolves positive burial beyond its two-sigma uncertainty. A buried mat emits less because the path is "
             "longer, not because the chemistry is working, so a fall in "
             "measured flux here is not evidence of capture."
         )
 
-    if performance_lost and not condition_modes and integrity is None:
+    if performance_lost and not condition_modes and integrity is None and not coverage_seen:
         # Chemistry says something changed and nothing physical was inspected.
         # Saturation is the *convenient* reading, so it is precisely the one
         # that must not be assumed.
         flags.append(AmbiguityFlag.SEDIMENT_SOURCE_INCREASE)
         flags.append(AmbiguityFlag.ADVECTIVE_CHANGE)
         notes.append(
-            "Performance fell with no physical survey to accompany it. "
+            "Compatible source and chamber chemistry permit reduced attenuation, "
+            "with no physical survey to accompany them. "
             "Saturation, a stronger sediment source and a faster seepage all "
             "produce this signature, and the available evidence does not "
             "separate them."

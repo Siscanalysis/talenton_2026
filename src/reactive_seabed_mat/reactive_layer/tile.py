@@ -61,15 +61,14 @@ from ..contracts import (
 from .column import (
     bottom_conductance,
     build_column_parameters,
+    discrete_steady_state_flux_kg_per_m2_per_s,
     solve_column_step,
-    steady_state_flux_kg_per_m2_per_s,
     top_conductance,
 )
 from .geotextile import (
     DEFAULT_GEOTEXTILE,
     GeotextileLayer,
     encapsulated_conductances,
-    geotextile_resistance_s_per_m,
 )
 from .degradation import (
     BURIAL_WARNING,
@@ -148,12 +147,13 @@ def build_tile_geometry(
     ix: int,
     iy: int,
 ) -> MatTileGeometry:
-    """Geometry of one tile of a square mat centred on the hotspot.
+    """Geometry of one tile in a centred rectangular mat on the hotspot.
 
-    ASSUMPTION, stated because the configuration does not settle it: the mat is
-    a square of area ``coverage_fraction * hotspot.area_m2``, laid centred on
-    ``(hotspot.x_m, hotspot.y_m)``, and ``HotspotConfig.x_m / y_m`` are read as
-    the **centre** of the hotspot.  ``MatLayoutConfig.overlap_m`` is a
+    Hotspot and tile coordinates are lower-left corners, as required by the
+    coastal source mapper. Each mat dimension is the corresponding hotspot
+    dimension times ``sqrt(coverage_fraction)``; this preserves its aspect
+    ratio and gives the declared coverage even for rectangular hotspots.
+    ``MatLayoutConfig.overlap_m`` is a
     deployment tolerance and is not used to enlarge the tiles here; overlapping
     tiles are rejected downstream rather than double counted.
     """
@@ -172,17 +172,19 @@ def build_tile_geometry(
             f"thickness_m must be strictly positive, got {mat_config.thickness_m!r}"
         )
 
-    mat_side_m = math.sqrt(coverage * hotspot.area_m2)
-    width = mat_side_m / mat_config.tiles_x
-    length = mat_side_m / mat_config.tiles_y
-    origin_x = float(hotspot.x_m) - 0.5 * mat_side_m
-    origin_y = float(hotspot.y_m) - 0.5 * mat_side_m
+    scale = math.sqrt(coverage)
+    mat_width = scale * float(hotspot.width_m)
+    mat_length = scale * float(hotspot.length_m)
+    width = mat_width / mat_config.tiles_x
+    length = mat_length / mat_config.tiles_y
+    origin_x = float(hotspot.x_m) + 0.5 * (hotspot.width_m - mat_width)
+    origin_y = float(hotspot.y_m) + 0.5 * (hotspot.length_m - mat_length)
     return MatTileGeometry(
         width_m=width,
         length_m=length,
         thickness_m=float(mat_config.thickness_m),
-        x_m=origin_x + (ix + 0.5) * width,
-        y_m=origin_y + (iy + 0.5) * length,
+        x_m=origin_x + ix * width,
+        y_m=origin_y + iy * length,
         bulk_density_kg_per_m3=float(mat_config.bulk_density_kg_per_m3),
         porosity=float(mat_config.porosity),
         edge_leakage_fraction=float(mat_config.edge_leakage_fraction),
@@ -423,12 +425,12 @@ def advance_reactive_layer(
         # left at all. Reported per element because the difference between it
         # and the actual attenuation IS the sorbent's contribution, and for a
         # strongly complexed metal like copper that difference is close to zero.
-        barrier_flux[key] = steady_state_flux_kg_per_m2_per_s(
+        barrier_flux[key] = discrete_steady_state_flux_kg_per_m2_per_s(
             column,
             c_sed,
             c_water,
             top_conductance_m_per_s=g_top,
-            bottom_resistance_s_per_m=geotextile_resistance_s_per_m(geotextile),
+            bottom_conductance_m_per_s=g_bot,
         )
 
         if out_of_service:

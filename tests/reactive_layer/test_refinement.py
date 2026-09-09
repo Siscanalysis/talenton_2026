@@ -94,10 +94,11 @@ def test_attenuation_curve_converges_under_refinement(refinement_runs):
 
 
 def test_attenuation_never_improves_while_the_layer_is_only_loading(refinement_runs):
-    """Monotonicity: while the layer loads, ``J_out / J_bare`` must not fall.
+    """Monotonicity for this clean, constant-source, fixed-coefficient case.
 
-    A layer that is only taking metal up cannot get better at holding it back.
-    A backward step means the scheme, not the physics, is moving the answer.
+    This reference outlet must rise as the sorption front advances. The check
+    is not a universal rule for a changing source, fouling, desorption or
+    replacement: those can legitimately reverse an attenuation trend.
     """
     for dt_hours, run in refinement_runs.items():
         assert run["largest_backward_step"] <= 1.0e-12, (

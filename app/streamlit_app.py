@@ -159,14 +159,15 @@ def main() -> None:
     last = timeline[-1]
     columns = st.columns(4)
     columns[0].metric(
-        f"{primary} flux attenuation",
+        f"{primary} whole-hotspot flux attenuation",
         f"{last.attenuation[primary] * 100:.1f} %",
-        help="1 - J_out / J_bare at the end of the timeline.",
+        help="1 - whole-hotspot emission / uncapped hotspot emission at the end of the timeline.",
     )
     columns[1].metric(
         f"{primary} media saturation", f"{last.saturation[primary] * 100:.0f} %"
     )
-    columns[2].metric("Effective coverage", f"{last.mean_coverage * 100:.0f} %")
+    columns[2].metric("Geometric hotspot coverage", f"{last.mean_coverage * 100:.0f} %",
+                      help="Tile cover over the hotspot before edge leakage and other bypass.")
     columns[3].metric(
         f"{primary} retained in mat", f"{last.retained_kg[primary]:.3g} kg"
     )
@@ -184,8 +185,8 @@ def main() -> None:
     with tab_map:
         st.subheader(f"Maps at year {view_year:.1f}")
         st.caption(
-            "The mat state is held fixed while the short plume window runs: a "
-            "cap changes over years, a plume equilibrates in hours."
+            "The mat state is held fixed during this transient plume window. "
+            "Currents vary within the window, and its endpoint depends on tidal phase."
         )
         with st.spinner("Running the coastal plume window..."):
             window = _window(
@@ -257,24 +258,27 @@ def main() -> None:
     with tab_ledger:
         st.subheader("Reactive layer budget, whole timeline")
         st.caption(
-            "What entered through the tiles' sediment face equals what is "
-            "retained plus what left into the water."
+            "Initial column inventory plus inflow equals active inventory, "
+            "retrieved inventory, column outflow and numerical correction."
         )
         st.dataframe(
             {
                 "element": list(ledger),
+                "initial column inventory (kg)": [ledger[e].boundary_in_kg for e in ledger],
                 "entered the mat (kg)": [
                     ledger[e].released_from_sediment_kg for e in ledger
                 ],
-                "retained (kg)": [ledger[e].retained_in_mat_kg for e in ledger],
-                "left to water (kg)": [ledger[e].boundary_out_kg for e in ledger],
+                "active mat (kg)": [ledger[e].retained_in_mat_kg for e in ledger],
+                "retrieved media (kg)": [ledger[e].retained_in_retrieved_media_kg for e in ledger],
+                "column outflow (kg)": [ledger[e].boundary_out_kg for e in ledger],
+                "numerical correction (kg)": [ledger[e].numerical_correction_kg for e in ledger],
                 "relative imbalance": [
                     f"{ledger[e].relative_imbalance:.2e}" for e in ledger
                 ],
             },
             use_container_width=True,
         )
-        st.subheader("Gross mass leaving the whole hotspot")
+        st.subheader("Whole-hotspot release and water emission")
         st.caption(
             "Including the area no tile covers. Reported separately, and never "
             "added to the layer budget."
@@ -283,6 +287,7 @@ def main() -> None:
             {
                 "element": list(hotspot_released),
                 "released (kg)": [hotspot_released[e] for e in hotspot_released],
+                "into overlying water (kg)": [mat.hotspot_into_water_kg[e] for e in hotspot_released],
             },
             use_container_width=True,
         )
@@ -346,15 +351,10 @@ def main() -> None:
                     use_container_width=True,
                 )
             else:
-                st.warning(
-                    "No service event was accepted over this timeline. Under "
-                    "the evidence-informed policy that is a result, not a bug: "
-                    "with chemistry on one tile and no seepage measurement, the "
-                    "estimated saturation interval stays too wide to justify a "
-                    "vessel. The value of evidence-informed maintenance is "
-                    "bounded by the monitoring programme that feeds it.",
-                    icon="⚠️",
-                )
+                latest = mat.recommendations[-1] if mat.recommendations else None
+                explanation = (f"Most recent recommendation: {latest.action.value}. {latest.reason}"
+                               if latest else "No recommendation was produced within this timeline.")
+                st.info("No simulated service was accepted during this run. " + explanation)
 
     with tab_assumptions:
         st.subheader("Reactive medium: keratin, literature-derated")

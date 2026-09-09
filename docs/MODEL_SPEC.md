@@ -42,10 +42,9 @@ authorised contaminated seabed hotspot
   -> 2-D coastal advection and diffusion             <- macro, section 6
 ```
 
-A reactive cap works over months to years; a coastal plume equilibrates in
-hours. Marching the 2-D field for years would be unaffordable and would say
-nothing. The two scales are therefore run on their own clocks and reported with
-their own ledgers:
+A reactive cap changes over months to years; coastal transport also varies
+within a tidal cycle. This demonstrator uses separate clocks to limit cost,
+with an explicit loss of continuous long-term plume feedback:
 
 * **Mat timeline**: the whole simulated duration (1 to 6 years),
   `dt = 6 h`, cheap 1-D solves per tile. Produces loading, remaining capacity,
@@ -57,6 +56,13 @@ their own ledgers:
 Nothing may imply the coastal model was integrated for years. The exports label
 each ledger with its own window.
 
+The timeline integrates exactly `[0,T]`, starts with the unadvanced installed
+state, and resolves source, degradation and decision boundaries. Requested
+plume ages outside that interval are omitted; the actual final age is included.
+Frozen plume sources are evaluated without an extra column step. A 24-hour
+plume window is a transient, phase-dependent calculation, not a guaranteed
+steady-state solution. See `docs/TIMESCALES.md` for regenerated checks.
+
 ---
 
 ## 3. Micro model: the 1-D reactive layer
@@ -65,7 +71,7 @@ Per tile, per element, through the layer thickness `z` in `[0, L]`:
 
 ```
 theta dC/dt = d/dz(theta D_eff dC/dz) - v dC/dz - rho_b dq/dt
-dq/dt       = k_eff (q_eq(C) - q),      q_eq(C) = min(Kd C, q_max_eff)
+dq/dt       = k_eff (q_eq(C) - q),      q_eq(C) = min(Kd f_available C, q_max_eff)
 ```
 
 * `C` porewater concentration in the layer [kg m^-3]
@@ -80,10 +86,9 @@ Total flux at any depth:
 J = v C - theta D_eff dC/dz          [kg m^-2 s^-1]
 ```
 
-**Advection is not optional.** With `D_eff = 2e-10` and a 5 cm layer, a purely
-diffusive cap attenuates by a factor of about 2500 and would take millennia to
-saturate: the sorbent would be irrelevant. A reactive cap is designed against
-*advective* flux, so `v` is a first-class term.
+Diffusion and advective seepage are both represented. Their relative effects
+depend on the material and boundary conductances; no universal breakthrough
+time follows from the nominal capacity alone.
 
 ### Boundary conditions
 
@@ -93,12 +98,15 @@ saturate: the sorbent would be irrelevant. A reactive cap is designed against
 * `z = L`, water face: advection out plus the benthic boundary layer in series,
 
 ```
-g_top = 1 / ( dz / (2 theta D_eff) + 1 / k_film )
+g_top = 1 / ( dz / (2 theta D_eff) + R_upper_textile + 1 / k_film + R_burial )
 J_out = v C[L] + g_top (C[L] - C_water)
 ```
 
-`C_water` is the bottom-water concentration taken from the coastal field, so a
-rising plume genuinely reduces the driving gradient.
+The lower textile similarly adds series resistance at the sediment face.
+`build_seabed_exchange` can sample a supplied coastal field. In the current
+long-term runner that field remains clean; episodic plume windows do not feed
+back into the preceding column history. This reduced coupling must not be
+described as a continuously plume-aware simulation.
 
 ### The uncapped reference
 
@@ -130,7 +138,13 @@ saturated  (q_eq = q_max):  rho_b (q^{n+1} - q^n)/dt = -Dsat
     Dsat = rho_b k (q_max - q^n) / (1 + dt k)
 ```
 
-The saturated branch is chosen per cell by Picard iteration.
+The branch is chosen per cell by Picard iteration. A cell already at its
+effective capacity is locked (`dq/dt=0`), including under flushing. This
+unvalidated constitutive discontinuity is exposed by the numerical audit.
+An unconverged branch mask raises an error rather than returning a clipped
+state as a successful solve. The equations above show the general eliminated
+kinetic term; the implementation also includes element allocation and
+availability, as documented in `manuscript/methods.tex`.
 
 **An operator split must not be used here.** It was tried, and it diverged under
 time-step refinement while conserving mass to 1e-14: breakthrough moved from
@@ -138,9 +152,11 @@ time-step refinement while conserving mass to 1e-14: breakthrough moved from
 curve swinging by more than the whole bare flux. Mass conservation alone does
 not validate a scheme, so the acceptance tests include a refinement check.
 
-The implicit scheme converges: breakthrough 3.086 to 3.088 years across `dt`
-from 12 h to 0.5 h, monotonic while loading, mass conserved to 1e-12, and
-1.8 s for eight simulated years.
+Current numerical evidence is in `docs/TIMESCALES.md` and
+`manuscript/data/reactive_numerical_audit.json`. It includes independent
+adaptive-ODE transients, stationary face balances and spatial refinement.
+Old timing and breakthrough figures from a different parameter set are not
+acceptance evidence for the current six scenarios.
 
 FiPy remains the 2-D engine, and also the **independent cross-check oracle** for
 the layer: a pure-diffusion case matches a FiPy `Grid1D` solve to 2.6e-13.
@@ -157,7 +173,7 @@ a cell and crosses no boundary. Capacity clipping returns the excess to the
 porewater rather than deleting it, and the corrected mass is reported in
 `LayerStep.diagnostics['clip_correction_kg']`.
 
-### Allocation between Pb and Hg
+### Allocation between Pb, Hg and Cu
 
 `q_max` applies to the medium **allocated** to that element:
 
@@ -165,7 +181,8 @@ porewater rather than deleting it, and the corrected mass is reported in
 capacity_kg_per_m2 = rho_b * L * allocation_fraction * q_max
 ```
 
-Allocations sum to at most 1. Capacity is never assigned to both metals.
+Allocations sum to at most 1. Capacity is not assigned independently in full
+to each of the three metals. Default allocations are 0.6/0.3/0.1.
 
 ---
 
@@ -282,9 +299,17 @@ initial_water + released_from_sediment + boundary_in
      + boundary_out + numerical_correction
 ```
 
-`released_from_sediment` is the gross mass that left the sediment, whether it
-entered a tile or passed straight into the water. The sediment reservoir is
-prescribed and not depleted: a documented assumption, not a conservation claim.
+The meaning of `released_from_sediment` depends on the stated control volume:
+in the column ledger it is input through all full tile sediment faces; in a
+plume ledger it is source mass injected into water during that window. The
+separate `hotspot_released_kg` is the gross bare-reference integral, and
+`hotspot_into_water_kg` is the actual area-mixed residual-source integral.
+Initial column inventory, if supplied, enters the column ledger through
+`boundary_in_kg` as a commissioning transfer. It is not initial coastal water.
+
+Column inventory is not scaled by dynamic bypass. The full-column ledger and
+area-mixed hotspot output therefore do not constitute a globally closed
+sediment--mat--water model. The prescribed sediment reservoir is not depleted.
 
 Replacement moves the retained inventory of the replaced tiles into the
 retrieved-media ledger and issues a new `media_id`; capacity resets, captured
@@ -298,98 +323,147 @@ it passes or not.
 
 ## 8. Observation operator
 
-Only `Pb` and `Hg` records carry chemical information. Temperature,
-conductivity, salinity, pH, turbidity, redox and sulfide constrain conditions or
-QC only. Removing every context record must leave the metal estimate unchanged,
-and `tests/estimation/` asserts it.
+The monitoring contract recognises Pb and Hg chemistry. Cu is simulated but has
+no implemented monitoring channel. Temperature, conductivity, salinity, pH,
+turbidity, redox, sulfide and current cannot supply a metal concentration.
 
-Assimilable aqueous matrices are `porewater`, `mat_porewater`, `bottom_water`
-and `seawater`. **Porewater is now a primary channel**: it is the driving
-boundary condition of the layer.
+The runner generates readings on an experiment-wide campaign clock, retains
+laboratory/survey latency, gates records by `available_at_utc`, applies QC, and
+passes the resulting records to the estimator. The estimator repeats the time
+gate and invokes `classify_record` before selecting evidence. Only passed,
+compatible records on a deployed tile can enter its calculations. QC identity
+includes station, asset, parameter, method, quantity, matrix, fraction and tile.
 
-| Record | Constrains |
+| Record | Operator target and current estimator use |
 |---|---|
-| porewater Pb/Hg at the sediment face | `C_sed`, the driving condition |
-| bottom-water Pb/Hg above the mat | `C_water` and the residual flux |
-| benthic-chamber areal flux | `J_out` directly, the quantity the mat is judged on |
-| DGT accumulated mass over a window | a time-integrated labile pool, never a point ng/L |
-| retrieved-media assay | the loading of the **old** media, not the tile now in place |
-| ROV / survey condition records | modes 3 and 4, per tile, never chemistry |
-| differential head | mode 2, separating fouling from saturation |
+| porewater Pb, dissolved-filtered | sediment-face concentration; source-flux estimate |
+| porewater Hg, dissolved-inorganic | sediment-face concentration; inorganic-Hg source estimate |
+| benthic-chamber Pb, total-recoverable; Hg, dissolved-inorganic | apparent areal flux; residual-flux estimate |
+| bottom-water Pb/Hg | water concentration; not converted to flux by the current estimator |
+| DGT mass over a deployment window | integrated exposure; retained, not used by the current interval estimator |
+| retrieved-media assay | old-media loading evidence; not assimilated as the new media's loading |
+| ROV/survey/acoustic condition | local physical condition; never chemistry |
+| differential head | a resolved rise from a same-unit baseline can support fouling |
 
-A `total_recoverable` record is not assimilated against a `labile` model state
-unless an explicit, documented, uncertain ratio operator is switched on. Default
-off: such records are retained as unassimilated evidence. `dgt_labile` and
-`labile` are different operationally defined pools and are never merged.
+Matrices and chemical fractions are explicit. MeHg never substitutes for
+inorganic Hg. DGT-labile and voltammetric labile pools are not merged. The generic
+operator has an optional uncertain total-recoverable-to-labile ratio, disabled
+by default; the implemented estimator uses exact configured fractions.
 
-Censoring: below LOD/LOQ gives `value = null` with a finite interval;
-`above_range` gives a lower bound only; `missing` gives nothing at all and
-widens the interval. Laboratory records carry
-`available_at_utc = observed_at_utc + lab_latency_s`.
+Below-LOD/LOQ results retain finite bounds and no point value. Above-range is a
+one-sided lower bound. Missing contributes no chemical evidence. A completed
+sample can remain unavailable until its laboratory latency expires. Chamber
+and DGT windows can cross controller decision dates without resetting their
+deployment clock. Missing head or tilt in a supplied scene produces a missing
+record rather than a fabricated zero.
 
 ---
 
 ## 9. Estimator
 
-Members sample `(Kd, q_max, k, D_eff, edge leakage, C_sed bias)` from the
-configured intervals with the run seed, and integrate the reduced layer model
-driven only by observed quantities. No member sees the truth store.
+`estimate_tiles(records, known, config, now)` is deterministic interval
+arithmetic. It does not run an ensemble, fit a likelihood, compute weighted
+quantiles or infer a Bayesian posterior. `ensemble_size` is zero. The stored
+nominal `interval_level=0.90` is metadata, not demonstrated statistical coverage.
 
-Likelihood: Gaussian for quantified records; for censored records the normal CDF
-over the interval, so a bound is used as a bound; missing records contribute
-nothing; `quality_flag` 3 and 4 are excluded from the likelihood but kept as
-sensor-health evidence. Weights are normalised likelihoods; reported values are
-the weighted median and the weighted 5th and 95th percentiles.
+A quantified chemical result forms `[max(value-2*sigma,0), value+2*sigma]`.
+If sigma was not reported, an explicitly labelled assumption uses
+`sigma=0.50*abs(value)`. Non-detect bounds are preserved. Above-range uses
+`[lower,+infinity]`; no arbitrary finite upper limit is invented.
 
-Estimated quantities are limited to what the observations plausibly constrain:
-loading, remaining capacity, residual flux, source flux, attenuation, fouling,
-integrity, effective permeability, and a breakthrough interval.
+The latest compatible porewater interval is multiplied by the assumed seepage
+band `[0.4,2.5]` times design seepage. Latest chamber flux provides residual
+flux. Intervals widen geometrically with positive endpoints as data age grows
+(default 0.35 per year), and borrowed tile chemistry receives an additional
+0.50 widening factor. Attenuation is `1-residual/source`, clipped to `[0,1]`,
+when the source excludes zero. Otherwise it is reported as uninformative
+`[0,1]`. Thus the estimate cannot represent negative attenuation from release;
+the simulated-truth flux and plots retain that possibility.
 
-**Remaining life is an interval or `None`.** A falsely precise remaining-life
-number is worse than an honest "not determined".
+Capture bounds integrate `max(source-residual,0)` with zero-order-held chemistry.
+The first sample is held backwards to installation, a stated extrapolation.
+Integration resets at replacement; source history remains available, but old
+condition/chamber evidence and chamber deployments straddling service are
+excluded. Inventory bounds are capped by the stated capacity upper bound.
+Remaining capacity subtracts loading bounds from the configured capacity band;
+the loading point summary is the interval midpoint. The configured synthetic
+commissioning band is used when present, otherwise the wider capacity interval.
+Neither is a measurement of this finished mat.
 
-Degradation-mode attribution: the same weighted likelihood is evaluated per
-mode, and `EstimateSnapshot.degradation_mode_weights` reports all four side by
-side. When the best two explanations are within a likelihood ratio of 3, both
-ambiguity flags are raised and the policy may answer `PERFORMANCE_UNCERTAIN`.
+Breakthrough is remaining capacity divided by current capture, only when the
+capture lower bound is positive; otherwise it is `None`. Fouling-index and
+effective-permeability intervals and model-data compatibility remain `None`.
+Unobserved sources retain a legacy zero sentinel with `INSUFFICIENT_DATA`; this
+is not a measured zero and does not support attenuation attribution or service.
+
+Four degradation scores start equal and are normalised after heuristic
+increments: local damage +3; resolved displacement +2; resolved fouling +2;
+compatible chemistry permitting reduced attenuation with physical evidence +1
+to saturation. These are relative scores, not probabilities. Only elements with
+measured compatible porewater and chamber and a computable source ratio enter
+the chemistry attribution; unsupported Cu and missing channels cannot imply
+performance loss. Without physical evidence, ambiguous reduced attenuation can
+raise source-increase and advective-change flags.
+
+Physical attribution uses the latest observation, its uncertainty and its actual
+value. Non-intact inspection classes support damage. Coverage below 0.98 or
+nonzero displacement must be resolved beyond two reported standard deviations.
+Burial is flagged only when the latest depth minus two standard deviations is
+positive. A head rise/permeability fall requires nonoverlapping two-sigma bands
+against the earliest available same-unit baseline. These thresholds are
+demonstration assumptions. Burial does not establish chemical capture.
 
 ---
 
 ## 10. Policy (transparent rules, evaluated in order)
 
-1. Sensor failed, stuck or stale beyond `max_data_age_s` -> `CHECK_SENSOR`.
-2. Condition evidence shows coverage below `minimum_coverage_fraction`, or a
-   damage class worse than intact -> `INSPECT_MAT`, then
-   `PLAN_PARTIAL_REPLACEMENT` for the affected tiles only.
-3. Fewer than `min_evidence_records` usable metal records, or none within
-   `max_data_age_s` -> `TAKE_CHEMICAL_SAMPLE`.
-4. Relative interval width above `max_relative_interval_width`, or two competing
-   degradation modes within the ambiguity ratio -> `PERFORMANCE_UNCERTAIN`.
-5. Lower bound of saturation at or above `replacement_saturation_threshold`, or
-   upper bound of attenuation below `minimum_acceptable_attenuation`
-   -> `REPLACE_ACTIVE_PANEL` (or `PLAN_PARTIAL_REPLACEMENT` when only some tiles
-   qualify and `allow_partial_replacement` is set).
-6. Median saturation at or above `inspection_saturation_threshold` -> `INSPECT_MAT`.
-7. Otherwise -> `CONTINUE_MONITORING`.
+`recommend(estimates, known, config, now, elapsed_s, state)` implements three
+policies. `none` deploys no mat and emits no recommendations. `fixed` replaces
+all tiles at the configured interval and otherwise recommends monitoring.
+`evidence_informed` evaluates each tile as follows:
 
-A replacement is suppressed while an accepted one for the same tiles is pending.
-Every recommendation carries evidence IDs, data age, uncertainty,
-`human_confirmation_required = True` and `execution_mode = "simulation_only"`.
+1. A recent damage-class integrity band whose upper endpoint is below
+   `minimum_coverage_fraction` supports inspection and partial replacement.
+2. Each supported Pb/Hg porewater and chamber channel must be present and no
+   older than `max_data_age_s`, with at least `min_evidence_records` chemical
+   evidence IDs. Missing/stale/thin chemistry requests a chemical sample.
+   Fresh physical observations cannot refresh chemical data age.
+3. Saturation is loading divided by capacity as an interval. Its configured
+   `lower`, `mid` or `upper` decision value is compared with the replacement
+   threshold. Replacement is blocked by source-increase, advective-change or
+   burial ambiguity and produces `PERFORMANCE_UNCERTAIN` with a request for
+   source chemistry; otherwise affected tiles receive a partial-replacement
+   recommendation.
+4. Crossing the inspection saturation threshold, or an attenuation upper bound
+   below `minimum_acceptable_attenuation`, supports inspection.
+5. With no triggered action, continue monitoring.
 
-The `fixed` policy replaces on `fixed_interval_s` regardless of evidence. The
-`none` policy runs the identical hotspot with no mat. All three are compared
-with the same seed, forcing, hotspot schedule and measurement budget.
+The implementation does not use `max_relative_interval_width` or
+`allow_partial_replacement`, issue `CHECK_SENSOR`, or compare Bayesian mode
+likelihoods. The frozen vocabulary is broader than the emitted action set.
+Full channel ages are in estimate snapshots; recommendation-level `data_age_s`
+currently remains `None`. Recommendation records preserve their actual
+evidence IDs, which can be empty for calendar or monitoring actions.
+
+The simulated runner immediately accepts replacement recommendations and writes
+a separate `ServiceEvent`; it has no pending-approval or execution-delay model.
+Every recommendation still enforces `human_confirmation_required=True` and
+`execution_mode="simulation_only"`. Reported incurred costs cover accepted
+service events, not the complete monitoring programme. Comparisons hold source,
+forcing, seed and observation schedules fixed; changing service changes later
+physical state and therefore the measurements.
 
 ---
 
 ## 11. Methylmercury: a risk, never a benefit
 
-Capping alters sediment redox and can **increase** methylmercury production. The
-demonstrator therefore carries a `methylmercury` fraction channel and an
-explicit, wide-interval risk term driven by the redox conditions under the mat,
-reported alongside the Pb and Hg attenuation, and available as an ecological
-constraint in the optimisation. Ecological safety is a validation constraint
-here, not an automatic benefit of capping [S04].
+Capping can alter sediment redox and increase methylmercury production, a risk
+requiring experimental evaluation [S04]. The implemented generator emits a
+separate MeHg fraction channel using a synthetic 0.04 fraction of its inorganic
+Hg reading and additional noise. This is not a methylation-rate model. The
+inorganic-Hg estimator excludes that channel. No redox-driven MeHg risk term,
+ecological objective or optimisation constraint is implemented, and simulated
+inorganic-Hg attenuation cannot establish MeHg safety.
 
 ---
 

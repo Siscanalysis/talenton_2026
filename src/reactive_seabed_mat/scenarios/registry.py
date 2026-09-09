@@ -12,11 +12,11 @@ Scenarios A to F follow the brief:
 
 ======  ==========================  =================================================
 A       ``fresh_mat``               fresh mat, moderate source
-B       ``progressive_saturation``  same source, the mat progressively saturates
+B       ``progressive_saturation``  same source, longer loading history
 C       ``increased_leak``          the leak rate increases
 D       ``displaced_section``       a section is displaced and a tile is punctured
-E       ``delayed_chemistry``       late chemistry changes the maintenance decision
-F       ``undersized_mat``          a deliberately poor design
+E       ``delayed_chemistry``       delayed chemistry changes available evidence
+F       ``undersized_mat``          reduced coverage and thickness, stronger seep
 ======  ==========================  =================================================
 """
 
@@ -65,16 +65,15 @@ def scenario_fresh_mat() -> RunConfig:
 
 
 # ---------------------------------------------------------------------------
-# B - the mat progressively saturates
+# B - longer loading history
 # ---------------------------------------------------------------------------
 
 def scenario_progressive_saturation() -> RunConfig:
-    """Same source, run long enough for the medium to load and break through.
+    """Same source and material, with the duration extended to six years.
 
-    Nothing about the chemistry is changed: only the simulated duration. The
-    attenuation falls because capacity is consumed, which is what makes
-    criterion 4 (loading affects later performance) demonstrable rather than
-    asserted.
+    The medium accumulates loading under the configured affinity and kinetics.
+    A plateau can represent equilibrium below nominal capacity; the scenario
+    does not guarantee complete saturation or a breakthrough event.
     """
     return _base(
         "progressive_saturation",
@@ -90,9 +89,10 @@ def scenario_progressive_saturation() -> RunConfig:
 def scenario_increased_leak() -> RunConfig:
     """The sediment-side driving conditions worsen after two years.
 
-    The porewater concentration triples and the seepage velocity doubles. The
-    mat is unchanged, so a rising residual flux here means a stronger source,
-    not a failing cap. Distinguishing the two is the estimator's job.
+    The porewater concentration triples and the seepage velocity doubles.
+    The event changes the source without directly changing mat parameters.
+    Subsequent flux depends on the changed source and evolving material state;
+    attribution remains limited by the available observations.
     """
     config = _base("increased_leak", "increased_leak", duration_s=6.0 * _SECONDS_PER_YEAR)
     base_entry = config.hotspot.schedule[0]
@@ -117,10 +117,10 @@ def scenario_increased_leak() -> RunConfig:
 def scenario_displaced_section() -> RunConfig:
     """One tile is swept off its footprint; another is punctured.
 
-    Chemistry, source and forcing are untouched. The failure is spatially local:
-    the affected cells return to the bare-sediment flux while their neighbours
-    keep attenuating. This is the scenario that proves criterion 5, and the one
-    where reading the loss as saturation would be wrong.
+    Source and material coefficients are unchanged by the scheduled faults.
+    Displacement uncovers one tile's footprint; partial damage adds bare flux
+    over the lost integrity fraction of another. The remaining area retains
+    its column contribution. Observation and policy timing determine service.
     """
     config = _base(
         "displaced_section", "displaced_section", duration_s=4.0 * _SECONDS_PER_YEAR
@@ -143,17 +143,16 @@ def scenario_displaced_section() -> RunConfig:
 
 
 # ---------------------------------------------------------------------------
-# E - late chemistry changes the decision
+# E - delayed chemistry changes available evidence
 # ---------------------------------------------------------------------------
 
 def scenario_delayed_chemistry() -> RunConfig:
     """The probe drops out and drifts while the laboratory result is in transit.
 
-    The correct behaviour is a wider interval and an evidence-limited
-    recommendation, never a confident "all safe". When the delayed result
-    finally becomes available it must be compared with the prediction at
-    *sampling* time, and it is allowed to change the decision then, not
-    retrospectively.
+    Dropout, drift and laboratory delay change the evidence available to
+    estimation. Completed records become usable only after availability and
+    QC/fraction checks. Their sample times remain explicit, and newly available
+    evidence need not change the selected maintenance action.
     """
     config = _base(
         "delayed_chemistry", "delayed_chemistry", duration_s=4.0 * _SECONDS_PER_YEAR
@@ -169,17 +168,16 @@ def scenario_delayed_chemistry() -> RunConfig:
 
 
 # ---------------------------------------------------------------------------
-# F - a deliberately poor design
+# F - smaller footprint and thinner core over a stronger seep
 # ---------------------------------------------------------------------------
 
 def scenario_undersized_mat() -> RunConfig:
-    """Too small, too thin, and laid over a stronger seep.
+    """Reduced coverage and thickness, with stronger seepage and more bypass.
 
-    The mat covers only 45 % of the hotspot and is 2 mm thick instead of 10 mm,
-    so most of the area is never treated and the treated part saturates quickly.
-    Capture is poor and the cost per kilogram retained is bad. This scenario
-    exists so the demonstration is not tuned to succeed, and it is a real
-    outcome of the same equations, not a special case.
+    The mat covers 45 % of the hotspot with a 2 mm core and four tiles.
+    Seepage triples and nominal edge leakage rises to 10 %. This compound
+    stress case tests untreated-area emission and lower material inventory.
+    Performance and any cost comparison must be read from the generated run.
     """
     config = _base("undersized_mat", "undersized_mat", duration_s=4.0 * _SECONDS_PER_YEAR)
     mat = replace(
@@ -229,28 +227,28 @@ _DESCRIPTIONS: Mapping[str, str] = {
         "against the same hotspot with no mat under identical forcing."
     ),
     "progressive_saturation": (
-        "Scenario B. The same source over six years: the medium loads, "
-        "attenuation falls and the layer breaks through. Only the duration "
+        "Scenario B. The same source and material over six years. Loading "
+        "can approach equilibrium below nominal capacity. Only duration "
         "differs from A."
     ),
     "increased_leak": (
         "Scenario C. After two years the porewater concentration triples and "
-        "the seepage velocity doubles. The mat is unchanged, so a rising "
-        "residual flux means a stronger source, not a failing cap."
+        "the seepage velocity doubles. The source changes without directly "
+        "altering the mat; later flux also depends on evolving material state."
     ),
     "displaced_section": (
         "Scenario D. One tile is displaced off its footprint and another is "
-        "punctured. The failure is local: those cells return to the bare flux "
-        "while their neighbours keep working."
+        "partially punctured. Uncovered and damaged fractions emit bare flux; "
+        "the remaining area retains its column contribution."
     ),
     "delayed_chemistry": (
         "Scenario E. Probe dropout, then drift, with laboratory chemistry "
-        "still in transit. The late result changes the maintenance decision "
-        "when it arrives, and not before."
+        "still in transit. A result can affect estimation only after its "
+        "availability and QC checks; a different action is not guaranteed."
     ),
     "undersized_mat": (
-        "Scenario F. A deliberately poor design: 45 % coverage, 2 mm thick, "
-        "over a stronger seep. Poor capture and a bad cost per kilogram."
+        "Scenario F. A compound stress case: 45 % coverage, a 2 mm core, "
+        "four tiles, tripled seepage and 10 % nominal edge leakage."
     ),
 }
 

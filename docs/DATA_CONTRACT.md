@@ -99,7 +99,7 @@ current.
 | Channel | Constrains |
 |---|---|
 | porewater Pb/Hg at the sediment face | the driving condition `C_sed` |
-| bottom-water Pb/Hg above the mat | `C_water` and the residual flux |
+| bottom-water Pb/Hg above the mat | `C_water`; the current estimator does not convert concentration to flux |
 | benthic-chamber areal flux | `J_out` directly, the quantity the mat is judged on |
 | DGT accumulated mass over a window | a time-integrated labile pool, never a point ng/L |
 | retrieved-media assay | the loading of the **old** media, not the tile now in place |
@@ -114,7 +114,7 @@ different operationally defined pools and are never merged.
 
 ## 2. Module boundary
 
-Frozen signatures, realised as Protocols in `contracts.py`:
+Compatibility signatures are declared as Protocols in `contracts.py`:
 
 ```
 advance_reactive_layer(tile_state, exchange, material_parameters, dt_s)
@@ -140,6 +140,26 @@ recommend(snapshot, policy, previous_actions)
     -> Recommendation
 ```
 
+The last two are reserved compatibility protocols, not the implementations used
+by the current runner. Its implemented evidence-loop interfaces are:
+
+```
+ObservationGenerator.generate_window(scene, start_s, end_s, **include_channels)
+    -> list[ObservationRecord]
+
+estimate_tiles(records, known, config, now, *, assumptions=None)
+    -> dict[str, EstimateSnapshot]
+
+recommend(estimates, known, config, now, elapsed_s, state)
+    -> list[Recommendation]
+```
+
+Window generation uses the experiment-wide origin and preserves laboratory
+availability separately from sampling completion. QC runs before estimation;
+the estimator also checks availability and the observation classifier. Exact
+quantity, matrix and fraction matching excludes MeHg from inorganic-Hg estimates.
+The current estimator uses interval arithmetic, not an ensemble likelihood.
+
 The coupling direction is the opposite of v0.1. The reactive layer is the
 **source-term generator** for the coastal model. Nothing is subtracted from a
 water-column cell, and there is no `apply_transfers`.
@@ -153,12 +173,19 @@ ng/L.
 
 ## 3. Snapshot and action shape
 
-A snapshot contains estimated loading, remaining capacity, residual flux, source
-flux, attenuation, breakthrough interval, fouling, integrity and effective
-permeability, each with an interval; plus data age, model-data compatibility,
-evidence IDs, ambiguity flags, and **weights for all four degradation modes side
-by side**. It contains no hidden event label. The interval level is documented
-in the snapshot itself.
+A snapshot has fields for loading, remaining capacity, residual/source flux,
+attenuation, breakthrough, physical condition, channel age, evidence IDs and
+ambiguity. Current fouling, effective-permeability and model-data-compatibility
+fields remain `None`. Four degradation weights are normalised heuristic scores,
+not Bayesian probabilities. `ensemble_size=0`; nominal `interval_level=0.90` does
+not establish statistical coverage. There is no hidden event label.
+
+Above-range endpoints remain unbounded internally. JSON exports encode
+nonfinite endpoints as null and attach `_nonfinite_values` metadata with JSON
+Pointer paths and their unbounded direction (or `undefined` for NaN). For a
+top-level JSON list the metadata is in a `.numeric_metadata.json` sidecar.
+Unobserved source/loading zero sentinels require their insufficient-data flag
+and cannot be interpreted as measured zero or positive service evidence.
 
 Remaining life and breakthrough are intervals or `None`. A falsely precise
 remaining-life number is worse than an honest "not determined".
@@ -168,9 +195,11 @@ A recommendation contains a UTC decision time, an action from
 `PLAN_PARTIAL_REPLACEMENT`, `REPLACE_ACTIVE_PANEL`, `PERFORMANCE_UNCERTAIN`; a
 human-readable reason; evidence record IDs; the target tile IDs; an uncertainty
 note; `human_confirmation_required: true`; and
-`execution_mode: simulation_only`. An accepted simulated action has a separate
-action-event record, so duplicate recommendations cannot create repeated
-replacements.
+`execution_mode: simulation_only`. The current policy emits a subset of that
+vocabulary and leaves recommendation-level data age `None`; per-channel ages are
+in the snapshots. The runner immediately accepts replacement recommendations,
+deduplicates target tiles within each decision batch and records `ServiceEvent`.
+The frozen `ActionEvent` type is not the runner's current acceptance mechanism.
 
 ## 4. Configuration and provenance
 
@@ -191,8 +220,10 @@ observation records, an estimate timeline, an action timeline, the design
 comparison and a self-contained presentation report. The manifest records the
 implemented engines and versions, the dependency lock hash, data hashes,
 assumptions and **all unsuccessful validation checks**, including the numerical
-tolerances actually achieved. The UI consumes these files without re-running
-anything expensive.
+tolerances actually achieved. The CLI exports replayable observations, estimates,
+recommendations and accepted service events and hashes them in the manifest.
+Offline reports are standalone artifacts. The Streamlit app runs and caches the
+simulation directly when its controls change; it is not an output-file viewer.
 
 Keep `truth/` output separate from `observations/` and `estimates/`. The test
 harness may compare them; the operational recommendation path may not load

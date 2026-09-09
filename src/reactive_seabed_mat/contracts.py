@@ -123,7 +123,8 @@ class Element(str, enum.Enum):
       measured on free Hg(2+) describes.
     * **Cu** is above 99 per cent bound to strong organic ligands, with free
       Cu(2+) in the picomolar range. It is the hardest of the three to take out
-      of seawater, not the easiest, despite having the best published capacity.
+      of seawater under these assumed fractions. Laboratory capacity rankings
+      depend on material preparation and solution conditions.
     """
 
     PB = "Pb"

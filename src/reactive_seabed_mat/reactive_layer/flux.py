@@ -42,7 +42,7 @@ different profile.  That caveat travels with the result in ``notes``.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -55,11 +55,7 @@ from ..contracts import (
     ProvenanceLabel,
     SeabedExchange,
 )
-from .column import build_column_parameters, solve_column_step, top_conductance
-from .degradation import (
-    DEFAULT_BURIAL_RESISTANCE_S_PER_M,
-    buried_top_conductance,
-)
+from .geotextile import DEFAULT_GEOTEXTILE, GeotextileLayer
 from .material import ParameterEnsemble, sample_parameter_ensemble, sequence_of_elements
 
 __all__ = [
@@ -279,7 +275,8 @@ def ensemble_flux_interval(
     ensemble_size: int = 32,
     seed: int = 0,
     interval_level: float = 0.90,
-    burial_resistance_s_per_m: float = DEFAULT_BURIAL_RESISTANCE_S_PER_M,
+    burial_resistance_s_per_m: float | None = None,
+    geotextile: GeotextileLayer | None = DEFAULT_GEOTEXTILE,
 ) -> dict[str, FluxInterval]:
     """Residual-flux and attenuation intervals, per element.
 
@@ -294,35 +291,31 @@ def ensemble_flux_interval(
             materials, ensemble_size, seed, geometry=tile_state.geometry
         )
 
+    # Use the same complete model as the nominal trajectory, including carrier
+    # geotextiles, environmental overrides and inactive/displaced tiles. A
+    # second, bare-core transport path made the nominal ensemble member differ
+    # from the nominal forecast it was supposed to quantify.
+    from .tile import advance_reactive_layer
+
+    if burial_resistance_s_per_m is not None:
+        exchange = replace(exchange, environment={
+            **dict(exchange.environment or {}),
+            "burial_resistance_s_per_m": float(burial_resistance_s_per_m),
+        })
+    member_steps = [
+        advance_reactive_layer(
+            tile_state, exchange, {**materials, **member}, dt_s,
+            geotextile=geotextile,
+        )
+        for member in ensemble.members
+    ]
+
     result: dict[str, FluxInterval] = {}
     for key in sequence_of_elements(materials):
         bare, _ = bare_flux_from_exchange(exchange, key)
-        member_fluxes: list[float] = []
-        for member in ensemble.members:
-            params = member.get(key, materials[key])
-            column = build_column_parameters(
-                tile_state.geometry,
-                params,
-                n_nodes=tile_state.n_nodes,
-                seepage_velocity_m_per_s=exchange.seepage_velocity_m_per_s,
-                film_transfer_m_per_s=exchange.film_transfer_m_per_s,
-                fouling_index=tile_state.fouling_index,
-            )
-            g_top = buried_top_conductance(
-                top_conductance(column),
-                tile_state.burial_depth_m,
-                burial_resistance_s_per_m,
-            )
-            step = solve_column_step(
-                np.asarray(tile_state.porewater_kg_per_m3[key], dtype=float),
-                np.asarray(tile_state.sorbed_kg_per_kg[key], dtype=float),
-                column,
-                dt_s,
-                float(exchange.sediment_porewater_kg_per_m3.get(key, 0.0)),
-                float(exchange.bottom_water_kg_per_m3.get(key, 0.0)),
-                top_conductance_m_per_s=g_top,
-            )
-            member_fluxes.append(step.flux_out_kg_per_m2_per_s)
+        member_fluxes = [
+            step.flux_out_kg_per_m2_per_s[key] for step in member_steps
+        ]
 
         flux_interval = _percentiles(member_fluxes, interval_level)
         if bare > 0.0:

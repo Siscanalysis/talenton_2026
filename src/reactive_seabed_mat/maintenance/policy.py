@@ -23,6 +23,7 @@ from ..contracts import (
     ActionKind,
     AmbiguityFlag,
     EstimateSnapshot,
+    METAL_PARAMETERS,
     OperatorKnownMat,
     Recommendation,
 )
@@ -240,21 +241,26 @@ def _evidence_informed(
 
     for tile_id, snapshot in estimates.items():
         evidence = tuple(snapshot.evidence_record_ids)
-        ages = [age for age in snapshot.data_age_s.values() if age is not None]
-        newest = min(ages) if ages else None
-
-        stale = newest is None or newest > policy.max_data_age_s
-        thin = len(evidence) < policy.min_evidence_records
-        if stale or thin:
-            sample_tiles.append(tile_id)
-            continue
-
         # Physical failure first: a torn or displaced tile is not a chemistry
         # problem and no amount of capacity will fix it.
         integrity = snapshot.integrity_index_interval
-        if integrity is not None and integrity[1] < policy.minimum_coverage_fraction:
+        condition_age = snapshot.data_age_s.get("condition")
+        if (integrity is not None and integrity[1] < policy.minimum_coverage_fraction
+                and condition_age is not None and condition_age <= policy.max_data_age_s):
             inspect_tiles.append(tile_id)
             replace_tiles.append(tile_id)
+            continue
+
+        # Every required chemistry channel must be recent. A fresh ROV visit
+        # or a Pb sample cannot refresh an old or missing Hg chamber result.
+        monitored = [element for element in config.elements
+                     if element in {parameter.value for parameter in METAL_PARAMETERS}]
+        ages = [snapshot.data_age_s.get(f"{element}|{channel}")
+                for element in monitored for channel in ("areal_flux", "porewater")]
+        stale = not monitored or any(age is None or age > policy.max_data_age_s for age in ages)
+        thin = snapshot.diagnostics.get("chemistry_record_count", len(evidence)) < policy.min_evidence_records
+        if stale or thin:
+            sample_tiles.append(tile_id)
             continue
 
         source_side = [
@@ -262,7 +268,7 @@ def _evidence_informed(
         ]
 
         worst_saturation = 0.0
-        for element in config.elements:
+        for element in monitored:
             interval = saturation_interval(snapshot, config, str(element))
             if interval is not None:
                 worst_saturation = max(
@@ -273,7 +279,7 @@ def _evidence_informed(
         lost = any(
             snapshot.attenuation_interval.get(str(element), (1.0, 1.0))[1]
             < policy.minimum_acceptable_attenuation
-            for element in config.elements
+            for element in monitored
         )
 
         if worst_saturation >= policy.replacement_saturation_threshold:
@@ -336,8 +342,9 @@ def _evidence_informed(
                 known=known,
                 action=ActionKind.INSPECT_MAT,
                 reason=(
-                    "Condition or performance has moved enough to justify a "
-                    "survey, but not enough to justify a vessel and new media."
+                    "Observed condition or estimated chemical performance "
+                    "supports inspecting the selected tiles. Any replacement "
+                    "recommendation is recorded separately."
                 ),
                 uncertainty_note=(
                     "An inspection narrows the physical modes. It does not "

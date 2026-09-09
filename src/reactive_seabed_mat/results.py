@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import platform
 import sys
 from dataclasses import dataclass, field
@@ -58,9 +59,16 @@ def file_sha256(path: str | Path) -> str:
 def write_json(path: str | Path, payload: Any) -> Path:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(
-        json.dumps(payload, indent=2, sort_keys=True, default=str), encoding="utf-8"
-    )
+    clean, nonfinite = _json_numbers(payload)
+    if nonfinite and isinstance(clean, dict):
+        clean["_nonfinite_values"] = nonfinite
+    target.write_text(json.dumps(clean, indent=2, sort_keys=True, default=str, allow_nan=False), encoding="utf-8")
+    numeric_metadata = target.with_suffix(target.suffix + ".numeric_metadata.json")
+    if nonfinite and not isinstance(clean, dict):
+        numeric_metadata.write_text(
+            json.dumps({"_nonfinite_values": nonfinite}, indent=2), encoding="utf-8")
+    else:
+        numeric_metadata.unlink(missing_ok=True)
     return target
 
 
@@ -69,8 +77,37 @@ def write_jsonl_dicts(path: str | Path, rows: Iterable[Mapping[str, Any]]) -> Pa
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open("w", encoding="utf-8", newline="\n") as handle:
         for row in rows:
-            handle.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+            clean, nonfinite = _json_numbers(row)
+            if nonfinite:
+                clean["_nonfinite_values"] = nonfinite
+            handle.write(json.dumps(clean, ensure_ascii=False, default=str, allow_nan=False) + "\n")
     return target
+
+
+def _json_numbers(payload: Any) -> tuple[Any, list[dict[str, str]]]:
+    """Encode unbounded endpoints as JSON null with explicit path metadata.
+
+    JSON has no Infinity or NaN literals. Positive/negative infinity retain
+    their one-sided meaning; NaN is labelled undefined, never changed to zero.
+    Paths use JSON Pointer escaping and refer to the primary payload.
+    """
+    nonfinite = []
+
+    def convert(value, path=""):
+        if isinstance(value, float) and not math.isfinite(value):
+            nonfinite.append({"path": path, "meaning": (
+                "undefined" if math.isnan(value) else "unbounded_above" if value > 0 else "unbounded_below")})
+            return None
+        if isinstance(value, Mapping):
+            return {key: convert(item, path + "/" + str(key).replace("~", "~0").replace("/", "~1"))
+                    for key, item in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [convert(item, path + f"/{index}") for index, item in enumerate(value)]
+        if isinstance(value, (set, frozenset)):
+            return [convert(item, path + f"/{index}") for index, item in enumerate(sorted(value, key=str))]
+        return value
+
+    return convert(payload), nonfinite
 
 
 def ledger_to_dict(ledger: MassLedger) -> dict[str, Any]:

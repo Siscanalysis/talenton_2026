@@ -1,5 +1,14 @@
 # Pre-publication audit
 
+> **9 September 2026 revision.** This document preserves the earlier audit
+> history. Its geometry closure, no-Hg-capacity claim, source-flux comparison
+> and policy tables are superseded by R1--R10 in
+> [AUDIT_DECISIONS.md](AUDIT_DECISIONS.md). The current corrections and
+> verification artefacts are documented in
+> [SCIENTIFIC_REVISION.md](SCIENTIFIC_REVISION.md) and the regenerated
+> [manuscript](../manuscript/manuscript.pdf). Historical claims below must not be
+> quoted as current validation.
+
 Run on 8 September 2026 against commit `39acfb0`, before the repository was
 published. The method is the one used for a paper revision, adapted to a code
 repository: check every claim against the thing it claims about, verify the

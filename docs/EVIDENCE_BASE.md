@@ -1,255 +1,106 @@
-# Evidence base: what the literature supports, and where this model departs from it
+# Evidence base
 
-Checked 8 September 2026. Companion to `docs/MATERIAL_KERATIN.md`, which covers
-the reactive medium, and to `docs/PRIOR_ART.md`, which covers what is already
-established practice.
+Scientific revision: 9 September 2026. The [manuscript](../manuscript/manuscript.pdf), [material review](MATERIAL_KERATIN.md) and [supplied-paper audit](PAPER_PARAMETER_TRACEABILITY.md) distinguish experimental evidence from demonstration assumptions. The latter includes page numbers, source hashes, unit conversions and discrepancies in the supplied articles.
 
-This document exists because a demonstrator that quotes numbers should say where
-they came from. It has two jobs:
+This revision supersedes earlier statements that no keratin Hg uptake had been verified, that keratin cannot remove Cu, and that the simulated attenuation exceeds every field-cap result. Those statements were broader than the evidence supports. Previously printed scenario performance tables have been replaced by links to regenerated results in the manuscript and [gallery](gallery/README.md).
 
-1. Point at the real measurements and open datasets a reviewer can check.
-2. Say plainly where this model's defaults sit **outside** the measured range,
-   because two of them do, and both flatter the technology.
+## What the supplied papers contribute
 
-Datasets are indexed in machine-readable form at
-`research/references/datasets.json`, with access notes in
-`research/datasets/README.md`.
+The original repository cited Zubair et al.'s 2026 review as background. Git history and parameter `source_ref` records do not show numerical calibration from the supplied PDFs. The re-audit adds evidence and corrects material claims; it does not convert laboratory maxima into validated seawater defaults.
 
----
+| Source and experiment | Numerical result | Appropriate use and transfer limit |
+|---|---|---|
+| Enkhzaya et al. (2020), Table 2, supplied PDF p. 32 [P1] | Cu Langmuir maxima 0.239, 0.817 and 0.268 mmol/g for untreated, 0.05 M Na2S-treated and 0.02 M Na2S-treated sheep wool; calculated as 15.19, 51.92 and 17.03 mg/g | Batch material screening at pH 5 and 303 K, with 48 h contact. Treatment changes the material and its yield. The reported kinetics use a different rate law; source figure/table and inventory inconsistencies preclude unqualified calibration. |
+| Zubair et al. (online 2024, journal 2025), supplied PDF pp. 10 and 13 [P2] | Modified feather-keratin/graphene-oxide composite: 99.21% Pb removal from 600 ?g/L in 10 mL with 0.1 g sorbent, pH 7.5, 24 h | Calculated uptake is 0.059526 mg/g, bounded by the batch's 0.060 mg/g inventory. This is neither a maximum capacity nor mat-flux attenuation. The solution includes 0.02 M NaCl and 0.01 M CaCl2, with multiple competing metals; it is not a full seawater test. |
+| Liang et al. (2023), primary publisher abstract, identified from review p. 5 [P3, P4] | Reduced human hair: reported Hg uptake 476.7 mg/g and distribution coefficient 2.6 million mL/g | A modified-hair aqueous assay, not untreated wool or feather in seawater. Full experimental methods were not retrieved in this audit. It corrects the previous absence claim but does not validate the model's Hg capacity. |
 
-## 1. The two numbers that do not sit inside the measured range
+The [machine-readable traceability registry](../research/references/paper_parameter_traceability.json) distinguishes direct primary measurements, secondary leads, calculated conversions and values excluded from model fitting. Supplied copyrighted PDFs are not redistributed.
 
-### 1.1 The modelled bare flux is at the very top of the measured envelope
+## Default capacities and chemistry
 
-The default hotspot uses porewater Pb of 1.0 mg/L and a Darcy seepage of
-3.0e-8 m/s, which gives a bare-sediment advective Pb flux of
+| Model quantity | Resolved default | Evidence status |
+|---|---|---|
+| Pb operating capacity | 1.0 mg/g | Assumed seawater derating motivated by earlier keratin biofibre studies; not fitted to the new dilute composite assay |
+| Hg operating capacity | 2.5 mg/g | Assumption for the proposed core; originally linked to a conditional sulphur-site calculation, not a measured seawater isotherm |
+| Cu operating capacity | 3.0 mg/g | Assumption motivated by older modified-keratin studies; new wool data support possible uptake but do not determine operating performance |
+| Availability fractions, Pb / Hg / Cu | 0.25 / 0.10 / 0.02 | Effective model factors, not measured universal species fractions or kinetic accessibility |
+| Isotherm and kinetics | Capped linear equilibrium, first-order relaxation | Computational approximation; batch Langmuir and pseudo-second-order fits do not identify these coefficients directly |
+| Synthetic commissioning interval | Narrower configured capacity range | A hypothetical commissioning result; no commissioning experiment was performed |
 
+The earlier 125 mg/g Hg sulphur-site calculation assumes 4 wt% sulphur, two sulphur atoms per Hg and full accessibility. It is not a universal capacity ceiling for chemically modified keratin. Published maxima from different materials and matrices must not be ranked as interchangeable sorbent performance.
+
+Chloride, carbonate, sulphide and organic ligands can change uptake, ligand exchange and transport. The code does not solve these equilibria. In particular, strong Cu organic complexation motivates availability measurements and sensitivity analysis; it does not prove zero Cu sorption in every keratin formulation. All configuration values and inventory allocations are documented in [ASSUMPTIONS.md](ASSUMPTIONS.md).
+
+## Prescribed source versus measured benthic flux
+
+The default source concentrations are assumed: Pb 1.0 mg/L, inorganic Hg 8 ?g/L and Cu 2.0 mg/L. The reservoir is prescribed and never depletes. For Pb against clean overlying water, the two distinct default flux quantities are:
+
+```text
+Advective component: v Cs = 3e-8 ? 1e-3
+                         = 3e-11 kg/m?/s = 2,592 ?g/m?/day
+Full bare reference: (v + kb) Cs = (3e-8 + 5e-7) ? 1e-3
+                               = 5.3e-10 kg/m?/s = 45,792 ?g/m?/day
 ```
-1.0e-3 kg/m3  x  3.0e-8 m/s  =  3.0e-11 kg/m2/s  =  2592 ug/m2/d
-```
 
-Measured benthic Pb fluxes for comparison:
+The second expression includes the assumed bare sediment-water exchange coefficient. Comparing only the advective component with measured diffusion omits most of the denominator used in the simulated attenuation.
 
-| Source | Setting | Pb flux |
+Rivera-Duarte and Flegal report Fickian diffusive Pb fluxes of 2.6e-9 to 3.1e-8 mol/m?/day in San Francisco Bay sediment. With a Pb molar mass of 207.2 g/mol, this is approximately 0.54?6.42 ?g/m?/day [E4]. The model's prescribed flux is much higher, but its process and site are different. The literature comparison motivates site measurements; it does not establish the true flux, service life or lifetime policy ranking at any proposed deployment.
+
+Absolute simulated kilograms depend on assumed concentration, seepage, exchange, geometry and duration. Affinity, kinetics, loading, bypass and observation schedules also affect service outcomes. Neither linear lifetime extrapolation nor invariance of relative policy rankings follows from changing the source.
+
+## Reactive-cap comparators have different endpoints
+
+| Study | Measured endpoint | What it supports |
 |---|---|---|
-| Rivera-Duarte and Flegal, SF Bay [E4] | contaminated estuary, **diffusive** flux from porewater gradients | 2.6e-9 to 3.1e-8 mol/m2/d, that is **0.54 to 6.4 ug/m2/d** |
-| Chen et al. 2025 [E3] | mesocosm control, no cap | **0.97 to 2.50 ug/m2/d** |
+| Cornelissen et al. (2011), Trondheim harbour field trial [E1] | Benthic-chamber PAH flux reduced by a factor of 2?10, equivalent to 50?90% | Marine field evidence for that activated-carbon treatment and contaminant; not a ceiling for all cap designs or a metals result |
+| Chen et al. (2025), laboratory sediment-capping study [E3] | Pb control fluxes 0.97, 2.50, 1.51 versus capped 0.76, 0.59, 0.25 ?g/m?/day at days 15, 45, 90 | Calculated reductions 21.6%, 76.4%, 83.4% for a modified carbon-nanotube cap; another material and setting |
+| Patmont et al. (2015), activated-carbon treatment review [E2] | Reported equilibrium porewater concentration reductions of 70?99% for organic contaminants at 2?5% AC | Concentration and bioavailability evidence, not an equivalent flux reduction or a keratin-metal calibration |
 
-So the model's bare flux is roughly **400 to 2700 times** the measured values
-above. Three things should be said about that, in order of honesty:
+Observed concentration reduction, batch removal, porewater availability, organism uptake and sediment-to-water flux are separate endpoints. The cited subset of studies cannot establish the maximum performance achieved by all reactive caps. Likewise, omitted processes may make the demonstrator optimistic in some settings, but do not turn it into a proven mathematical upper bound on field performance.
 
-* **It is not a like-for-like quantity.** [E4] is a *diffusive* flux computed
-  from porewater gradients. This model is advection-dominated by design: it
-  represents a seeping hotspot, and at a real submarine groundwater discharge
-  site advection does dominate diffusion. Chamber-measured total fluxes, which
-  include advection and bioirrigation, are routinely well above
-  diffusion-calculated ones.
-* **Even so, it is at the extreme.** 1.0 mg/L of dissolved Pb in porewater is a
-  very high value. It is chosen so that a multi-year simulation shows loading,
-  breakthrough and replacement inside a demonstration; a realistic site would
-  saturate the mat far more slowly, and the "2.5 year replacement interval"
-  would become decades.
-* **It is the single most influential assumption in the model.** Service life,
-  captured mass and cost per kilogram all scale with it directly.
+Within the simulation, the non-sorbing barrier reference isolates the transport geometry at steady state. Its difference from a transient reactive column also includes dissolved storage and source history. Report it alongside whole-hotspot emissions and column inventories; do not credit the entire simulated attenuation to sorption or treat a loading plateau as proof of complete exhaustion.
 
-**Consequence for reading any result here: the absolute kilogram figures are a
-property of the assumed hotspot, not a prediction about any site.** The
-*relative* comparisons between policies, which use the same hotspot throughout,
-are the part that survives.
+## Ecological evidence and the methylmercury gap
 
-### 1.2 The modelled attenuation is above what field caps have achieved
+Johnson et al. found increased methylmercury beneath a cap in laboratory estuarine microcosms, without a necessarily significant cap-water-interface effect under the tested conditions [E13]. Gilmour et al.'s sediment microcosms found that activated carbon and thiol-functionalised silica at 2?7% dry mass reduced porewater methylmercury by 45?95% and uptake into a test oligochaete by 30?90% [E14]. These experiments measured different parts of formation, partitioning, transport and uptake.
 
-The demonstrator reports 99 % attenuation for a fresh mat, falling to a plateau
-near 94 %. Measured reactive caps:
+They neither demonstrate that every cap increases net methylmercury exposure nor establish ecological safety of a keratin core. Leaching, biodegradation, microbial response, contaminant release and benthic effects require material- and site-specific tests. The demonstrator's separate synthetic MeHg observations do not constitute a biogeochemical or ecological prediction. See [LIMITATIONS.md](LIMITATIONS.md).
 
-| Source | Setting | Result |
-|---|---|---|
-| Cornelissen et al. [E1] | Trondheim harbour, in-situ thin-layer activated-carbon cap, fluxes measured with **benthic flux chambers** | sediment-to-water fluxes of PAHs and PCBs reduced by a **factor of 2 to 10**, that is 50 % to 90 % |
-| Chen et al. 2025 [E3] | mesocosm, nitric-acid-modified MWCNT cap | Pb flux 0.97/2.50/1.51 to 0.76/0.59/0.25 ug/m2/d at days 15/45/90, that is **22 % to 76 %** |
-| Patmont et al. 2015 [E2] | field and laboratory activated-carbon amendment | equilibrium **porewater** concentrations of PCBs, PAHs, DDT, dioxins and furans reduced by **70 % to 99 %** at 2 to 5 % AC |
+## Open data and access
 
-The model's figure is therefore **above the whole measured field range**, and
-the closest comparison ([E1], the only in-situ marine flux measurement in this
-list) is the least flattering one. The gap has identifiable causes, all of them
-listed in `docs/LIMITATIONS.md`: uniform seepage rather than preferential
-channels, no bioturbation or bioirrigation, no consolidation, perfect contact
-between mat and sediment, and no short-circuiting at seams.
+The default run is offline and synthetic. The following are discovery and calibration leads, not input datasets already ingested by the simulator. Access and redistribution status are recorded individually in [datasets.json](../research/references/datasets.json) and [research/datasets/README.md](../research/datasets/README.md).
 
-Note also what [E2] measures. A 70 to 99 % reduction in *porewater
-concentration* is not a 70 to 99 % reduction in *flux*, and the two are quoted
-interchangeably far too often. This repository keeps concentration and flux on
-separate unit ladders precisely so that substitution cannot happen silently.
+| Dataset | Relevant content and limitation |
+|---|---|
+| [ICES DOME](https://www.ices.dk/data/data-portals/Pages/DOME.aspx) | Marine contaminant observations in sediment, water and biota. Matrix-specific measurements cannot be substituted directly for porewater concentration. |
+| [OSPAR CEMP assessment](https://ices-library.figshare.com/articles/dataset/Data_and_results_for_the_2024_OSPAR_CEMP_assessment/27211422) and [ODIMS](https://odims.ospar.org/en/datastreams/) | Assessment data and environmental data streams; check product-specific variables and access terms. |
+| [EMODnet Chemistry](https://emodnet.ec.europa.eu/en/chemistry) | Aggregated European marine contaminant products; coverage and matrix depend on product. |
+| [HELCOM mercury indicator](https://indicators.helcom.fi/indicator/mercury/) | Baltic status and monitoring context; no calibration of this hypothetical hotspot. |
+| [Baltic benthic-flux dataset](https://doi.org/10.5281/zenodo.17465937) | Dissolved inorganic phosphorus, not Pb/Hg/Cu. Useful for chamber data structure and methods only. |
+| [USGS chamber report](https://pubs.usgs.gov/sir/2004/5298/pdf/SIR2004-5298.pdf) | Benthic-flux measurement methodology; not material performance data. |
+| [US EPA sediment amendment report](https://semspub.epa.gov/work/HQ/196704.pdf) | Remediation context and evidence; no validation of this proposed core. |
 
-**A useful presentation line, and a defensible one:** *the model's fresh-mat
-attenuation should be read as an upper bound set by the physics we chose to
-include, and the honest comparator for a real deployment is the factor of 2 to
-10 that thin-layer capping has actually achieved in a Norwegian harbour.*
+This review did not identify an openly accessible dataset validating the final wool/feather core's Pb/Hg/Cu flux attenuation under representative seawater flow. That is a gap in the evidence assembled here, not proof that no marine metal-cap measurements exist anywhere.
 
-### 1.3 Seawater speciation, and the number it makes worst
+## Measurements that would replace assumptions
 
-The three target metals are not equally available to a sorbent, and the ranking
-is the opposite of the ranking of their published capacities.
-
-| Metal | Speciation in seawater | Consequence | `available_fraction` |
-|---|---|---|---|
-| Pb | PbCO3(aq) about 41 % of dissolved Pb at pH 8.2; free Pb2+ a small minority, measured an order of magnitude below equilibrium predictions [K3] | partly available | 0.25 |
-| Hg | **above 99 % Hg-Cl complexes**, dominated by HgCl4(2-) [K10] | thiols still outcompete chloride, but the species is an anion approaching a negatively charged surface and four chlorides must be displaced | 0.10 |
-| Cu | **above 99 % bound to strong organic ligands**, conditional stability constants around 1e15, free Cu2+ below 6 pM [K11] | a carboxyl or amino site does not obviously compete | **0.02** |
-
-Copper has the **best** published keratin capacity of the three, 20 mg/g on wool
-keratin nanofibres [K9], and is the **worst** candidate for removal from
-seawater. Capacity is not availability. Over six simulated years the sorbent's
-contribution to copper attenuation is **0.00 percentage points**: copper passes
-through, and an inert mat of the same geometry would perform identically.
-
-**On this evidence a keratin core is not a copper technology.** Either the
-chemistry changes to something that competes with natural organic ligands, or
-the copper claim is dropped.
-
-### 1.4 The sorbent does much less of the work than the headline suggests
-
-Reporting attenuation alone credits the chemistry with the geometry's work. The
-model now reports both, per element, at six years:
-
-| Metal | Total attenuation | Barrier only, no capacity left | Sorbent contribution |
-|---|---|---|---|
-| Pb | 94.53 % | 94.34 % | **0.19 pp** |
-| Hg | 94.92 % | 94.34 % | **0.58 pp** |
-| Cu | 94.34 % | 94.34 % | **0.00 pp** |
-
-The barrier figure is the advective floor: the mat suppresses almost all of the
-diffusive exchange and passes the seepage-driven flux, which the sorbent must
-then capture. Measured against what actually *enters* the layer rather than
-against the bare flux, the picture is less bleak: the mat retained 10.3 kg of Pb
-out of 38.7 kg entering, about **27 %**. Both numbers are true and they answer
-different questions. The first is "how much less reaches the sea"; the second is
-"is the sorbent doing anything at all". Quoting only the second would be the
-flattering error, and quoting only the first would understate the chemistry.
-
-### 1.5 Capping and methylmercury: the claim to avoid
-
-Activated-carbon capping, the closest measured analogue, reduces porewater MeHg
-by 45 to 95 % and by more than 90 % at one month, **and increased sediment MeHg
-in five of seven studies**, by a mechanism the literature calls unclear [K12].
-In a salt-marsh field trial the effect lasted about a year.
-
-A keratin core is a harder case than activated carbon, not an easier one:
-activated carbon is refractory, whereas keratin supplies both labile organic
-carbon and reduced sulfur to the sulfate-reducing bacteria that methylate
-mercury. Encapsulation limits particle contact; it does not stop dissolved
-organic carbon leaching downward. **No claim that this design prevents
-methylation is supportable from the published record.** See
-`docs/LIMITATIONS.md`.
-
-### 1.6 The area is the problem, not the square metre
-
-The Bornholm primary dumpsite is a circle of radius 3 nautical miles, that is
-**96.98 km²**. Covering it would take about **388,000 tonnes** of keratin, a
-fifth of one year's global greasy-wool clip, and tens of billions of euro of mat
-material. A realistic first deployment is one to two hectares, about 0.02 % of
-that dumpsite. Full analysis, with the officially designated areas and their
-sources, in `docs/DEPLOYMENT_SCALE.md`.
-
----
-
-## 2. Where the rest of the defaults stand
-
-| Model quantity | Default | Status against the literature |
-|---|---|---|
-| Pb capacity `q_max` | 1.0 mg/g | **Below** published keratin values (4 to 33 mg/g in deionised water at pH 4 [K1, K2]), derated for seawater speciation and Ca/Mg competition. Conservative. |
-| Hg capacity `q_max` | 2.5 mg/g | **Unsupported.** No verified keratin Hg capacity was found. Derived as 2 % of the 125 mg/g stoichiometric thiol ceiling implied by keratin's 4 to 8 wt% sulfur [K4]. The weakest number in the model. |
-| Isotherm form | capped linear (Langmuir-like) | **Supported.** Pb biosorption on keratin biofibres fitted Langmuir [K1]. |
-| Kinetics | first-order approach to equilibrium | **Approximate.** Batch data fitted pseudo-second-order with equilibrium inside 24 h [K1]. In a mat the rate is set by intraparticle transport, not batch stirring. |
-| Porewater Hg | 8 ug/L | **High but not unprecedented.** Porewater MeHg in the contaminated Tagus estuary spans 0.1 to 63 ng/L [E7]; total dissolved Hg runs higher, and heavily contaminated sites reach ug/L. |
-| Methylmercury fraction | 4 % of porewater Hg, as a **risk** channel | **Directionally supported.** Capping alters sediment redox and can increase MeHg production. Treated as a constraint, never as a benefit. |
-| Cap thickness | 10 mm reactive layer | **Consistent** with thin-layer capping practice [E1, E2], which is centimetre-scale rather than the metre-scale of isolation caps. |
-| All euro values | assumptions | **Unsupported by design.** No supplier has been contacted; no quotation exists. |
-| Detection limits | demonstration values | **Not** any manufacturer's specification. See `docs/SENSOR_SUPPLIERS.md` for what was and was not verified. |
-
----
-
-## 3. Open datasets a reviewer can pull
-
-None of these is bundled with the repository: the default run is offline and
-synthetic, and redistribution terms differ per product. They are listed so the
-numbers above can be checked, and so a future version can be calibrated against
-measurements rather than assumptions.
-
-| Key | Dataset | What it gives this project | Access |
-|---|---|---|---|
-| D1 | **ICES DOME**, contaminants and effects in biota, sediment and seawater | Measured Pb and Hg in European marine sediment and water, the OSPAR CEMP and HELCOM COMBINE holdings. The realistic range our hotspot should be compared against. | https://www.ices.dk/data/data-portals/Pages/DOME.aspx  CSV download after accepting the data policy; CC BY 4.0 |
-| D2 | **OSPAR CEMP assessment data and results, 2024** | The assessed levels and trends behind the OSPAR metals indicators, already quality controlled. | https://ices-library.figshare.com/articles/dataset/Data_and_results_for_the_2024_OSPAR_CEMP_assessment/27211422 |
-| D3 | **OSPAR ODIMS datastreams** | OSPAR's data and information management system, including the hazardous-substances streams. | https://odims.ospar.org/en/datastreams/ |
-| D4 | **EMODnet Chemistry** contaminant products | Aggregated and validated European seas data; maps for 12 MSFD-prioritised pollutants including Pb and Hg in seawater, sediment and biota. | https://emodnet.ec.europa.eu/en/chemistry |
-| D5 | **HELCOM metals core indicator** (Pb, Cd, Hg) | Baltic status and trends, with the indicator methodology. | https://indicators.helcom.fi/indicator/mercury/ |
-| D6 | **In situ benthic fluxes, Baltic Sea** (Hylen et al.) | 498 fluxes from three benthic chamber landers, 59 stations, 20 years. **Dissolved inorganic phosphorus only, no metals**: useful as a chamber-lander method and data-format reference, not as a metals source. | Zenodo, DOI 10.5281/zenodo.17465937, CC BY 4.0, .xlsx |
-| D7 | **US EPA, Use of Amendments for In Situ Remediation at Superfund Sediment Sites** | The regulatory and performance record for activated-carbon amendment and reactive capping. | https://semspub.epa.gov/work/HQ/196704.pdf |
-| D8 | **USGS SIR 2004-5298**, benthic-flux chamber development | The measurement chain behind every chamber number quoted here, including what a chamber does and does not measure. | https://pubs.usgs.gov/sir/2004/5298/pdf/SIR2004-5298.pdf |
-
-**The gap worth naming.** No open dataset was found that gives *measured Pb or
-Hg flux attenuation across a reactive cap*, which is exactly the quantity this
-demonstrator predicts. The closest available evidence is [E1] for organic
-contaminants and [E3] for metals in a mesocosm. Calibrating this model against
-a real metal-flux measurement would require either a field trial or an
-unpublished dataset, and that absence is itself a result: **the headline
-quantity of this concept has not been measured in the open literature for
-metals in a marine cap.**
-
----
-
-## 4. Experiments that would replace an assumption with a measurement
-
-Ordered by how much they would narrow the model. The first two are the ones
-that decide whether the concept works at all.
-
-1. **Pb and Hg isotherms for our keratin polymer in artificial seawater**, pH 8.1,
-   with Ca and Mg present, at environmentally relevant concentrations. Replaces
-   the single widest interval in the model. The demonstrator quantifies what
-   this is worth: with only the literature interval, which spans a factor of 27,
-   the estimated saturation is too wide to support any replacement decision, and
-   the evidence-informed policy degenerates into monitoring. See
-   `ReactiveMediumConfig.commissioned_q_max_interval`.
-2. **Thiol accessibility.** What fraction of keratin's disulfides are reduced in
-   the final material, and how many of the resulting thiols a hydrated Hg
-   species can reach. The entire Hg case rests on this.
-3. **Column breakthrough under advective flow** at a realistic Darcy velocity,
-   which is what the 1-D layer model actually predicts and what no batch
-   isotherm can tell you.
-4. **Effective diffusivity and hydraulic conductivity of the mat structure**,
-   which set `d_eff_m2_per_s` and the bypass behaviour and are currently pure
-   assumptions.
-5. **Seawater immersion durability** over months: biodegradation, microbial
-   attack, mechanical integrity. A protein that degrades releases its bound
-   metal back.
-6. **Methylmercury response.** Whether a sulfur-rich organic layer over anoxic
-   sediment increases MeHg production. This one can make the concept a net harm,
-   so it is a stop condition rather than an optimisation.
-7. **A seepage measurement at the deployment site.** The estimator currently
-   assumes the seepage velocity to within a factor of six, and that assumption
-   is the second-largest contributor to the width of every flux estimate.
-
----
+1. Measure isotherms, competitive uptake and uncertainty on the final material in representative seawater, including Ca/Mg, dissolved organic matter and relevant metal concentrations.
+2. Determine accessible binding sites, dry and hydrated material properties, manufacturing yield and leachables. Total sulphur does not identify accessible Hg sites.
+3. Run flow-through breakthrough and desorption columns across realistic seepage rates, then measure effective diffusivity, hydraulic conductivity, seams and bypass.
+4. Measure porewater concentration, seepage and flux at the actual site with matched operational fractions and uncertainty.
+5. Test seawater durability, fouling, burial, mechanical damage, retrievability and retained-metal release.
+6. Measure methylmercury formation, net release and biological effects, alongside benthic community impacts. Reduced total dissolved Hg alone is insufficient.
+7. Compare monitoring designs with documented cost assumptions and supported measurement precision. Requested additional sampling is not automatically executed by the current simulation.
 
 ## References
 
-| Key | Source |
-|---|---|
-| E1 | Cornelissen, G. et al., *Remediation of Contaminated Marine Sediment Using Thin-Layer Capping with Activated Carbon: A Field Experiment in Trondheim Harbor, Norway*, Environmental Science and Technology (2011). DOI 10.1021/es2011397. In-situ marine field experiment; sediment-to-water PAH and PCB fluxes measured with benthic flux chambers; reduction by a factor of 2 to 10. See also the Grenland fjords follow-up, DOI 10.1002/ieam.1665. |
-| E2 | Patmont, C. R. et al., *In situ sediment treatment using activated carbon: a demonstrated sediment cleanup technology*, Integrated Environmental Assessment and Management 11(2):195 (2015). DOI 10.1002/ieam.1589. 2 to 5 % AC reduced equilibrium porewater concentrations of PCBs, PAHs, DDT, dioxins and furans by 70 to 99 %. |
-| E3 | Chen, X., Zhu, D., You, X. et al., *Effect of Nitric Acid-Modified Multi-Walled Carbon Nanotube Capping on Copper and Lead Release from Sediments*, Toxics 13(11):912 (2025). DOI 10.3390/toxics13110912. Pb release flux, control 0.97 / 2.50 / 1.51 ug/m2/d and capped 0.76 / 0.59 / 0.25 ug/m2/d at days 15 / 45 / 90. |
-| E4 | Rivera-Duarte, I. and Flegal, A. R., *Benthic lead fluxes in San Francisco Bay, California, USA*, Geochimica et Cosmochimica Acta (1994). https://www.sciencedirect.com/science/article/abs/pii/0016703794900590. Fickian diffusive Pb fluxes 2.6e-9 to 3.1e-8 mol/m2/d in anoxic surface sediments. |
-| E5 | US EPA, *Use of Amendments for In Situ Remediation at Superfund Sediment Sites*, OSWER directive. https://semspub.epa.gov/work/HQ/196704.pdf |
-| E6 | US Navy NAVFAC EXWC, *Technology Transfer Review: Sediment Reactive Capping*. https://exwc.navfac.navy.mil/Portals/88/Documents/EXWC/Restoration/er_pdfs/r/navfac-sed-reactive-capping.pdf |
-| E7 | *Mercury in contaminated sediments and pore waters enriched in sulphate (Tagus Estuary, Portugal)*. Porewater methylmercury 0.1 to 63 ng/L. |
-| E8 | ICES, *DOME (Marine Environment) data portal*. https://www.ices.dk/data/data-portals/Pages/DOME.aspx. All public data CC BY 4.0. |
-| E9 | EMODnet Chemistry, *Aggregated and Validated Datasets for the European Seas*, Frontiers in Marine Science 7:583657 (2020). DOI 10.3389/fmars.2020.583657. |
-| E10 | HELCOM, *Metals (lead, cadmium and mercury) core indicator report* (2018). https://helcom.fi/wp-content/uploads/2019/08/Metals-HELCOM-core-indicator-2018.pdf |
-| E11 | Hylen, A. et al., *In situ measured benthic fluxes of dissolved inorganic phosphorus in the Baltic Sea*. Zenodo, DOI 10.5281/zenodo.17465937, CC BY 4.0. Phosphorus only; cited as a benthic-chamber-lander method and data-structure reference. |
-| E12 | USGS, *Development of a Benthic-Flux Chamber for Measurement of...*, Scientific Investigations Report 2004-5298. https://pubs.usgs.gov/sir/2004/5298/pdf/SIR2004-5298.pdf |
-| K1-K8 | Keratin biosorption sources. See `docs/MATERIAL_KERATIN.md`. |
-| S01-S30 | Sensor, supplier, engine and regulatory sources. See `docs/REFERENCES.md`. |
-
-Every URL above was reachable on 8 September 2026 unless the row says
-otherwise. Where a full text could not be retrieved, the row says which figure
-came from an indexed summary rather than the paper itself, and no figure has
-been carried into the model from a summary alone.
+- **P1:** Enkhzaya, S., Shiomori, K. and Oyuntsetseg, B. (2020). *Effective adsorption of Au(III) and Cu(II) by chemically treated sheep wool and the binding mechanism*. Journal of Environmental Chemical Engineering 8, 104021. [DOI](https://doi.org/10.1016/j.jece.2020.104021).
+- **P2:** Zubair, M., Roopesh, M. S. and Ullah, A. (2025; online 2024). *Green Nanoengineered Keratin Derived Bio-Adsorbent for Heavy Metals Removal from Aqueous Media*. Advanced Sustainable Systems 9, 2400491. [DOI](https://doi.org/10.1002/adsu.202400491).
+- **P3:** Liang, X. et al. (2023). *Mechanochemical-assisted reduction of human hair for efficient and selective removal of aqueous Hg(II) to the ppb level*. Journal of Molecular Liquids 371, 121124. [DOI](https://doi.org/10.1016/j.molliq.2022.121124). Publisher abstract/highlights verified; full methods not retrieved.
+- **P4:** Zubair, M., Rauf, Z. and Ullah, A. (2026). *Keratin-derived bio-adsorbents for water remediation: Current and future trends*. Bioresource Technology Reports 33, 102508. [DOI](https://doi.org/10.1016/j.biteb.2025.102508). Secondary review; its primary references require their own experimental context.
+- **E4:** Rivera-Duarte, I. and Flegal, A. R. (1994). *Benthic lead fluxes in San Francisco Bay, California, USA*. Geochimica et Cosmochimica Acta 58, 3307?3313. [DOI](https://doi.org/10.1016/0016-7037(94)90059-0).
+- **E1:** Cornelissen, G. et al. (2011). *Remediation of Contaminated Marine Sediment Using Thin-Layer Capping with Activated Carbon: A Field Experiment in Trondheim Harbor, Norway*. Environmental Science & Technology 45, 6110?6116. [DOI](https://doi.org/10.1021/es2011397).
+- **E3:** Chen, X. et al. (2025). *Effect of Nitric Acid-Modified Multi-Walled Carbon Nanotube Capping on Copper and Lead Release from Sediments*. Toxics 13, 912. [DOI](https://doi.org/10.3390/toxics13110912).
+- **E2:** Patmont, C. R. et al. (2015). *In situ sediment treatment using activated carbon: a demonstrated sediment cleanup technology*. Integrated Environmental Assessment and Management 11, 195?207. [DOI](https://doi.org/10.1002/ieam.1589).
+- **E13:** Johnson, N. W., Reible, D. D. and Katz, L. E. (2010). *Biogeochemical Changes and Mercury Methylation beneath an In-Situ Sediment Cap*. Environmental Science & Technology 44, 7280?7286. [DOI](https://doi.org/10.1021/es100161p).
+- **E14:** Gilmour, C. C. et al. (2013). *Activated Carbon Mitigates Mercury and Methylmercury Bioavailability in Contaminated Sediments*. Environmental Science & Technology 47, 13001?13010. [DOI](https://doi.org/10.1021/es4021074).

@@ -46,6 +46,8 @@ from reactive_seabed_mat.maintenance import (
 
 START = datetime(2026, 1, 1, tzinfo=timezone.utc)
 TILE = "tile_0_0"
+CHEMISTRY_AGES = {f"{element}|{channel}": 86400.0
+                  for element in ("Pb", "Hg") for channel in ("areal_flux", "porewater")}
 
 
 @pytest.fixture
@@ -96,7 +98,11 @@ def _record(
         quantity_kind=quantity,
         unit=unit,
         matrix=matrix,
-        fraction=Fraction.LABILE,
+        fraction=(Fraction.NOT_APPLICABLE if parameter not in (Parameter.PB, Parameter.HG)
+                  else Fraction.DISSOLVED_INORGANIC if parameter is Parameter.HG
+                  else Fraction.TOTAL_RECOVERABLE if quantity is QuantityKind.AREAL_FLUX
+                  else Fraction.DISSOLVED_FILTERED if matrix is Matrix.POREWATER
+                  else Fraction.LABILE),
         acquisition_kind=acquisition,
         qualifier=qualifier,
         quality_flag=flag,
@@ -108,6 +114,9 @@ def _record(
         uncertainty_std=(abs(value) * 0.05 if value is not None else None),
         condition_class=condition_class,
         vertical_datum=VerticalDatum.SEABED,
+        sampling_start_utc=(when - timedelta(hours=6) if acquisition is AcquisitionKind.BENTHIC_CHAMBER else None),
+        sampling_end_utc=(when if acquisition is AcquisitionKind.BENTHIC_CHAMBER else None),
+        chamber_area_m2=(0.196 if acquisition is AcquisitionKind.BENTHIC_CHAMBER else None),
     )
 
 
@@ -207,6 +216,7 @@ def test_a_missing_value_is_not_evidence_but_a_non_detect_is(known):
         qualifier=Qualifier.BELOW_LOD,
         quality_flag=QualityFlag.PASSED,
         value=None,
+        lower_bound=0.0,
         upper_bound=0.05,
         uncertainty_std=None,
     )
@@ -397,7 +407,8 @@ def test_replacement_is_refused_while_the_source_could_explain_it(known):
         snapshot,
         loading_kg_per_m2_interval={"Pb": (0.05, 0.05), "Hg": (0.0, 0.0)},
         evidence_record_ids=("A", "B", "C", "D"),
-        data_age_s={"Pb|areal_flux": 86400.0},
+        data_age_s=CHEMISTRY_AGES,
+        diagnostics={"chemistry_record_count": 4},
         integrity_index_interval=(0.99, 1.0),
         ambiguity_flags=(AmbiguityFlag.SEDIMENT_SOURCE_INCREASE,),
     )
@@ -436,7 +447,8 @@ def test_the_decision_bound_is_a_stated_risk_posture(known):
         snapshot,
         loading_kg_per_m2_interval={"Pb": (0.0, 0.01), "Hg": (0.0, 0.0)},
         evidence_record_ids=("A", "B", "C", "D"),
-        data_age_s={"Pb|areal_flux": 86400.0},
+        data_age_s=CHEMISTRY_AGES,
+        diagnostics={"chemistry_record_count": 4},
         integrity_index_interval=(0.99, 1.0),
         ambiguity_flags=(),
     )
@@ -464,7 +476,8 @@ def test_an_unknown_decision_bound_is_refused(known):
     snapshot = replace(
         estimate_tiles([], known, base, now)[TILE],
         evidence_record_ids=("A", "B", "C", "D"),
-        data_age_s={"Pb|areal_flux": 86400.0},
+        data_age_s=CHEMISTRY_AGES,
+        diagnostics={"chemistry_record_count": 4},
     )
     with pytest.raises(KeyError):
         recommend({TILE: snapshot}, known, config, now, 9.0e7, PolicyState())
@@ -508,3 +521,146 @@ def test_commissioned_capacity_narrows_saturation_against_the_literature(known):
     width_with = with_commissioning[1] - with_commissioning[0]
     width_without = without[1] - without[0]
     assert width_with < width_without
+
+
+def test_methylmercury_and_wrong_matrices_never_replace_inorganic_hg(known):
+    inorganic = _record(record_id="HG-INORG", parameter=Parameter.HG,
+        quantity=QuantityKind.AQUEOUS_CONCENTRATION, matrix=Matrix.POREWATER,
+        unit="ug/L", value=2.0, day=30, acquisition=AcquisitionKind.GRAB_SAMPLE)
+    incompatible = [replace(inorganic, record_id="MEHG", fraction=Fraction.METHYLMERCURY,
+                            value=90000.0, observed_at_utc=START + timedelta(days=31)),
+                    replace(inorganic, record_id="SEDIMENT", matrix=Matrix.SEDIMENT, value=70000.0)]
+    now = START + timedelta(days=40)
+    base = estimate_tiles([inorganic], known, default_run_config(), now)[TILE]
+    mixed = estimate_tiles([inorganic, *incompatible], known, default_run_config(), now)[TILE]
+    assert mixed.source_flux_interval["Hg"] == base.source_flux_interval["Hg"]
+    assert set(mixed.evidence_record_ids) == {"HG-INORG"}
+
+
+def test_laboratory_latency_is_enforced_inside_the_estimator(known):
+    records = _chemistry([30], 1000.0, 20.0)
+    delayed = [replace(record, available_at_utc=START + timedelta(days=90)) for record in records]
+    pending = estimate_tiles(delayed, known, default_run_config(), START + timedelta(days=60))[TILE]
+    arrived = estimate_tiles(delayed, known, default_run_config(), START + timedelta(days=90))[TILE]
+    assert pending.evidence_record_ids == ()
+    assert arrived.source_flux_interval["Pb"][0] > 0.0
+
+
+def test_latest_zero_burial_is_not_damage_or_displacement(known):
+    buried = _record(record_id="BUR-OLD", parameter=Parameter.BURIAL_DEPTH,
+        quantity=QuantityKind.LENGTH, matrix=Matrix.MAT_STRUCTURE, unit="cm", value=8.0,
+        day=30, acquisition=AcquisitionKind.BATHYMETRIC_SURVEY)
+    clear = replace(buried, record_id="BUR-CLEAR", value=0.0, uncertainty_std=1.0,
+                    observed_at_utc=START + timedelta(days=60))
+    estimate = estimate_tiles([buried, clear], known, default_run_config(), START + timedelta(days=90))[TILE]
+    assert AmbiguityFlag.BURIAL not in estimate.ambiguity_flags
+    assert AmbiguityFlag.DISPLACEMENT_UPLIFT not in estimate.ambiguity_flags
+
+
+def test_observed_puncture_is_damage_even_when_integrity_band_reaches_point_nine(known):
+    record = _record(record_id="DAMAGE", parameter=Parameter.MAT_DAMAGE_CLASS,
+        quantity=QuantityKind.CATEGORICAL, matrix=Matrix.MAT_STRUCTURE, unit="class", value=None,
+        day=30, acquisition=AcquisitionKind.ROV_INSPECTION, qualifier=Qualifier.CATEGORICAL,
+        condition_class="punctured")
+    estimate = estimate_tiles([record], known, default_run_config(), START + timedelta(days=31))[TILE]
+    assert AmbiguityFlag.TEAR_PUNCTURE in estimate.ambiguity_flags
+    assert estimate.degradation_mode_weights["local_damage"] > estimate.degradation_mode_weights["saturation"]
+
+
+def test_recent_severe_physical_failure_does_not_wait_for_missing_chemistry(known):
+    record = _record(record_id="TEAR", parameter=Parameter.MAT_DAMAGE_CLASS,
+        quantity=QuantityKind.CATEGORICAL, matrix=Matrix.MAT_STRUCTURE, unit="class", value=None,
+        day=30, acquisition=AcquisitionKind.ROV_INSPECTION, qualifier=Qualifier.CATEGORICAL,
+        condition_class="torn")
+    config = default_run_config()
+    now = START + timedelta(days=31)
+    estimate = estimate_tiles([record], known, config, now)
+    assert accepted_service_tiles(recommend(estimate, known, config, now, 31 * 86400, PolicyState())) == (TILE,)
+
+
+def test_a_fresh_survey_does_not_refresh_stale_chemistry(known):
+    config = default_run_config()
+    now = START + timedelta(days=900)
+    snapshot = replace(estimate_tiles([], known, config, now)[TILE],
+        evidence_record_ids=("A", "B", "C", "D"),
+        diagnostics={"chemistry_record_count": 4},
+        data_age_s={**{key: 2.0 * config.policy.max_data_age_s for key in CHEMISTRY_AGES}, "condition": 0.0},
+        integrity_index_interval=(0.98, 1.0),
+        loading_kg_per_m2_interval={"Pb": (0.05, 0.05)}, ambiguity_flags=())
+    recommendations = recommend({TILE: snapshot}, known, config, now, 9e7, PolicyState())
+    assert {item.action for item in recommendations} == {ActionKind.TAKE_CHEMICAL_SAMPLE}
+
+
+def test_above_range_has_no_invented_upper_limit(known):
+    from reactive_seabed_mat.estimation.estimate import _value_interval_si
+    record = _record(record_id="ABOVE", parameter=Parameter.PB,
+        quantity=QuantityKind.AQUEOUS_CONCENTRATION, matrix=Matrix.POREWATER,
+        unit="ug/L", value=None, day=30, acquisition=AcquisitionKind.GRAB_SAMPLE,
+        qualifier=Qualifier.ABOVE_RANGE)
+    record = replace(record, lower_bound=1000.0)
+    assert _value_interval_si(record) == (0.001, math.inf)
+    estimate = estimate_tiles([record], known, default_run_config(), START + timedelta(days=60))[TILE]
+    assert math.isinf(estimate.source_flux_interval["Pb"][1])
+    assert all(math.isfinite(value) for value in estimate.loading_kg_per_m2_interval["Pb"])
+
+
+def test_normal_differential_head_does_not_imply_fouling(known):
+    head = _record(record_id="HEAD-BASE", parameter=Parameter.DIFFERENTIAL_HEAD,
+        quantity=QuantityKind.CONTEXT, matrix=Matrix.MAT_STRUCTURE, unit="Pa", value=40.0,
+        day=0, acquisition=AcquisitionKind.IN_SITU_SENSOR)
+    later = replace(head, record_id="HEAD-LATER", observed_at_utc=START + timedelta(days=30))
+    normal = estimate_tiles([head, later], known, default_run_config(), START + timedelta(days=31))[TILE]
+    raised = estimate_tiles([head, replace(later, value=80.0)], known, default_run_config(), START + timedelta(days=31))[TILE]
+    assert AmbiguityFlag.FOULING not in normal.ambiguity_flags
+    assert AmbiguityFlag.FOULING in raised.ambiguity_flags
+    assert normal.loading_kg_per_m2_interval == raised.loading_kg_per_m2_interval
+
+
+def test_service_time_observations_and_crossing_chambers_describe_outgoing_media(known):
+    from reactive_seabed_mat.contracts import ServiceEvent
+    service_time = START + timedelta(days=30)
+    serviced = replace(known, accepted_service_events=(ServiceEvent(
+        event_id="SVC", time_utc=service_time, tile_ids=(TILE,),
+        kind="partial_media_replacement", old_media_id="media_A0", new_media_id="media_A1"),))
+    tear = _record(record_id="TEAR-BEFORE-SERVICE", parameter=Parameter.MAT_DAMAGE_CLASS,
+        quantity=QuantityKind.CATEGORICAL, matrix=Matrix.MAT_STRUCTURE, unit="class", value=None,
+        day=30, acquisition=AcquisitionKind.ROV_INSPECTION, qualifier=Qualifier.CATEGORICAL,
+        condition_class="torn")
+    chemistry = _chemistry([31], 1000.0, 20.0)
+    chemistry[1] = replace(chemistry[1], sampling_start_utc=service_time - timedelta(hours=1))
+    estimate = estimate_tiles([tear, *chemistry], serviced, default_run_config(), START + timedelta(days=32))[TILE]
+    assert estimate.integrity_index_interval is None
+    assert estimate.data_age_s["Pb|areal_flux"] is None
+    assert "TEAR-BEFORE-SERVICE" not in estimate.evidence_record_ids
+    assert estimate.source_flux_interval["Pb"][0] > 0.0
+
+
+def test_unmonitored_copper_cannot_change_attribution_from_supported_chemistry(known):
+    base = replace(default_run_config(), elements=("Pb",))
+    records = _chemistry([30], 1000.0, 20.0)
+    now = START + timedelta(days=31)
+    lead = estimate_tiles(records, known, base, now)[TILE]
+    copper_added = estimate_tiles(records, known, replace(base, elements=("Pb", "Cu")), now)[TILE]
+    assert copper_added.degradation_mode_weights == lead.degradation_mode_weights
+    assert lead.degradation_mode_weights == {"saturation": 0.25, "fouling": 0.25,
+                                            "displacement": 0.25, "local_damage": 0.25}
+    assert copper_added.diagnostics["measured_attenuation_elements"] == ["Pb"]
+    assert AmbiguityFlag.SEDIMENT_SOURCE_INCREASE not in copper_added.ambiguity_flags
+    assert AmbiguityFlag.ADVECTIVE_CHANGE not in copper_added.ambiguity_flags
+
+
+def test_missing_chamber_does_not_count_as_evidence_of_performance_loss(known):
+    records = _chemistry([30], 1000.0, 20.0)[:1]
+    estimate = estimate_tiles(records, known, default_run_config(), START + timedelta(days=31))[TILE]
+    assert estimate.diagnostics["measured_attenuation_elements"] == []
+    assert AmbiguityFlag.SEDIMENT_SOURCE_INCREASE not in estimate.ambiguity_flags
+    assert AmbiguityFlag.ADVECTIVE_CHANGE not in estimate.ambiguity_flags
+
+
+def test_unreported_uncertainty_is_not_silently_exact(known):
+    records = [replace(record, uncertainty_std=None) for record in _chemistry([30], 1000.0, 20.0)]
+    estimate = estimate_tiles(records, known, default_run_config(), START + timedelta(days=31))[TILE]
+    assert estimate.source_flux_interval["Pb"][0] == 0.0
+    assert estimate.source_flux_interval["Pb"][1] > 0.0
+    assert estimate.diagnostics["measured_attenuation_elements"] == []
+    assert "assumed 50%" in estimate.notes

@@ -5,7 +5,7 @@
     "custodian": "International Council for the Exploration of the Sea",
     "region": "North-East Atlantic, Baltic, Arctic",
     "measures": "Pb, Hg, Cd and other contaminants in marine sediment, seawater and biota, from the OSPAR CEMP and HELCOM COMBINE monitoring programmes",
-    "why_it_matters": "The measured European range that this demonstrator's hypothetical hotspot should be compared against. The default porewater Pb of 1.0 mg/L is far above typical values and this is the dataset that shows it.",
+    "why_it_matters": "Marine contaminant data provide site and matrix context for future calibration. The default assumed porewater concentrations were not calibrated against a downloaded DOME dataset.",
     "url": "https://www.ices.dk/data/data-portals/Pages/DOME.aspx",
     "format": "CSV download after accepting the ICES data policy; download and functional web services available",
     "licence": "CC BY 4.0 for all public data",
@@ -121,32 +121,32 @@
   },
   {
     "key": "GAP1",
-    "name": "Measured Pb or Hg flux attenuation across a marine reactive cap",
+    "name": "Measured Pb/Hg/Cu flux validation for the proposed keratin core in seawater",
     "custodian": null,
     "region": null,
-    "measures": "the quantity this demonstrator predicts",
-    "why_it_matters": "No open dataset of this was found. The closest evidence is organic-contaminant flux attenuation in a Norwegian harbour field trial (E1) and a metals mesocosm (E3). The absence is itself a finding: the headline quantity of this concept has not been measured in the open literature for metals in a marine cap.",
+    "measures": "Flow-through or field sediment-to-water metal flux and uncertainty for the final wool/feather core",
+    "why_it_matters": "The assembled sources do not provide a dataset validating this material under representative seawater flow. Existing organic-contaminant field caps (E1) and laboratory Pb sediment caps (E3) are comparators, not calibration. This search result does not prove the absence of all marine metal-cap measurements.",
     "url": null,
     "format": null,
     "licence": null,
-    "access_date": "2026-09-08",
+    "access_date": "2026-09-09",
     "retrieval_status": "SEARCHED_NOT_FOUND",
     "bundled": false,
-    "notes": "Searched: benthic flux chamber metal flux capping, reactive cap flux attenuation metals, EMODnet and ICES holdings, Zenodo and Mendeley Data."
+    "notes": "Original search on 2026-09-08: benthic flux chamber metal flux capping, reactive cap flux attenuation metals, EMODnet and ICES holdings, Zenodo and Mendeley Data. Scope corrected after supplied-paper audit on 2026-09-09; no portal dataset downloaded."
   },
   {
     "key": "GAP2",
-    "name": "Keratin biosorption isotherms in seawater",
+    "name": "Final-material keratin isotherms and breakthrough under representative seawater conditions",
     "custodian": null,
     "region": null,
-    "measures": "Pb and Hg uptake on a keratin biosorbent at seawater pH and ionic strength",
-    "why_it_matters": "Every published keratin capacity found is deionised water at acidic pH. No seawater isotherm was found, and no verified keratin Hg capacity of any kind was found. This is the largest single uncertainty in the model.",
+    "measures": "Pb, inorganic Hg and Cu uptake on the proposed wool/feather core at relevant matrix, concentrations and flow",
+    "why_it_matters": "The prior absence claim is superseded: reduced human hair has reported Hg uptake (Liang 2023), treated wool has Cu isotherms (Enkhzaya 2020), and a modified feather/graphene-oxide composite has dilute Pb uptake at pH 7.5 in NaCl/CaCl2 (Zubair 2025). These do not calibrate the final seawater core. No representative isotherm/flow-through dataset for that core was identified in this review.",
     "url": null,
     "format": null,
     "licence": null,
-    "access_date": "2026-09-08",
+    "access_date": "2026-09-09",
     "retrieval_status": "SEARCHED_NOT_FOUND",
     "bundled": false,
-    "notes": "Searched: Zenodo, Mendeley Data, CORE, AGRIS, and the keratin biosorption review literature. See docs/MATERIAL_KERATIN.md section 3."
+    "notes": "Earlier search: Zenodo, Mendeley Data, CORE, AGRIS and keratin review literature. Revised with supplied PDFs and verified primary Hg publisher abstract. See docs/PAPER_PARAMETER_TRACEABILITY.md and research/references/paper_parameter_traceability.json; original PDFs are not bundled."
   }
 ]

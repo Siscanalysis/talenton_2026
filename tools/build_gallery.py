@@ -23,6 +23,10 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+import hashlib
+import gzip
+import pickle
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 
@@ -99,7 +103,7 @@ def _flux_png(result, path: Path) -> None:
         image = ax.imshow(
             values, origin="lower", extent=extent, cmap="inferno", aspect="equal"
         )
-        for tile in result.final_tiles:
+        for tile in window.tiles:
             geometry = tile.geometry
             if tile.displaced or not tile.active:
                 colour, style = "#ff2d55", ":"
@@ -111,8 +115,7 @@ def _flux_png(result, path: Path) -> None:
                 colour, style = "#30d158", "-"
             ax.add_patch(
                 plt.Rectangle(
-                    (geometry.x_m - geometry.width_m / 2.0,
-                     geometry.y_m - geometry.length_m / 2.0),
+                    (geometry.x_m, geometry.y_m),
                     geometry.width_m,
                     geometry.length_m,
                     fill=False,
@@ -182,7 +185,8 @@ def _timeline_png(result, path: Path) -> None:
             )
 
         top.set_ylabel("flux attenuation (%)", color="#c8d0d8", fontsize=9)
-        top.set_ylim(88, 101)
+        all_values = [100.0 * p.attenuation[e] for p in result.timeline for e in elements]
+        top.set_ylim(min(0.0, min(all_values) - 1), max(101.0, max(all_values) + 1))
         bottom.set_ylabel("media saturation (%)", color="#c8d0d8", fontsize=9)
         bottom.set_xlabel("years since deployment", color="#c8d0d8", fontsize=9)
         bottom.set_ylim(-2, 102)
@@ -268,9 +272,31 @@ def _fig_html(figure, *, include_js: bool) -> str:
     )
 
 
+def _cached_run(task):
+    config, directory, fingerprint = task
+    path = Path(directory) / (fingerprint + '-' + config_hash(config) + '.pkl.gz')
+    if path.exists():
+        return str(path)
+    started = time.perf_counter()
+    result = run_scenario(config)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with gzip.open(path, 'wb') as handle:
+        pickle.dump(result, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    print(f"computed {config.scenario}/{config.policy.kind} in {time.perf_counter()-started:.0f}s", flush=True)
+    return str(path)
+
+
+def _read_result(path):
+    # Only files produced locally by this script are loaded.
+    with gzip.open(path, 'rb') as handle:
+        return pickle.load(handle)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", default="docs/gallery")
+    parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--cache-dir", default=".revision_cache/gallery")
     parser.add_argument(
         "--max-years", type=float, default=6.0,
         help="cap every scenario at this many years, to bound the build time",
@@ -287,6 +313,25 @@ def main() -> int:
     summary_rows: list[str] = []
     first_figure = True
     started_all = time.perf_counter()
+    configs = [replace(registry.build_scenario(name), duration_s=min(
+        registry.build_scenario(name).duration_s, args.max_years * _SECONDS_PER_YEAR))
+        for name in registry.list_scenarios()]
+    base = next(c for c in configs if c.scenario == "progressive_saturation")
+    variants = [registry.policy_variant(base, policy) for policy in registry.POLICIES] if not args.skip_comparison else []
+    digest = hashlib.sha256()
+    for source in sorted((REPO / 'src').rglob('*.py')):
+        if source.name not in ('cli.py', 'results.py') and 'visualization' not in source.parts:
+            digest.update(source.relative_to(REPO).as_posix().encode())
+            digest.update(source.read_bytes())
+    fingerprint = digest.hexdigest()[:16]
+    unique = {config_hash(c): c for c in configs + variants}
+    with ProcessPoolExecutor(max_workers=args.workers) as pool:
+        paths = list(pool.map(_cached_run, [(c, args.cache_dir, fingerprint) for c in unique.values()]))
+    cached = dict(zip(unique, paths))
+    (out / 'cache_manifest.json').write_text(__import__('json').dumps({
+        'scientific_source_fingerprint': fingerprint,
+        'runs': [{'scenario': c.scenario, 'policy': c.policy.kind, 'config_hash': h,
+                  'cache_file': Path(cached[h]).name} for h, c in unique.items()]}, indent=2), encoding='utf-8')
 
     for name in registry.list_scenarios():
         config = registry.build_scenario(name)
@@ -296,7 +341,7 @@ def main() -> int:
         letter = registry.scenario_letter(name)
         print(f"[{letter}] {name}: {config.duration_years:.1f} yr ...", flush=True)
         started = time.perf_counter()
-        result = run_scenario(config)
+        result = _read_result(cached[config_hash(config)])
         elapsed = time.perf_counter() - started
 
         _flux_png(result, out / "img" / f"{name}_flux.png")
@@ -345,13 +390,9 @@ def main() -> int:
         for policy in registry.POLICIES:
             print(f"[compare] {policy} ...", flush=True)
             variant = registry.policy_variant(base, policy)
-            result = run_scenario(variant)
+            result = _read_result(cached[config_hash(variant)])
             maintenance = result.maintenance
-            into_water = (
-                result.hotspot_released_kg.get(element, 0.0)
-                if policy == "none"
-                else result.mat_ledger[element].boundary_out_kg
-            )
+            into_water = result.hotspot_into_water_kg.get(element, 0.0)
             comparison_rows.append(
                 {
                     "policy": policy,
@@ -362,6 +403,7 @@ def main() -> int:
                     "services": len(maintenance.service_events) if maintenance else 0,
                     "retained_kg": float(
                         result.mat_ledger[element].retained_in_mat_kg
+                        + result.mat_ledger[element].retained_in_retrieved_media_kg
                         if element in result.mat_ledger
                         else 0.0
                     ),
@@ -409,17 +451,17 @@ def main() -> int:
 
 <div class="banner"><strong>{maps.SYNTHETIC_BANNER}.</strong><br>
 Reactive caps and activated-carbon amendments are established practice and no
-novelty is claimed for them. Keratin parameters are literature values derated
-for seawater, not measurements of our material. No supplier has been contacted
-and no quotation exists. The modelled attenuation is <em>above</em> what field
-caps have achieved; see <code>docs/EVIDENCE_BASE.md</code>.</div>
+novelty is claimed for them. Keratin operating parameters are assumptions informed
+by laboratory literature; the finished mat has not been calibrated in seawater.
+No supplier has been contacted and no quotation exists. Whole-hotspot attenuation
+includes uncovered area and bypass; see <code>docs/EVIDENCE_BASE.md</code>.</div>
 
 <nav>Jump to scenario: {nav}</nav>
 
 <h2>Summary</h2>
 <table>
 <tr><th></th><th>Scenario</th><th>Years</th><th>Final attenuation</th>
-    <th>Saturation</th><th>Coverage</th><th>Retained (kg)</th><th>Services</th></tr>
+    <th>Saturation</th><th>Coverage</th><th>Active mat (kg)</th><th>Services</th></tr>
 {"".join(summary_rows)}
 </table>
 
@@ -431,12 +473,11 @@ same observation schedule. Only <code>PolicyConfig.kind</code> differs.</p>
     <th>Services</th><th>Assumed cost (EUR)</th></tr>
 {comparison_table}
 </table>
-<p class="caption">Evidence-informed servicing <strong>under-services</strong>
-here, and that is the finding rather than a defect: with chemistry on one tile
-out of nine and no seepage measurement, the estimated saturation interval never
-narrows enough to justify a vessel. The value of evidence-informed maintenance
-is bounded by the monitoring programme that feeds it. Every euro value is an
-assumption.</p>
+<p class="caption">Emission integrates the same whole-hotspot source for every
+policy. Retained mass sums active and retrieved column inventories; its separate
+control volume is documented in the manuscript. Sparse Pb/Hg chemistry limits
+evidence-informed servicing. Cu has no observation channel. Every euro value
+is an assumption and service costs exclude full lifecycle expenditure.</p>
 
 {"".join(blocks)}
 

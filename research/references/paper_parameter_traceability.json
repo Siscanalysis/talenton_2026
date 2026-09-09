@@ -1,0 +1,1290 @@
+{
+  "schema_version": "1.0",
+  "audit_date": "2026-09-09",
+  "baseline_commit": "158d103",
+  "scope": "Three user-supplied PDFs; relevant Pb/Hg/Cu numerical evidence and baseline simulation traceability. No full article copies distributed.",
+  "archive": {
+    "name": "papers of keratine and stuff-20260909T085412Z-1-001.zip",
+    "sha256": "2e97df917791478890e821874537cdb821ea851b6043137f8cb4018bdae1a05f",
+    "pdf_count": 3
+  },
+  "sources": [
+    {
+      "id": "PK1",
+      "authors": [
+        "Solongo Enkhzaya",
+        "Koichiro Shiomori",
+        "Bolormaa Oyuntsetseg"
+      ],
+      "year": 2020,
+      "title": "Effective adsorption of Au(III) and Cu(II) by chemically treated sheep wool and the binding mechanism",
+      "journal": "Journal of Environmental Chemical Engineering",
+      "volume": "8",
+      "issue": "5",
+      "article_number": "104021",
+      "doi": "10.1016/j.jece.2020.104021",
+      "url": "https://doi.org/10.1016/j.jece.2020.104021",
+      "source_type": "primary_research",
+      "copy_status": "journal_preproof",
+      "pdf_pages": 35,
+      "original_simulation_use": "no_direct_numerical_use_found",
+      "history_check": "No baseline DOI or author match in source_ref/scientific docs; capacity provenance instead cites K9.",
+      "verification": "Supplied complete preproof; tables 2/3 and figure 5 visually checked; publisher metadata also located.",
+      "archive_member": "papers of keratine and stuff/enkhzaya2020.pdf",
+      "sha256": "705fb5813692ecfb5aa4bf415272f9c0ff5114583ccf28021ef0919a0465f4cd",
+      "size_bytes": 4148147,
+      "local_pdf_reviewed": true,
+      "pdf_distributed": false
+    },
+    {
+      "id": "PK2",
+      "authors": [
+        "Muhammad Zubair",
+        "M. S. Roopesh",
+        "Aman Ullah"
+      ],
+      "year": 2025,
+      "online_publication_year": 2024,
+      "title": "Green Nanoengineered Keratin Derived Bio-Adsorbent for Heavy Metals Removal from Aqueous Media",
+      "journal": "Advanced Sustainable Systems",
+      "volume": "9",
+      "article_number": "2400491",
+      "doi": "10.1002/adsu.202400491",
+      "url": "https://doi.org/10.1002/adsu.202400491",
+      "source_type": "primary_research",
+      "copy_status": "published_article",
+      "pdf_pages": 14,
+      "original_simulation_use": "no_direct_numerical_use_found",
+      "history_check": "No baseline article DOI or author match in source_ref/scientific docs.",
+      "verification": "Complete supplied published PDF; abstract/methods read and figure 10 visually checked.",
+      "archive_member": "papers of keratine and stuff/Zubair 2024 - Green Nanoengineered Keratin Derived Bio‐Adsorbent for Heavy Metals Removal.pdf",
+      "sha256": "f12a6529b1bb5bd6569c29ae93a6c32e590e9b7b8ce956369516cf89e9732b73",
+      "size_bytes": 8244962,
+      "local_pdf_reviewed": true,
+      "pdf_distributed": false
+    },
+    {
+      "id": "PK3",
+      "authors": [
+        "Muhammad Zubair",
+        "Zahid Rauf",
+        "Aman Ullah"
+      ],
+      "year": 2026,
+      "title": "Keratin-derived bio-adsorbents for water remediation: Current and future trends",
+      "journal": "Bioresource Technology Reports",
+      "volume": "33",
+      "article_number": "102508",
+      "doi": "10.1016/j.biteb.2025.102508",
+      "url": "https://doi.org/10.1016/j.biteb.2025.102508",
+      "source_type": "review",
+      "copy_status": "published_article",
+      "pdf_pages": 14,
+      "original_simulation_use": "cited_as_K5_background_not_numerically_calibrated",
+      "history_check": "PII S2589014X25004918 introduced in docs/MATERIAL_KERATIN.md by 407fb44; no primary data loading/fitting from this source.",
+      "verification": "Complete supplied PDF; primary study identification checked against DOI.",
+      "archive_member": "papers of keratine and stuff/Zubair 2026_Keratin-derived bio-adsorbents for water remediation an Overview.pdf",
+      "sha256": "81d0994db3c2d85035ee9a7f133e462009ec01b3b5dac08b7d663956bdc2c345",
+      "size_bytes": 4165489,
+      "local_pdf_reviewed": true,
+      "pdf_distributed": false
+    },
+    {
+      "id": "PK4",
+      "authors": [
+        "Xingtang Liang",
+        "Yu Liang",
+        "Shuming Zhong",
+        "Zijie Liu",
+        "Fengzhi Li",
+        "Yanjun Zhang",
+        "Yanzhen Yin",
+        "Zuqiang Huang"
+      ],
+      "year": 2023,
+      "title": "Mechanochemical-assisted reduction of human hair for efficient and selective removal of aqueous Hg(II) to the ppb level",
+      "journal": "Journal of Molecular Liquids",
+      "volume": "371",
+      "article_number": "121124",
+      "doi": "10.1016/j.molliq.2022.121124",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0167732222026630",
+      "source_type": "primary_research",
+      "local_pdf_reviewed": false,
+      "pdf_distributed": false,
+      "verification": "Primary publisher indexed abstract and highlights, cross-referenced from PK3 p5 and bibliography p13; full methods not retrieved.",
+      "verified_locations": [
+        "publisher abstract",
+        "publisher highlights"
+      ],
+      "original_simulation_use": "not_used_before_audit",
+      "discovered_via": "PK3 p5, section 4.1",
+      "source_access_date": "2026-09-09"
+    }
+  ],
+  "observations": [
+    {
+      "id": "PK1_Cu_SW",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "SW",
+      "quantity": "Langmuir_q_max",
+      "value": 0.239,
+      "unit": "mmol_Cu/g_sorbent",
+      "pdf_pages": [
+        32
+      ],
+      "location": "Table 2 (printed p31); units section3.3.1 PDFp7",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "converted": {
+        "mg_per_g": 15.187494,
+        "kg_per_kg": 0.015187494
+      },
+      "conversion": "mmol_Cu/g * 63.546 mg_Cu/mmol = mg_Cu/g; mg/g divided by1000 = kg/kg",
+      "Langmuir_K_L_per_mg": 0.51,
+      "Langmuir_R_squared": 0.9565,
+      "derived_low_concentration_slope_m3_per_kg": 7.7456219399999995,
+      "conditions": {
+        "adsorbent_mass_g": 0.01,
+        "solution_volume_L": 0.015,
+        "temperature_K": 303,
+        "initial_pH": 5,
+        "contact_time_h": 48,
+        "agitation_rpm": 50,
+        "initial_Cu_mg_per_L_interval": [
+          1,
+          100
+        ],
+        "solution_matrix": "Aqueous analytical standards; section 2.4 says solution in 1 mol/L HCl, figures give pH5 after adjustment; final salts not fully specified.",
+        "source_locations": [
+          "section 2.4 PDF p5 (printed p4)",
+          "figure 5 PDF p21 (printed p20)"
+        ]
+      },
+      "treatment": {
+        "Na2S_mol_per_L": null,
+        "treatment_K": null,
+        "treatment_h": null,
+        "mass_loss_percent": null,
+        "source_location": "section2.2 PDFp4; Table1 PDFp31"
+      },
+      "transferability": "Laboratory wool comparison only; no validated seawater-core operating value.",
+      "quality_flags": []
+    },
+    {
+      "id": "PK1_Cu_SW-III",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "SW-III",
+      "quantity": "Langmuir_q_max",
+      "value": 0.817,
+      "unit": "mmol_Cu/g_sorbent",
+      "pdf_pages": [
+        32
+      ],
+      "location": "Table 2 (printed p31); units section3.3.1 PDFp7",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "converted": {
+        "mg_per_g": 51.91708199999999,
+        "kg_per_kg": 0.051917081999999996
+      },
+      "conversion": "mmol_Cu/g * 63.546 mg_Cu/mmol = mg_Cu/g; mg/g divided by1000 = kg/kg",
+      "Langmuir_K_L_per_mg": 0.54,
+      "Langmuir_R_squared": 0.9724,
+      "derived_low_concentration_slope_m3_per_kg": 28.035224279999998,
+      "conditions": {
+        "adsorbent_mass_g": 0.01,
+        "solution_volume_L": 0.015,
+        "temperature_K": 303,
+        "initial_pH": 5,
+        "contact_time_h": 48,
+        "agitation_rpm": 50,
+        "initial_Cu_mg_per_L_interval": [
+          1,
+          100
+        ],
+        "solution_matrix": "Aqueous analytical standards; section 2.4 says solution in 1 mol/L HCl, figures give pH5 after adjustment; final salts not fully specified.",
+        "source_locations": [
+          "section 2.4 PDF p5 (printed p4)",
+          "figure 5 PDF p21 (printed p20)"
+        ]
+      },
+      "treatment": {
+        "Na2S_mol_per_L": 0.05,
+        "treatment_K": 323,
+        "treatment_h": 1,
+        "mass_loss_percent": 44.24,
+        "source_location": "section2.2 PDFp4; Table1 PDFp31"
+      },
+      "transferability": "Laboratory wool comparison only; no validated seawater-core operating value.",
+      "quality_flags": []
+    },
+    {
+      "id": "PK1_Cu_SW-IV",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "SW-IV",
+      "quantity": "Langmuir_q_max",
+      "value": 0.268,
+      "unit": "mmol_Cu/g_sorbent",
+      "pdf_pages": [
+        32
+      ],
+      "location": "Table 2 (printed p31); units section3.3.1 PDFp7",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "converted": {
+        "mg_per_g": 17.030328,
+        "kg_per_kg": 0.017030328
+      },
+      "conversion": "mmol_Cu/g * 63.546 mg_Cu/mmol = mg_Cu/g; mg/g divided by1000 = kg/kg",
+      "Langmuir_K_L_per_mg": 1.16,
+      "Langmuir_R_squared": 0.9618,
+      "derived_low_concentration_slope_m3_per_kg": 19.75518048,
+      "conditions": {
+        "adsorbent_mass_g": 0.01,
+        "solution_volume_L": 0.015,
+        "temperature_K": 303,
+        "initial_pH": 5,
+        "contact_time_h": 48,
+        "agitation_rpm": 50,
+        "initial_Cu_mg_per_L_interval": [
+          1,
+          100
+        ],
+        "solution_matrix": "Aqueous analytical standards; section 2.4 says solution in 1 mol/L HCl, figures give pH5 after adjustment; final salts not fully specified.",
+        "source_locations": [
+          "section 2.4 PDF p5 (printed p4)",
+          "figure 5 PDF p21 (printed p20)"
+        ]
+      },
+      "treatment": {
+        "Na2S_mol_per_L": 0.02,
+        "treatment_K": 323,
+        "treatment_h": 1,
+        "mass_loss_percent": 1.51,
+        "source_location": "section2.2 PDFp4; Table1 PDFp31"
+      },
+      "transferability": "Laboratory wool comparison only; no validated seawater-core operating value.",
+      "quality_flags": [
+        "PK1_SWIV_FIGURE_TABLE_CONFLICT"
+      ]
+    },
+    {
+      "id": "PK1_Cu_kinetics_SW",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "SW",
+      "quantity": "pseudo_second_order_k2",
+      "value": 0.1066,
+      "unit": "g_sorbent/(mmol_Cu min)",
+      "pdf_pages": [
+        33
+      ],
+      "location": "Table3 (printedp32); law/units section3.3.2 PDFpp8-9",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "fitted_qe_mmol_per_g": 0.1126,
+      "fitted_R_squared": 0.9985,
+      "pseudo_first_order": {
+        "k1_per_min": 0.0016,
+        "fitted_qe_mmol_per_g": 0.0067
+      },
+      "kinetic_caption_conditions": {
+        "initial_Cu_mg_per_L": 10,
+        "adsorbent_mass_g": 0.01,
+        "solution_volume_L": 0.015,
+        "pH": 5,
+        "source_location": "figure6 PDFp22"
+      },
+      "transferability": "Different kinetic law and units from first-order simulator; do not substitute k2 for k_rate_per_s.",
+      "quality_flags": []
+    },
+    {
+      "id": "PK1_Cu_kinetics_SW-III",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "SW-III",
+      "quantity": "pseudo_second_order_k2",
+      "value": 0.0172,
+      "unit": "g_sorbent/(mmol_Cu min)",
+      "pdf_pages": [
+        33
+      ],
+      "location": "Table3 (printedp32); law/units section3.3.2 PDFpp8-9",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "fitted_qe_mmol_per_g": 0.2721,
+      "fitted_R_squared": 0.9913,
+      "pseudo_first_order": {
+        "k1_per_min": 0.0014,
+        "fitted_qe_mmol_per_g": 0.0411
+      },
+      "kinetic_caption_conditions": {
+        "initial_Cu_mg_per_L": 10,
+        "adsorbent_mass_g": 0.01,
+        "solution_volume_L": 0.015,
+        "pH": 5,
+        "source_location": "figure6 PDFp22"
+      },
+      "transferability": "Different kinetic law and units from first-order simulator; do not substitute k2 for k_rate_per_s.",
+      "quality_flags": [
+        "PK1_KINETIC_FIT_INVENTORY_CONFLICT"
+      ]
+    },
+    {
+      "id": "PK1_Cu_kinetics_SW-IV",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "SW-IV",
+      "quantity": "pseudo_second_order_k2",
+      "value": 0.1451,
+      "unit": "g_sorbent/(mmol_Cu min)",
+      "pdf_pages": [
+        33
+      ],
+      "location": "Table3 (printedp32); law/units section3.3.2 PDFpp8-9",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "fitted_qe_mmol_per_g": 0.1216,
+      "fitted_R_squared": 0.9993,
+      "pseudo_first_order": {
+        "k1_per_min": 0.0007,
+        "fitted_qe_mmol_per_g": 0.0092
+      },
+      "kinetic_caption_conditions": {
+        "initial_Cu_mg_per_L": 10,
+        "adsorbent_mass_g": 0.01,
+        "solution_volume_L": 0.015,
+        "pH": 5,
+        "source_location": "figure6 PDFp22"
+      },
+      "transferability": "Different kinetic law and units from first-order simulator; do not substitute k2 for k_rate_per_s.",
+      "quality_flags": []
+    },
+    {
+      "id": "PK1_secondary_Cu_1",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "Wool, reference7",
+      "quantity": "reviewed_capacity",
+      "value": 0.165,
+      "unit": "mmol_Cu/g",
+      "pdf_pages": [
+        34
+      ],
+      "location": "Table4 (printedp33)",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "evidence_level": "secondary_unverified_primary",
+      "converted_mg_per_g": 10.48509,
+      "reported_pH": [
+        5
+      ],
+      "reported_contact_h": 24,
+      "transferability": "Not independently verified; retain only as literature lead."
+    },
+    {
+      "id": "PK1_secondary_Cu_2",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "Natural/electron-irradiated wool, reference8",
+      "quantity": "reviewed_capacity",
+      "value": 0.23,
+      "unit": "mmol_Cu/g",
+      "pdf_pages": [
+        34
+      ],
+      "location": "Table4 (printedp33)",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "evidence_level": "secondary_unverified_primary",
+      "converted_mg_per_g": 14.615580000000001,
+      "reported_pH": null,
+      "reported_contact_h": 24,
+      "transferability": "Not independently verified; retain only as literature lead."
+    },
+    {
+      "id": "PK1_secondary_Cu_3",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "Wool powder, reference9",
+      "quantity": "reviewed_capacity",
+      "value": 0.76,
+      "unit": "mmol_Cu/g",
+      "pdf_pages": [
+        34
+      ],
+      "location": "Table4 (printedp33)",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "evidence_level": "secondary_unverified_primary",
+      "converted_mg_per_g": 48.29496,
+      "reported_pH": [
+        3,
+        7
+      ],
+      "reported_contact_h": 2,
+      "transferability": "Not independently verified; retain only as literature lead."
+    },
+    {
+      "id": "PK1_secondary_Cu_4",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "Keratin/PA6 50/50, reference10",
+      "quantity": "reviewed_capacity",
+      "value": 0.96,
+      "unit": "mmol_Cu/g",
+      "pdf_pages": [
+        34
+      ],
+      "location": "Table4 (printedp33)",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "evidence_level": "secondary_unverified_primary",
+      "converted_mg_per_g": 61.00416,
+      "reported_pH": [
+        5.8
+      ],
+      "reported_contact_h": 24,
+      "transferability": "Not independently verified; retain only as literature lead."
+    },
+    {
+      "id": "PK1_secondary_Cu_5",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "Emu feathers, reference11",
+      "quantity": "reviewed_capacity",
+      "value": 0.47,
+      "unit": "mmol_Cu/g",
+      "pdf_pages": [
+        34
+      ],
+      "location": "Table4 (printedp33)",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "evidence_level": "secondary_unverified_primary",
+      "converted_mg_per_g": 29.866619999999998,
+      "reported_pH": [
+        6
+      ],
+      "reported_contact_h": 1.5,
+      "transferability": "Not independently verified; retain only as literature lead."
+    },
+    {
+      "id": "PK1_secondary_Cu_6",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "NaOH-treated duck feather, reference12",
+      "quantity": "reviewed_capacity",
+      "value": 0.82,
+      "unit": "mmol_Cu/g",
+      "pdf_pages": [
+        34
+      ],
+      "location": "Table4 (printedp33)",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "evidence_level": "secondary_unverified_primary",
+      "converted_mg_per_g": 52.10771999999999,
+      "reported_pH": [
+        11
+      ],
+      "reported_contact_h": 5.5,
+      "transferability": "Not independently verified; retain only as literature lead."
+    },
+    {
+      "id": "PK1_secondary_Cu_7",
+      "source_id": "PK1",
+      "element": "Cu",
+      "material": "NaOH/Na2S-treated human hair, reference13",
+      "quantity": "reviewed_capacity",
+      "value": 0.45,
+      "unit": "mmol_Cu/g",
+      "pdf_pages": [
+        34
+      ],
+      "location": "Table4 (printedp33)",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "evidence_level": "secondary_unverified_primary",
+      "converted_mg_per_g": 28.5957,
+      "reported_pH": [
+        1,
+        5
+      ],
+      "reported_contact_h": 0.33,
+      "transferability": "Not independently verified; retain only as literature lead."
+    },
+    {
+      "id": "PK2_Pb_removal",
+      "source_id": "PK2",
+      "element": "Pb",
+      "material": "CFK-SMGO",
+      "quantity": "batch_removal_efficiency",
+      "value": 99.21,
+      "unit": "percent",
+      "pdf_pages": [
+        1,
+        9,
+        10,
+        13
+      ],
+      "location": "abstract; section3.4; figure10; methods",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "conditions": {
+        "initial_metal_concentration_ug_per_L_each": 600,
+        "metals": [
+          "Pb",
+          "Cd",
+          "Ni",
+          "Co",
+          "Zn",
+          "As",
+          "Se",
+          "Cr"
+        ],
+        "adsorbent_mass_g": 0.1,
+        "solution_volume_L": 0.01,
+        "pH_tested": [
+          5.5,
+          7.5,
+          10.5
+        ],
+        "pH_best": 7.5,
+        "contact_time_h": 24,
+        "NaCl_M": 0.02,
+        "CaCl2_M": 0.01,
+        "ionic_strength_M": 0.05,
+        "replicates": 3,
+        "temperature_C_methods": 20,
+        "temperature_C_results_narrative": 24,
+        "seawater_matrix": false,
+        "source_locations": [
+          "experimental section PDFp13",
+          "results section3.4 PDFpp9-12"
+        ]
+      },
+      "derived": {
+        "initial_Pb_mass_mg": 0.006,
+        "captured_Pb_mass_mg": 0.0059526,
+        "batch_uptake_mg_per_g": 0.059525999999999996,
+        "batch_uptake_kg_per_kg": 5.9526e-05,
+        "residual_Pb_ug_per_L": 4.740000000000011,
+        "inventory_limited_uptake_mg_per_g": 0.06
+      },
+      "is_Langmuir_qmax": false,
+      "transferability": "Loading-limited composite batch uptake; neither qmax nor mat flux attenuation. Pb only among modelled channels.",
+      "quality_flags": [
+        "PK2_TEMPERATURE_DISCREPANCY",
+        "PK2_CONCLUSION_METAL_MAPPING"
+      ]
+    },
+    {
+      "id": "PK2_preparation",
+      "source_id": "PK2",
+      "element": null,
+      "material": "CFK-SMGO",
+      "quantity": "keratin_and_SMGO_charged_mass",
+      "value": [
+        2,
+        1
+      ],
+      "unit": "g",
+      "pdf_pages": [
+        13
+      ],
+      "location": "experimental section",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "details": {
+        "water_mL": 75,
+        "HCl_mL": 6,
+        "HCl_M": 2,
+        "reaction_pH": [
+          5,
+          6
+        ],
+        "reaction_C": 80,
+        "reaction_h": 8,
+        "potassium_persulfate_mg": 15,
+        "sodium_thiosulfate_mg": 9,
+        "drying_C": 65,
+        "charged_mass_ratio_CF_K_to_SMGO": 2
+      },
+      "transferability": "Input recipe is not measured final mass fraction, bulk density, hydraulic conductivity or diffusivity."
+    },
+    {
+      "id": "PK2_kinetics",
+      "source_id": "PK2",
+      "element": "Pb",
+      "material": "CFK-SMGO",
+      "quantity": "contact_times",
+      "value": [
+        1,
+        3,
+        6,
+        12,
+        24
+      ],
+      "unit": "h",
+      "pdf_pages": [
+        11,
+        12,
+        13
+      ],
+      "location": "figure12; narrative; experimental section",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "rapid_initial_period_h": [
+        0,
+        6
+      ],
+      "model_compatible_kinetic_coefficient": null,
+      "transferability": "Time observations support follow-up batch testing; no first-order rate fitted."
+    },
+    {
+      "id": "PK2_regeneration",
+      "source_id": "PK2",
+      "element": "Pb",
+      "material": "CFK-SMGO",
+      "quantity": "adsorption_desorption_cycles",
+      "value": 4,
+      "unit": "cycles",
+      "pdf_pages": [
+        12,
+        13
+      ],
+      "location": "figure13; experimental section",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "regeneration": {
+        "HCl_M": 2,
+        "HCl_volume_mL": 10,
+        "desorption_h": 24,
+        "drying_C": 50
+      },
+      "transferability": "Laboratory regeneration of this composite; no unchanged-capacity service assumption for field mats."
+    },
+    {
+      "id": "PK4_Hg_capacity",
+      "source_id": "PK4",
+      "element": "Hg",
+      "material": "mechanically activated, ammonium-thioglycolate-reduced human hair (MTHH)",
+      "quantity": "reported_uptake_capacity",
+      "value": 476.7,
+      "unit": "mg_Hg/g_sorbent",
+      "pdf_pages": null,
+      "location": "primary publisher highlights; reviewPK3p5 says over470mg/g",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "converted_kg_per_kg": 0.4767,
+      "conditions": {
+        "pH": null,
+        "salinity": null,
+        "temperature": null,
+        "isotherm_form": null,
+        "reason_null": "Not verified from the retrieved primary abstract/highlights"
+      },
+      "transferability": "Corrects missing-Hg-literature claim; does not calibrate flowing seawater wool/feather mat."
+    },
+    {
+      "id": "PK4_Hg_distribution",
+      "source_id": "PK4",
+      "element": "Hg",
+      "material": "MTHH",
+      "quantity": "reported_distribution_coefficient",
+      "value": 2600000.0,
+      "unit": "mL/g",
+      "pdf_pages": null,
+      "location": "primary publisher abstract",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "converted_m3_per_kg": 2600,
+      "transferability": "Experimental distribution ratio is not automatically a linear-isotherm slope in seawater."
+    },
+    {
+      "id": "PK4_Hg_low_concentration",
+      "source_id": "PK4",
+      "element": "Hg",
+      "material": "MTHH",
+      "quantity": "reported_initial_Hg",
+      "value": 1,
+      "unit": "mg/L",
+      "pdf_pages": null,
+      "location": "primary publisher abstract",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "reported_final_ug_per_L_upper_bound": 2,
+      "final_bound_operator": "less_than",
+      "transferability": "Tested samples are not evidence of seawater-mat performance."
+    },
+    {
+      "id": "PK3_colloid_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "wool keratin colloidal solution",
+      "quantity": "reported_uptake",
+      "value": 43.3,
+      "unit": "mg/g",
+      "pdf_pages": [
+        4
+      ],
+      "location": "section4.1",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Sekimoto etal2013",
+      "conditions": {
+        "removal_percent": 95
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_network_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "feather/poly(potassium acrylate)/PVA semi-IPN",
+      "quantity": "reported_qmax",
+      "value": 143.2,
+      "unit": "mg/g",
+      "pdf_pages": [
+        5
+      ],
+      "location": "section4.2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Kong etal2016",
+      "conditions": {},
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_HK_DAA_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "hydrolysed keratin/diallylamine",
+      "quantity": "reported_capacity",
+      "value": 337.9,
+      "unit": "mg/g",
+      "pdf_pages": [
+        4,
+        5
+      ],
+      "location": "Table2 and section4.2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Feng etal2024",
+      "conditions": {
+        "initial_Cu_mg_per_L": 500
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_woolpowder_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "120min-ground wool keratin powder",
+      "quantity": "reported_capacity",
+      "value": 58.95,
+      "unit": "mg/g",
+      "pdf_pages": [
+        4
+      ],
+      "location": "Table2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Li etal2024",
+      "conditions": {
+        "initial_Cu_ug_per_L": 5000,
+        "reported_removal_percent": 99.52
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_nanosponge_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "wool-derived keratin nanosponge",
+      "quantity": "reported_removal_efficiency",
+      "value": 55,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "Table2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Hoti etal2024",
+      "conditions": {
+        "initial_metal_ug_per_L": 50
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_modifiedfeather_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "ethylene-diamine-modified chicken feather",
+      "quantity": "reported_removal_efficiency",
+      "value": 98.9,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "section4.1",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Chakraborty etal2020",
+      "conditions": {
+        "initial_metal_mg_per_L": 20
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_modifiedpolymer_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "chemically transformed keratin biopolymers",
+      "quantity": "reported_removal_efficiency_lower_bound",
+      "value": 82,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "section4.1",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Donner etal2019",
+      "conditions": {
+        "initial_metal_ug_per_L": 50
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_Schiff_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "keratin Schiff-base cation exchanger",
+      "quantity": "approximate_removal_efficiency",
+      "value": 40,
+      "unit": "percent",
+      "pdf_pages": [
+        5
+      ],
+      "location": "section4.1",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Almoukayed and Barhoum2023",
+      "conditions": {
+        "pH": [
+          6.5,
+          7
+        ]
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_Schiff_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "keratin Schiff-base cation exchanger",
+      "quantity": "approximate_removal_efficiency",
+      "value": 40,
+      "unit": "percent",
+      "pdf_pages": [
+        5
+      ],
+      "location": "section4.1",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Almoukayed and Barhoum2023",
+      "conditions": {
+        "pH": [
+          6.5,
+          7
+        ]
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_nanochitosan_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "nanochitosan-crosslinked keratin",
+      "quantity": "reported_multi_metal_removal_upper_value",
+      "value": 98,
+      "unit": "percent",
+      "pdf_pages": [
+        5
+      ],
+      "location": "section4.2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Zubair etal2023",
+      "conditions": {
+        "pH": 7.5,
+        "contact_h": 24,
+        "nanochitosan_percent": [
+          1,
+          3,
+          5
+        ],
+        "Pb_specific_value_not_resolved": true
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_extracted_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "sodium-sulphide-extracted freeze-dried feather keratin",
+      "quantity": "reported_removal_efficiency",
+      "value": 69,
+      "unit": "percent",
+      "pdf_pages": [
+        4,
+        5
+      ],
+      "location": "Table2 and section4.2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Amin etal2024",
+      "conditions": {
+        "pH": 4.5,
+        "initial_Cu_mg_per_L_range": [
+          10,
+          50
+        ]
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_MFPZ_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "feather-keratin-based MFPZ",
+      "quantity": "reported_removal_efficiency",
+      "value": 91.51,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "Table2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Ni etal2024",
+      "conditions": {},
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_MFPZ_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "feather-keratin-based MFPZ",
+      "quantity": "reported_removal_efficiency",
+      "value": 63.95,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "Table2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Ni etal2024",
+      "conditions": {},
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_hydrolysate_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "wool keratin hydrolysate",
+      "quantity": "reported_removal_efficiency",
+      "value": 82,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "Table2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Aliev etal2024",
+      "conditions": {
+        "reported_initial_concentration_mol_per_L": 1,
+        "reported_equivalence_ppb": 1000000,
+        "concentration_conversion_valid": false
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_coir_Pb",
+      "source_id": "PK3",
+      "element": "Pb",
+      "material": "row calls coconut-coir activated carbon keratin-based",
+      "quantity": "reported_removal_efficiency",
+      "value": 99.26,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "Table2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Osazuwa etal2025",
+      "conditions": {
+        "initial_metal_mg_per_L_range": [
+          2,
+          10
+        ],
+        "material_identity_requires_primary_check": true
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    },
+    {
+      "id": "PK3_coir_Cu",
+      "source_id": "PK3",
+      "element": "Cu",
+      "material": "row calls coconut-coir activated carbon keratin-based",
+      "quantity": "reported_removal_efficiency",
+      "value": 97.53,
+      "unit": "percent",
+      "pdf_pages": [
+        4
+      ],
+      "location": "Table2",
+      "provenance": "literature",
+      "imported_to_operating_defaults": false,
+      "cited_primary": "Osazuwa etal2025",
+      "conditions": {
+        "initial_metal_mg_per_L_range": [
+          2,
+          10
+        ],
+        "material_identity_requires_primary_check": true
+      },
+      "evidence_level": "secondary_unverified_primary",
+      "transferability": "Literature lead only; no operating parameter assignment. Percentages are not qmax values."
+    }
+  ],
+  "baseline_simulation_parameters": [
+    {
+      "element": "Pb",
+      "provenance": "assumption",
+      "direct_fit_from_supplied_papers": false,
+      "q_max_kg_per_kg": 0.001,
+      "q_max_interval": [
+        0.0003,
+        0.008
+      ],
+      "kd_m3_per_kg": 3,
+      "kd_interval": [
+        0.5,
+        20
+      ],
+      "k_rate_per_s": 0.0004,
+      "k_rate_interval": [
+        0.0001,
+        0.0012
+      ],
+      "d_eff_m2_per_s": 2e-10,
+      "d_eff_interval": [
+        8e-11,
+        5e-10
+      ],
+      "available_fraction": 0.25,
+      "available_fraction_interval": [
+        0.05,
+        0.6
+      ],
+      "allocation_fraction": 0.6,
+      "commissioned_q_max_interval": [
+        0.00075,
+        0.0013
+      ],
+      "commissioning_status": "synthetic assumed operator information, not a completed experiment"
+    },
+    {
+      "element": "Hg",
+      "provenance": "assumption",
+      "direct_fit_from_supplied_papers": false,
+      "q_max_kg_per_kg": 0.0025,
+      "q_max_interval": [
+        0.0002,
+        0.025
+      ],
+      "kd_m3_per_kg": 30,
+      "kd_interval": [
+        2,
+        300
+      ],
+      "k_rate_per_s": 0.0002,
+      "k_rate_interval": [
+        3e-05,
+        0.0008
+      ],
+      "d_eff_m2_per_s": 2e-10,
+      "d_eff_interval": [
+        8e-11,
+        5e-10
+      ],
+      "available_fraction": 0.1,
+      "available_fraction_interval": [
+        0.01,
+        0.4
+      ],
+      "allocation_fraction": 0.3,
+      "commissioned_q_max_interval": null,
+      "commissioning_status": "not commissioned"
+    },
+    {
+      "element": "Cu",
+      "provenance": "assumption",
+      "direct_fit_from_supplied_papers": false,
+      "q_max_kg_per_kg": 0.003,
+      "q_max_interval": [
+        0.0005,
+        0.02
+      ],
+      "kd_m3_per_kg": 8,
+      "kd_interval": [
+        1,
+        60
+      ],
+      "k_rate_per_s": 0.0005,
+      "k_rate_interval": [
+        0.0001,
+        0.0015
+      ],
+      "d_eff_m2_per_s": 2.2e-10,
+      "d_eff_interval": [
+        9e-11,
+        5.5e-10
+      ],
+      "available_fraction": 0.02,
+      "available_fraction_interval": [
+        0.002,
+        0.15
+      ],
+      "allocation_fraction": 0.1,
+      "commissioned_q_max_interval": [
+        0.002,
+        0.0045
+      ],
+      "commissioning_status": "synthetic assumed operator information, not a completed experiment"
+    }
+  ],
+  "use_conclusion": {
+    "direct_paper_calibration": false,
+    "existing_background_reference": "PK3 already cited as K5",
+    "new_operating_parameter_values_required": false,
+    "reason": "No measured seawater-core parameter set; experimental materials, matrices, endpoints and kinetic laws differ.",
+    "mandatory_scientific_correction": "Replace general missing keratin-Hg capacity claim with missing validated capacity for actual core in flowing seawater."
+  },
+  "paper_quality_flags": [
+    {
+      "id": "PK1_SWIV_FIGURE_TABLE_CONFLICT",
+      "source_id": "PK1",
+      "locations": [
+        "Table2 PDFp32",
+        "section3.3.1 PDFp8",
+        "figure5 PDFp21"
+      ],
+      "issue": "SW-IV table0.268mmol/g and text~0.27 disagree with figure curve approaching~0.36mmol/g.",
+      "status": "unresolved_source_discrepancy; retain table transcription with flag"
+    },
+    {
+      "id": "PK1_KINETIC_FIT_INVENTORY_CONFLICT",
+      "source_id": "PK1",
+      "locations": [
+        "Table3 PDFp33",
+        "figure6 PDFp22"
+      ],
+      "issue": "SW-III kinetic fitted qe exceeds total Cu inventory implied by caption.",
+      "fitted_qe_mmol_per_g": 0.2721,
+      "initial_inventory_mmol_per_g": 0.23604947597016335,
+      "fitted_over_inventory_ratio": 1.15272444,
+      "status": "unresolved_source_discrepancy; unsuitable fitting target"
+    },
+    {
+      "id": "PK2_TEMPERATURE_DISCREPANCY",
+      "source_id": "PK2",
+      "locations": [
+        "results PDFp11",
+        "methods PDFp13"
+      ],
+      "issue": "Results says24C; methods says~20C and20C kinetic incubation.",
+      "status": "do_not_silently_choose_temperature"
+    },
+    {
+      "id": "PK2_CONCLUSION_METAL_MAPPING",
+      "source_id": "PK2",
+      "locations": [
+        "conclusion PDFp12",
+        "abstract PDFp1",
+        "figure10 PDFp10"
+      ],
+      "issue": "Conclusion mismaps99.03/99.21percent to Ni/Cd; abstract/results/figure identify Cd/Pb.",
+      "status": "use abstract/results/figure mapping"
+    },
+    {
+      "id": "PK3_CONCENTRATION_CONVERSION",
+      "source_id": "PK3",
+      "locations": [
+        "Table2 PDFp4"
+      ],
+      "issue": "1mol/L is equated to1000000ppb; invalid for Cu without molar-mass conversion.",
+      "status": "exclude numeric equivalence from parameter use"
+    },
+    {
+      "id": "PK3_NON_KERATIN_COMPARATORS",
+      "source_id": "PK3",
+      "locations": [
+        "section4.3 PDFpp5-6"
+      ],
+      "issue": "93.14mg/gPb,9.68mg/gPb,12.44mg/gCu and49.70mg/gPb are comparative agave-bagasse/carbon examples, not a keratin envelope.",
+      "status": "exclude from keratin capacity bounds"
+    },
+    {
+      "id": "PK3_URANIUM_SALINITY",
+      "source_id": "PK3",
+      "locations": [
+        "section4.2 PDFp5"
+      ],
+      "issue": "35g/L high-salinity removal>90percent and capacities585.88/990.10mg/g concern uranium on amidoxime-modified aerogel.",
+      "status": "no_transfer_to_Pb_Hg_Cu"
+    }
+  ],
+  "verification": {
+    "unit_conversions": "Recomputed with63.546mgCu/mmol;1mg/g=0.001kg/kg;1mL/g=0.001m3/kg.",
+    "reproduction": "PK2 Pb=600ug/L*0.010L*0.9921/0.100g/1000=0.059526mg/g",
+    "visual_source_checks": [
+      "PK1 figure5",
+      "PK1 Table2",
+      "PK1 Table3",
+      "PK2 figure10"
+    ],
+    "source_article_images_committed": false
+  },
+  "recommended_next_experiments": [
+    "Same-material batch isotherms under source laboratory conditions and seawater conditions",
+    "Joint Pb/Hg/Cu competition withCa,Mg,chloride andDOM",
+    "Flow-through breakthrough and hydraulic/mechanical characterisation of final composite",
+    "Measured regeneration retention, accessible thiol density and sulphur content"
+  ]
+}

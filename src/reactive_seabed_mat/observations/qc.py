@@ -57,6 +57,7 @@ from datetime import datetime
 from typing import Mapping, Sequence
 
 from ..contracts import (
+    AcquisitionKind,
     ObservationRecord,
     Parameter,
     Qualifier,
@@ -140,7 +141,7 @@ def asset_key(record: ObservationRecord) -> tuple[str, str]:
     return ("station", record.station_id)
 
 
-def channel_key(record: ObservationRecord) -> tuple[str, str, str, str]:
+def channel_key(record: ObservationRecord) -> tuple[str, ...]:
     """A channel is one parameter, from one asset, at one station, one method.
 
     Identity falls back from the sensor to the tile before the sample, so
@@ -153,6 +154,10 @@ def channel_key(record: ObservationRecord) -> tuple[str, str, str, str]:
         f"{kind}:{identifier}",
         record.parameter.value,
         record.method_id,
+        record.quantity_kind.value,
+        record.matrix.value,
+        record.fraction.value,
+        record.tile_id or "",
     )
 
 
@@ -592,6 +597,12 @@ def stuck_value_check(
     """
     results: dict[str, tuple[QualityFlag, str]] = {}
     if not series:
+        return results
+    # Repeated survey zeros or complete coverage are valid physical evidence.
+    # Retain the existing chemistry repeat check, but do not interpret exact
+    # physical endpoints such as zero burial as instrument failure.
+    if (series[0].is_mat_condition
+            and series[0].acquisition_kind is not AcquisitionKind.IN_SITU_SENSOR):
         return results
     tolerance = _lookup(thresholds.stuck_tolerance, series[0])
     if tolerance is None:

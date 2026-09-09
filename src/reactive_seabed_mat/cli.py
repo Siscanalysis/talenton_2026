@@ -12,11 +12,13 @@ import argparse
 import json
 import sys
 import time
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 
 from .config import RunConfig, config_hash, save_run_config
-from .results import ManifestBuilder, RunPaths, ledger_to_dict, write_json
+from .results import ManifestBuilder, RunPaths, ledger_to_dict, write_json, write_jsonl_dicts
+from .observations.records import write_jsonl, observations_available
+from .observations.qc import run_qc
 from .scenarios import registry
 from .scenarios.run import run_scenario
 from .visualization.report import write_html_report
@@ -45,6 +47,7 @@ def _write_result(result, base: Path) -> RunPaths:
                 "leaving the whole hotspot, including area no tile covers."
             ),
             "hotspot_released_kg": dict(result.hotspot_released_kg),
+            "hotspot_into_water_kg": dict(result.hotspot_into_water_kg),
             "layer_budget": {
                 element: ledger_to_dict(ledger)
                 for element, ledger in result.mat_ledger.items()
@@ -83,6 +86,19 @@ def _write_result(result, base: Path) -> RunPaths:
     )
     maintenance = result.maintenance
     if maintenance is not None:
+        write_jsonl(paths.observations / "records.jsonl", maintenance.observations)
+        write_jsonl_dicts(paths.estimates / "history.jsonl",
+                         (asdict(estimate) for estimate in maintenance.estimate_history))
+        write_json(paths.estimates / "final.json",
+                   {tile: asdict(estimate) for tile, estimate in maintenance.final_estimates.items()})
+        write_jsonl_dicts(paths.actions / "recommendations.jsonl",
+                         (asdict(rec) for rec in maintenance.recommendations))
+        write_jsonl_dicts(paths.actions / "service_events.jsonl",
+                         (asdict(event) for event in maintenance.service_events))
+        if result.timeline:
+            final_time = result.timeline[-1].time_utc
+            qc = run_qc(list(observations_available(maintenance.observations, final_time)), now_utc=final_time)
+            write_json(paths.observations / "final_qc.json", asdict(qc))
         write_json(
             paths.comparison / "recommendations.json",
             {
@@ -120,6 +136,9 @@ def _write_result(result, base: Path) -> RunPaths:
                         "uncertainty_note": rec.uncertainty_note,
                         "target_tile_ids": list(rec.target_tile_ids),
                         "n_evidence_records": len(rec.evidence_record_ids),
+                        "evidence_record_ids": list(rec.evidence_record_ids),
+                        "data_age_s": rec.data_age_s,
+                        "diagnostics": dict(rec.diagnostics),
                         "expected_cost_eur": rec.expected_cost_eur,
                         "human_confirmation_required": rec.human_confirmation_required,
                         "execution_mode": rec.execution_mode,
@@ -162,6 +181,11 @@ def _write_result(result, base: Path) -> RunPaths:
         "The mat timeline and the plume windows run on separate clocks and "
         "their ledgers are reported separately."
     )
+    manifest.assumptions.extend([
+        "Evidence-informed decisions use compatible Pb/Hg chemistry. Cu is simulated but has no observation channel and is not evidence-controlled.",
+        "Missing hydraulic-head and tilt models emit missing observations; no zero-valued physical condition is fabricated.",
+        "Nonfinite interval endpoints are JSON null with _nonfinite_values path metadata identifying unbounded directions.",
+    ])
     for element, ledger in result.mat_ledger.items():
         manifest.add_check(
             f"mat_mass_balance_{element}",
@@ -180,6 +204,10 @@ def _write_result(result, base: Path) -> RunPaths:
                 tolerance=1e-6,
             )
     manifest.add_data_file("report.html", report)
+    for directory in (paths.observations, paths.estimates, paths.actions, paths.ledger, paths.comparison):
+        for artifact in sorted(directory.iterdir()):
+            if artifact.is_file():
+                manifest.add_data_file(artifact.relative_to(paths.root).as_posix(), artifact)
     manifest.write(paths)
     return paths
 
@@ -219,10 +247,7 @@ def _mass_into_water_kg(result, element: str) -> float:
     means anything. With no mat it is the whole hotspot release; with a mat it
     is what left the reactive layer, plus whatever the tiles never covered.
     """
-    if result.config.policy.kind == "none":
-        return float(result.hotspot_released_kg.get(element, 0.0))
-    ledger = result.mat_ledger.get(element)
-    return float(ledger.boundary_out_kg) if ledger is not None else 0.0
+    return float(result.hotspot_into_water_kg.get(element, 0.0))
 
 
 def _compare_policies(scenario: str, base: Path, *, quick: bool) -> None:
@@ -251,9 +276,12 @@ def _compare_policies(scenario: str, base: Path, *, quick: bool) -> None:
             f"{element}_into_water_kg": _mass_into_water_kg(result, element),
             f"{element}_retained_kg": (
                 result.mat_ledger[element].retained_in_mat_kg
+                + result.mat_ledger[element].retained_in_retrieved_media_kg
                 if element in result.mat_ledger
                 else 0.0
             ),
+            f"{element}_active_mat_kg": result.mat_ledger[element].retained_in_mat_kg,
+            f"{element}_retrieved_media_kg": result.mat_ledger[element].retained_in_retrieved_media_kg,
             "final_attenuation": (
                 result.timeline[-1].attenuation.get(element) if result.timeline else None
             ),
@@ -292,8 +320,9 @@ def _compare_policies(scenario: str, base: Path, *, quick: bool) -> None:
             ),
             "comparison_note": (
                 "Mass into water is the same quantity in all three rows: the "
-                "whole hotspot release under 'none', and what left the reactive "
-                "layer under the other two."
+                "whole hotspot release under 'none', and the integrated mat residual "
+                "plus release through uncovered or displaced area under the other two. "
+                "Retained mass includes active media and separately recorded retrieved media."
             ),
             "rows": rows,
         },

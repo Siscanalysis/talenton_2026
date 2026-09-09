@@ -1,249 +1,75 @@
 # Five-minute demonstration
 
-Written to be read aloud. Every number below comes from a run you can reproduce,
-and the commands are in the order you would actually type them.
+Use the [PDF manuscript](../manuscript/manuscript.pdf) for the complete evidence and the [gallery](gallery/README.md) for regenerated figures. Read numerical values from the current report being shown; this script deliberately does not duplicate run-dependent performance tables.
 
-Before you start, have this ready:
+Prepare a short run:
 
 ```powershell
 .venv\Scripts\python.exe -m reactive_seabed_mat.cli quick --out results
 ```
 
-Open `results\fresh_mat_quick\report\report.html` in a browser. It is one file,
-it works offline, and it is the whole demonstration if the laptop misbehaves.
+Open `results\fresh_mat_quick\report\report.html`, or open the committed `docs\gallery\index.html` for all six full scenarios. A shortened quick run and a full scenario have different horizons.
 
----
+## 0:00?0:45: The question
 
-## 0:00 to 0:40 The problem, and what this is not
+> We model a thin, retrievable cap over a hypothetical contaminated seabed hotspot. Each tile contains a reactive core between two permeable carriers. The model follows lead, inorganic mercury and copper through the core, then calculates short coastal transport windows. It also asks what maintenance decisions could be supported by delayed and imperfect observations.
+>
+> Reactive caps already exist. This simulation evaluates an assumed keratin-core design and monitoring workflow. The proposed material has not been tested in a seawater mat.
 
-> An authorised contaminated seabed area leaks lead, mercury and copper into the
-> water above it. The mat we model is a thin, modular, retrievable cap: a
-> keratin reactive core held between two permeable carrier geotextiles, laid
-> over that area so contaminant passes through the sorbent instead of straight
-> into the sea.
->
-> Three things before anything else, and I would rather you heard them from me.
->
-> **The architecture is not new, and the name is taken.** That
-> geotextile-core-geotextile sandwich is sold as CETCO's patented Reactive Core
-> Mat and as HUESKER's Tektoseal Active. We are not claiming it. What could be
-> ours is the *filling*: a waste-derived, sulfur-bearing keratin core instead of
-> organoclay. That is a materials claim and it is unproven.
->
-> **This is a simulation, not a field trial.** No supplier has been contacted, no
-> quotation exists, and every material parameter is a literature value derated
-> for seawater rather than a measurement of our material.
->
-> **And the honest headline is not the attenuation number.** It is that a cap
-> which consumes itself has to be maintained, and you cannot maintain what you
-> cannot see. That is what this demonstrator is actually about.
+Show the scenario, simulation horizon and synthetic-data label.
 
-Show the banner at the top of the report. It says all of this on the page.
+## 0:45?1:35: What the papers establish
 
-## 0:40 to 1:40 The material, and the one honest asymmetry
+> The supplied review was already cited as background. Its experimental numbers and the two other supplied papers did not calibrate the original simulation. We traced their values and units in the new report.
+>
+> Treated sheep wool has measured copper adsorption. A modified feather-keratin/graphene-oxide composite removed lead in a dilute, salt-containing batch. A primary study cited by the review reports mercury uptake on chemically reduced human hair. These findings correct the earlier blanket statements about copper and mercury.
+>
+> They are different materials and tests. A percentage removed from a small batch is not the maximum capacity, and a maximum batch capacity is not the operating capacity in a flowing seawater mat. Our Pb, Hg and Cu defaults remain labelled assumptions until that transfer is measured.
 
-Open the **Reactive medium** table in the report.
+Show the paper traceability table and its experimental conditions. The [page-level audit](PAPER_PARAMETER_TRACEABILITY.md) records both usable values and inconsistencies in the source papers.
 
-> The candidate is a keratin-based polymer, from waste wool or feather. Published
-> lead capacities for keratin biofibres are 4 to 33 mg/g. For scale, the same
-> paper measures activated carbon at 6.7 mg/g, so keratin is comparable, not
-> miraculous.
->
-> Those numbers are all from deionised water at pH 4. In seawater at pH 8.2,
-> carbonate complexes dominate dissolved lead and free Pb2+ is a minority
-> species, while calcium and magnesium outnumber the trace metal by orders of
-> magnitude. So we run the model at 1.0 mg/g, well below the lowest published
-> figure.
->
-> For mercury there is a harder answer: **we could not find a verified keratin
-> mercury capacity anywhere.** Rather than borrow a number from a different
-> material, the model uses a stoichiometric ceiling from keratin's own 4 to 8
-> weight per cent sulfur. It is the weakest number in the model and the report
-> says so.
->
-> Copper is the interesting one, and it is the one that goes against us.
-> Copper has the **best** published keratin capacity of the three, 20 mg/g on
-> wool keratin nanofibres. It is also the metal we are least able to remove from
-> seawater, because **above 99 per cent of dissolved copper is locked in strong
-> organic complexes** with stability constants around ten to the fifteenth. A
-> carboxyl group on a protein does not compete with that.
->
-> Mercury is genuinely not in free form in seawater either: it is above 99 per
-> cent chloride-complexed, mostly as HgCl4 two-minus. That helps us in one way,
-> because those complexes methylate more slowly, and hurts us in another, because
-> the thing arriving at the surface is an anion approaching a negatively charged
-> fibre and four chlorides have to be displaced before it binds.
->
-> So the model carries an availability fraction per metal: **0.25 for lead, 0.10
-> for mercury, 0.02 for copper.** Capacity is not availability, and that
-> distinction is the difference between a batch beaker and the Baltic.
+## 1:35?2:30: Reading the maps and curves
 
-## 1:40 to 2:40 What the mat does, and what it does not
+Show scenario A's residual-flux map and timeline.
 
-Scroll to **Seabed residual flux** and **Effective reactive cover**.
-
-> This is the flux still entering the water, per square metre. Green tiles are
-> intact, amber torn, red displaced, blue buried.
+> The spatial map includes uncovered and bypass flow. Its whole-hotspot attenuation differs from attenuation through an individual column. The comparison curve is the same geometry with no sorption. The separation of the curves reflects reactive transport and transient storage; it is not an isolated laboratory measurement of the sorbent.
 >
-> Next to it, the plume with and without the mat, on a shared colour scale so
-> the comparison is honest.
->
-> The model reports about 97 per cent attenuation for a fresh mat, settling near
-> 94 per cent as the medium loads. **Now the number that matters, and it is not
-> that one.**
->
-> The dotted line on this chart is what the same mat would do with **no chemical
-> capacity left at all**: pure geometry, an inert sandwich. It sits at 94.3 per
-> cent. So at six years the sorbent's own contribution is **0.19 percentage
-> points for lead, 0.58 for mercury, and zero for copper.** The shaded band is
-> the chemistry. For copper there is no band.
->
-> Measured differently the chemistry looks better: of the lead that actually
-> *enters* the layer, the mat keeps about 27 per cent. Both numbers are true and
-> they answer different questions. I am showing you both because showing only
-> the second is the flattering error.
->
-> And one more caveat: **97 per cent is above anything a real cap has achieved.**
-> In-situ thin-layer capping in Trondheim harbour reduced measured
-> sediment-to-water fluxes by a factor of two to ten, so 50 to 90 per cent. Our
-> model has uniform seepage, no bioturbation, no consolidation and perfect
-> contact. Our figure is an upper bound set by the physics we chose to include.
+> In scenario B we extend the same source to six years. A loading plateau does not necessarily mean every site is filled: finite affinity can bring the material to equilibrium below its nominal capacity. We use the plotted inventories and fluxes to distinguish these outcomes.
 
-## 2:40 to 3:40 It degrades in four independent ways
+For a plume surface, explain that height represents concentration, not water depth. The coastal calculation lasts for a short window at the labelled mat age, rather than for the entire multi-year timeline.
 
-Switch to the app if it is running, or scroll to the timeline charts.
+## 2:30?3:30: Bends, failures and uncertain evidence
 
-```powershell
-.venv\Scripts\streamlit.exe run app/streamlit_app.py
-```
+Show scenarios C and D, then E.
 
-> A cap does not simply fill up. It saturates, it fouls, it gets buried or swept
-> off, and it tears. The model keeps those four apart because **they need
-> different responses and they look the same in a single flux number.**
+> Scenario C changes the source at two years. Scenario D introduces displacement and partial damage at specified times. Abrupt changes at these events can be expected. Replacement also changes inventories discontinuously. Unexplained oscillation or a result that moves substantially with numerical resolution needs a separate numerical check.
 >
-> Scenario D displaces one tile and punctures another. Those cells go straight
-> back to the bare-sediment flux while their neighbours keep working. Failure is
-> local, so the response should be local: replace two tiles out of nine, not the
-> mat.
+> The revised code aligns geometry and timestamps, preserves exact campaign schedules and checks the numerical solution against independent benchmarks. The report lists what remains sensitive, including coastal grid and time resolution and a retained modelling discontinuity at exactly full capacity.
 >
-> And one that works against us. **Burial reduces the measured flux.** A buried
-> mat looks like a working mat. If your monitoring programme is only flux
-> measurements, burial reads as success. The model raises a flag for it instead.
+> Decisions see records only after completion, availability and QC checks. A non-detect is an interval, and an above-range reading has an unbounded upper limit. Physical survey readings are evaluated by their values and uncertainty. Missing copper chemistry is reported as unknown and cannot be used as evidence of chemical failure.
 
-## 3:40 to 4:40 The comparison that matters, and it does not flatter us
+Show the observation timestamps and evidence identifiers for a recommendation. A delayed measurement can change the information available without necessarily changing the selected action.
 
-Open the **Maintenance** tab, or run:
+## 3:30?4:20: Maintenance comparison
+
+Open the comparison figure, or run:
 
 ```powershell
 .venv\Scripts\python.exe -m reactive_seabed_mat.cli compare progressive_saturation --out results
 ```
 
-Six years, same seed, same forcing, same hotspot, same sampling. Only the policy
-differs.
-
-| Policy | Pb into the water | Services | Assumed cost |
-|---|---|---|---|
-| no mat | 642.3 kg | 0 | EUR 0 |
-| fixed calendar servicing | 15.9 kg | 2 | EUR 3.73 M |
-| evidence-informed servicing | 28.4 kg | 0 | EUR 0 |
-
-> The mat works: 642 kilograms down to single figures.
+> These policies share a hypothetical source and monitoring design. Compare whole-hotspot emission, full-column retained and retrieved inventories, services and the assumed cost separately. The mass columns have different control volumes and should not be added into an invented global balance.
 >
-> But look at the third row. **Evidence-informed servicing let nearly twice as
-> much lead through as a calendar, and spent nothing.** It under-serviced. That
-> is not a bug we are about to fix, it is the finding.
+> Sparse or stale chemistry can prevent the evidence-informed policy from supporting a chemical replacement decision. Resolved physical damage can support a different response. Every action shown is a simulation recommendation, and additional sampling recommendations do not automatically launch a new campaign in the present model.
+
+Read actual event counts and quantities from the displayed regenerated result. The economic comparison uses assumed prices and covers the cost categories listed in that result, not a supplier quotation or complete deployment business case.
+
+## 4:20?5:00: What would validate the design
+
+Show scenario F's smaller coverage and the deployment-scale chart.
+
+> Coverage is a design input, and its uncovered area continues emitting. Regional designated dumping areas give geographical scale; they do not establish a measured metal hotspot or a deployment priority. A pilot area and its target contaminants would need site-specific evidence.
 >
-> With chemistry on one tile out of nine, no seepage measurement, and a capacity
-> known only from a commissioning test, the estimated saturation never narrows
-> enough to justify sending a vessel. **The value of evidence-informed
-> maintenance is bounded by the monitoring programme that feeds it.**
+> The next useful experiments are seawater isotherms and flow-through columns on the final material, followed by durability, hydraulic and ecological tests. Mercury methylation needs its own assessment: the model does not simulate the relevant microbiology, and a synthetic methylmercury channel cannot validate ecological safety.
 >
-> And that gives us a number for what the laboratory work is worth. Without a
-> commissioning isotherm on our own material, the capacity interval spans a
-> factor of twenty-seven and the policy cannot act at all. That single experiment
-> is what turns this from monitoring into maintenance.
-
-If someone asks why the policy did not just replace the mat anyway: it also
-declines to replace when the same falling attenuation could be a stronger
-sediment source. New media does not fix a source that grew.
-
-## 4:40 to 4:55 The scale problem, said plainly
-
-Show the log-scale area chart.
-
-> Last thing, and it is the one that should shape what we ask for. The Bornholm
-> primary dumpsite is a circle three nautical miles across: **97 square
-> kilometres**. Covering it with this mat would take about **388,000 tonnes of
-> keratin, roughly a fifth of one year's global wool clip**, and tens of billions
-> of euro in material before a vessel sailed.
->
-> Anyone presenting this as a way to clean up the Baltic is not doing arithmetic.
->
-> A realistic first deployment is **one to two hectares**. Which means the
-> binding question was never "how good is the mat". It is **which two hectares**,
-> and that is a targeting and monitoring problem. Which is the problem this
-> demonstrator is actually built to address.
->
-> So we rank candidates by **what they protect**, not by what they contain. That
-> puts a nondescript industrial harbour first and the famous Bornholm dumpsite
-> **last**, six times lower, because Bornholm sits in 90 metres of water twelve
-> kilometres from the nearest receptor.
->
-> The customer that points at already exists. Germany's federal programme for
-> dumped munitions is funded at **100 million euro** and ran its first pilot in
-> the Bay of Lübeck, beside resort towns, in 2024. And at the planned salvage
-> rate, about two tonnes a day against three hundred thousand tonnes in German
-> waters, **physical recovery takes roughly 411 years.** That interim is the gap
-> a containment measure would have to cover.
->
-> One last thing, and it is the one I would want to be asked about. At those
-> German coastal sites, what is actually measured reaching mussels and fish is
-> **TNT, RDX and DNT** — not metals. Keratin thiols bind soft metals. They do
-> not bind nitroaromatics. So either we go where the metals are, which is
-> harbour sediment and ranks first anyway, or we add activated carbon as a
-> second medium, or we narrow the claim to the metal fraction. What we do not do
-> is cite the munitions programme as the market and then offer a metals sorbent
-> as the answer to it.
-
-## 4:55 to 5:00 What would change our minds
-
-> Six experiments would replace assumptions with measurements, and they are
-> listed in `docs/MATERIAL_KERATIN.md`. The first is the isotherm in real
-> seawater. The one that could stop the project is the sixth: **a sulfur-rich,
-> biodegradable protein layer over anoxic sediment is a plausible substrate for
-> the bacteria that make methylmercury.** Capping can increase methylmercury
-> production. We model that as a risk channel, never as a benefit, and if it
-> turns out to be real then this material is the wrong material.
->
-> Everything on screen is reproducible from a clean clone: 434 tests, one
-> command, no network. The audit that found the problems in our own code is in
-> `docs/AUDIT.md`, including the two places where our model is more optimistic
-> than the measured literature.
-
----
-
-## If a question goes somewhere awkward
-
-**"Is 99 per cent realistic?"** No, and we say so on the page. Real caps achieve
-a factor of two to ten. Our model omits preferential flow, bioturbation and
-consolidation, all of which make real caps worse.
-
-**"Where did the porewater concentration come from?"** It is an assumption, and
-it is an aggressive one: about 400 times measured benthic lead fluxes. It is
-chosen so a six-year run shows loading and breakthrough. The absolute kilograms
-belong to the assumed hotspot; the comparisons between policies are the part
-that transfers.
-
-**"Has anyone measured a keratin mat in seawater?"** Not that we could find.
-Neither a seawater keratin isotherm nor a measured metal flux attenuation across
-a marine reactive cap exists in the open literature. Both gaps are recorded in
-`research/references/datasets.json`.
-
-**"What about the munitions?"** Out of scope by design. The source is an
-abstract authorised contaminant hotspot. Nothing here simulates, locates or
-recommends handling unexploded ordnance, and real deployment near historical
-marine munitions needs specialist and environmental approval.
-
-**"Can it be automated?"** No, and deliberately. Every recommendation carries
-`human_confirmation_required = True` and `execution_mode = "simulation_only"`.
-There is no actuation path and none should be added without a safety case.
+> The manuscript, editable LaTeX, figures and computational provenance are included with the scripts so those assumptions and checks can be reviewed together.

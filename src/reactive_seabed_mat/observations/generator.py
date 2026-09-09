@@ -48,6 +48,7 @@ and are named as such in each record's ``source_ref``.
 from __future__ import annotations
 
 import math
+import hashlib
 from bisect import bisect_right
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
@@ -318,9 +319,9 @@ class MatStateSample:
     #: Share of the tile footprint still covered by intact mat.
     coverage_fraction: float = 1.0
     #: Head loss across the layer [Pa].  Separates fouling from saturation.
-    differential_head_pa: float = 0.0
+    differential_head_pa: float | None = None
     #: Tilt of the tile [deg].
-    tilt_deg: float = 0.0
+    tilt_deg: float | None = None
     #: Effective permeability of the layer [m2].
     permeability_m2: float | None = None
     #: True damage class from the controlled vocabulary in ``condition.py``.
@@ -568,6 +569,18 @@ class SyntheticRecordFactory:
         self.fast_validation = bool(fast_validation)
         self._rng = np.random.default_rng(self.seed)
         self._counter = 0
+        self._window_start_s = 0.0
+        self._window_lookback_s = 0.0
+
+    def reading_rng(self, channel: str, moment: datetime, asset: str, parameter: str = "") -> None:
+        """Key measurement noise to its channel, asset and experiment time.
+
+        Changing decision cadence, adding a proxy or losing another sample must
+        not change an existing laboratory result's random error.
+        """
+        key = f"{self.seed}|{channel}|{format_utc(moment)}|{asset}|{parameter}"
+        seed = int.from_bytes(hashlib.sha256(key.encode()).digest()[:16], "little")
+        self._rng = np.random.default_rng(seed)
 
     # -- identifiers and time ----------------------------------------------
 
@@ -582,9 +595,12 @@ class SyntheticRecordFactory:
         if period_s <= 0.0:
             raise ValueError("a sampling period must be positive")
         count = int(math.floor(duration_s / period_s)) + 1
+        first = max(0, int(math.floor(
+            (self._window_start_s - self._window_lookback_s) / period_s
+        )))
         return [
             self.start_utc + timedelta(seconds=index * period_s)
-            for index in range(count)
+            for index in range(first, count)
         ]
 
     def in_dropout(self, moment: datetime) -> bool:
@@ -728,6 +744,18 @@ class SyntheticRecordFactory:
         validator is compiled once or once per record; see
         :class:`CachedRecordValidator`.
         """
+        payload = dict(payload)
+        identity = "|".join(str(payload.get(key) or "") for key in (
+            "station_id", "tile_id", "media_id", "observed_at_utc",
+            "sampling_start_utc", "parameter", "quantity_kind", "matrix",
+            "fraction", "acquisition_kind", "method_id",
+        ))
+        payload["record_id"] = self.record_id_prefix + hashlib.sha256(identity.encode()).hexdigest()[:24]
+        if payload.get("sample_id"):
+            sample_identity = "|".join(str(payload.get(key) or "") for key in (
+                "station_id", "tile_id", "observed_at_utc", "sampling_start_utc", "acquisition_kind",
+            ))
+            payload["sample_id"] = "S_" + hashlib.sha256(sample_identity.encode()).hexdigest()[:20]
         if self.fast_validation and CACHED_VALIDATOR.available:
             CACHED_VALIDATOR.validate(payload)
             return record_from_dict(dict(payload), validate=False)
@@ -813,6 +841,7 @@ class ObservationGenerator(SyntheticRecordFactory):
                 sample_index += 1
                 sample_id = f"PW_{sample_index:05d}"
                 for element in self.assumptions.lab_elements:
+                    self.reading_rng("porewater", moment, station.station_id, element)
                     noise = float(self._rng.normal(0.0, sigma_rel))
                     loss_draw = float(self._rng.random())
                     driving_si = float(
@@ -899,6 +928,7 @@ class ObservationGenerator(SyntheticRecordFactory):
         Capping alters sediment redox and can *increase* MeHg production
         (MODEL_SPEC section 11).  The record exists so that risk is visible.
         """
+        self.reading_rng("methylmercury", moment, station.station_id, "Hg")
         noise = float(self._rng.normal(0.0, sigma_rel))
         reported = max(
             inorganic_ug_per_l
@@ -964,6 +994,7 @@ class ObservationGenerator(SyntheticRecordFactory):
                 tile_id = self._tile_for(station, scene)
                 sensor_id = f"SIM_PBPROBE_{station.station_id}"
                 for element in self.assumptions.probe_elements:
+                    self.reading_rng("bottom_water", moment, station.station_id, element)
                     noise = float(self._rng.normal(0.0, sigma_rel))
                     missing_draw = float(self._rng.random())
                     unknown_draw = float(self._rng.random())
@@ -1071,6 +1102,7 @@ class ObservationGenerator(SyntheticRecordFactory):
                 deployment += 1
                 sample_id = f"BC_{deployment:05d}"
                 for element in self.assumptions.lab_elements:
+                    self.reading_rng("chamber", start, station.station_id, element)
                     noise = float(self._rng.normal(0.0, sigma_rel))
                     loss_draw = float(self._rng.random())
                     mean_flux_si = scene.mean_of(
@@ -1179,6 +1211,7 @@ class ObservationGenerator(SyntheticRecordFactory):
                     matrix = Matrix.BOTTOM_WATER.value
                     getter_name = "bottom_water_kg_per_m3"
                 for element in self.assumptions.lab_elements:
+                    self.reading_rng("dgt", start, station.station_id, element)
                     noise = float(self._rng.normal(0.0, sigma_rel))
                     mean_si = scene.mean_of(
                         tile_id,
@@ -1258,6 +1291,7 @@ class ObservationGenerator(SyntheticRecordFactory):
             else float(loading_kg_per_kg)
         )
         value_ng_per_g = from_si_solid_loading(loading, "ng/g")
+        self.reading_rng("media_assay", observed_at, f"{batch.tile_id}|{batch.media_id}", element)
         noise = float(self._rng.normal(0.0, self.assumptions.media_assay_relative_noise))
         reported = max(value_ng_per_g * (1.0 + noise), 0.0)
         payload = self.base_payload(resolved_station, tile_id=batch.tile_id)
@@ -1343,6 +1377,7 @@ class ObservationGenerator(SyntheticRecordFactory):
                 for parameter, channel in CONTEXT_CHANNELS.items():
                     if parameter not in sample.values:
                         continue
+                    self.reading_rng("environment", moment, station.station_id, parameter)
                     noise = float(self._rng.normal(0.0, sigma_rel))
                     true_value = float(sample.values[parameter])
                     reported = true_value * (1.0 + noise)
@@ -1414,6 +1449,8 @@ class ObservationGenerator(SyntheticRecordFactory):
                 start_utc=self.start_utc,
                 fast_validation=self.fast_validation,
             )
+            condition._window_start_s = self._window_start_s
+            condition._window_lookback_s = self._window_lookback_s
             records.extend(condition.generate(scene, duration_s))
         records.sort(
             key=lambda record: (
@@ -1423,6 +1460,33 @@ class ObservationGenerator(SyntheticRecordFactory):
             )
         )
         return records
+
+    def generate_window(
+        self, scene: ScriptedScene, start_s: float, end_s: float, **include_channels
+    ) -> list[ObservationRecord]:
+        """Emit readings completed in ``(start_s, end_s]`` on one global clock.
+
+        The first window includes time zero. ``scene`` must cover earlier
+        exposure starts, including chamber/DGT deployments crossing the left
+        boundary. Laboratory records are emitted when sampled, retaining their
+        future availability time for the controller's separate time gate.
+        """
+        if start_s < 0.0 or end_s < start_s:
+            raise ValueError("observation window must satisfy 0 <= start <= end")
+        self._window_start_s = start_s
+        self._window_lookback_s = max(
+            self.assumptions.chamber_deployment_s, self.config.dgt_exposure_s
+        )
+        try:
+            records = self.generate(scene, end_s, **include_channels)
+        finally:
+            self._window_start_s = 0.0
+            self._window_lookback_s = 0.0
+        return [record for record in records if (
+            (self.elapsed_s(record.observed_at_utc) > start_s
+             or (start_s == 0.0 and record.observed_at_utc == self.start_utc))
+            and self.elapsed_s(record.observed_at_utc) <= end_s
+        )]
 
 
 # ---------------------------------------------------------------------------
@@ -1920,6 +1984,7 @@ def scene_from_layer_history(
     kind of silent assumption this repository is built to avoid.
     """
     tile_samples: dict[str, list[MatStateSample]] = {}
+    resolved_positions = dict(tile_positions or {})
     for tile_id, series in history.items():
         samples: list[MatStateSample] = []
         for moment, step in series:
@@ -1930,6 +1995,10 @@ def scene_from_layer_history(
                     "it is rejected rather than guessed"
                 )
             state = step.new_state
+            resolved_positions.setdefault(tile_id, (
+                state.geometry.x_m + 0.5 * state.geometry.width_m,
+                state.geometry.y_m + 0.5 * state.geometry.length_m,
+            ))
             samples.append(
                 MatStateSample(
                     time_utc=moment,
@@ -1964,6 +2033,6 @@ def scene_from_layer_history(
         tile_samples=tile_samples,
         environment_samples=dict(environment_samples or {}),
         media=tuple(media),
-        tile_positions=dict(tile_positions or {}),
+        tile_positions=resolved_positions,
         notes="scene built from a reactive-layer timeline",
     )
