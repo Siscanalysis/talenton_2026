@@ -63,6 +63,30 @@ ninefold end-to-end speedup.
 
 ## Scientific limits retained
 
+The complete regenerated study on 9 September 2026 finished in 3510.9 s with
+two workers and confirmed that source files did not change during execution.
+Its source SHA-256 is
+`f4ffd77258be6d46ee7a77c04e67eadf2e79eec1da3f2bb721a1e474166a1ee7`.
+The numerical tables and full precision results are in [TIMESCALES.md](TIMESCALES.md)
+and `results/timescale-audit/timescale_audit.json`.
+
+The six-hour versus one-hour two-year Pb attenuation difference is
+`6.97565e-6`. At the fixed 24-hour coastal endpoint, changing the step from
+600 to 150 s on the 10 m grid changes the with-mat Pb maximum from 6.03871 to
+5.86022 ng/L: the coarse result is 3.046% higher. The corresponding water
+inventory differs by about 18.0%, so agreement in a peak or a source ratio
+cannot certify every field quantity. Changing the grid from 10 to 5 m at
+150 s changes the peak from 5.86022 to 5.88378 ng/L (the 10 m result is
+0.400% lower). These are sensitivities to the tested discretisations, not
+bounds relative to an exact coastal solution.
+
+Across the five four-year review cadences, the observation calendar and
+19,593 observations are identical, accepted services remain zero, and Pb
+attenuation remains 0.7174644884. Recommendations occur 97, 48, 16, 8 and 4
+times for 15, 30, 90, 180 and 365-day reviews respectively. This particular
+study therefore does not demonstrate a physical service benefit from changing
+the review cadence.
+
 The capacity-lock rule has a finite discontinuity at accessible capacity and is
 an unvalidated material assumption. The exact discrete barrier isolates a
 numerical reference consistently, but its difference from transient attenuation
