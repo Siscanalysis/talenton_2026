@@ -1,0 +1,147 @@
+\section{Regenerated demonstrator results}
+\label{sec:results}
+\subsection{Scenario design and performance measures}
+All reported results are synthetic and were regenerated after the scientific revision. The shared seed is 20260908. A model year is 365.25 days. The baseline uses a 10~mm core with 4~kg\,m$^{-2}$ dry loading, nine tiles and complete geometric coverage of the hypothetical hotspot. Scenario F changes both geometry and transport and is therefore a compound stress case.
+
+\begin{table}[htbp]\centering\small
+\caption{Configured six-scenario experiments.}\label{tab:scenarios}
+\begin{tabular}{llrp{.48\linewidth}}\toprule
+ID & Scenario & Years & Change \\
+\midrule
+A & Fresh mat & 1 & Baseline source and fresh medium. \\
+B & Progressive loading & 6 & Same physical configuration, longer exposure. \\
+C & Increased source & 6 & At year 2, porewater concentrations triple and seepage doubles. \\
+D & Local damage & 4 & Displacement at year 1.5; another tile loses 35\% integrity at year 2.2. \\
+E & Delayed chemistry & 4 & 75-day lab delay, probe dropout at years 1--1.25 and subsequent drift. \\
+F & Undersized mat & 4 & 45\% footprint, four tiles, 2~mm core, 10\% edge bypass and tripled seepage. \\
+\bottomrule\end{tabular}\end{table}
+
+The principal attenuation is the whole-hotspot quantity
+\begin{equation}
+A_{\mathrm{area},e}(t)=1-\frac{\int_{\Omega_h}J_{\mathrm{res},e}(x,y,t)\,\mathrm{d}A}{|\Omega_h|J_{\mathrm{bare},e}(t)}.
+\end{equation}
+It includes uncovered area, physical damage and bypass. The raw-column attenuation remains a separate diagnostic. The barrier-only comparator applies the same area weighting to the exact stationary discrete column with uptake disabled. Its difference from transient total attenuation is a diagnostic increment, not an isolated measurement of chemistry: transient porewater storage also contributes.
+
+The endpoint concentration ratio is $R_{\max,e}=\max c_{\mathrm{with},e}/\max c_{\mathrm{bare},e}$. Its two maxima need not occur in the same cell. Neither source attenuation nor this ratio is a toxicity or compliance metric. Retained column mass comprises porewater and sorbed inventory; the active and retrieved parts are recorded separately.
+
+\subsection{Final states and chemical contribution}
+\begin{table}[htbp]\centering\small
+\caption{Final whole-hotspot attenuation and nominal sorbed-capacity use (percent). No statistical confidence interval is implied.}\label{tab:all-metals}
+\begin{tabular}{lrrrrrr}\toprule
+Scenario & $A_{\rm Pb}$ & $A_{\rm Hg}$ & $A_{\rm Cu}$ & $q_{\rm Pb}/q_{\max}$ & $q_{\rm Hg}/q_{\max}$ & $q_{\rm Cu}/q_{\max}$ \\
+\midrule
+A & 89.93 & 91.92 & 87.13 & 44.69 & 0.36 & 8.70 \\
+B & 61.32 & 61.57 & 61.19 & 66.76 & 0.83 & 9.53 \\
+C & 57.91 & 58.09 & 57.92 & 100.00 & 2.75 & 30.62 \\
+D & 70.21 & 70.99 & 69.99 & 63.31 & 0.74 & 9.11 \\
+E & 71.75 & 72.40 & 71.59 & 64.01 & 0.76 & 9.15 \\
+F & 25.87 & 25.87 & 25.85 & 66.60 & 0.85 & 9.41 \\
+\bottomrule\end{tabular}\end{table}
+
+\begin{table}[htbp]\centering\small
+\caption{Final footprint after physical condition, Pb column inventories and monitoring workload. Coverage excludes edge/fouling bypass; records include explicit missing results.}\label{tab:scenario-results}
+\begin{tabular}{lrrrrr}\toprule
+Scenario & Coverage (\%) & Active Pb (kg) & Retrieved Pb (kg) & Services & Records \\
+\midrule
+A & 100.00 & 6.884 & 0 & 0 & 4950 \\
+B & 100.00 & 10.28 & 0 & 0 & 29349 \\
+C & 100.00 & 15.45 & 0 & 0 & 29349 \\
+D & 96.11 & 9.752 & 0.9153 & 1 & 19593 \\
+E & 100.00 & 9.859 & 0 & 0 & 19593 \\
+F & 45.00 & 0.9233 & 0 & 0 & 11995 \\
+\bottomrule\end{tabular}\end{table}
+
+Increasing occupancy does not imply full exhaustion. A low accessible concentration or partition slope can hold the equilibrium load below the allocated capacity. Conversely, decreasing effective coverage can worsen hotspot emission even if surviving columns remain effective. The scenario-D time series now resolves the local physical events at their true times. Any accepted service changes active-media inventory and restores the serviced tile's condition; retrieved mass remains in its separate ledger.
+
+\begin{table}[htbp]\centering\small
+\caption{Resolved Pb jumps at a shared event time. The flux ratio is immediately after divided by immediately before; attenuation can rise while absolute emission rises because its bare-source denominator also changes.}\label{tab:event-jumps}
+\begin{tabular}{llrrrr}\toprule
+ID & Event & Age (yr) & Before (\%) & After (\%) & Flux ratio \\
+\midrule
+C & Source increase & 2 & 82.72 & 85.08 & 2.737 \\
+D & Displacement & 1.5 & 85.99 & 76.44 & 1.682 \\
+D & Replacement & 2.053 & 73.24 & 84.13 & 0.593 \\
+D & Integrity loss & 2.2 & 83.27 & 80.10 & 1.189 \\
+\bottomrule\end{tabular}\end{table}
+
+In scenario C, the source step raises the absolute residual flux even though the instantaneous attenuation ratio improves. Subsequent storage adjustment and Pb capacity locking explain the later bend. In D, the upward jump follows the recorded replacement of a displaced tile; it is followed by a separate integrity-loss event on another tile. These events are explicit changes in the model state, not measurement noise.
+
+\figpage{attenuation_all}{Whole-hotspot attenuation in all six regenerated scenarios. The shared axis includes the complete response of the undersized design. Event-time discontinuities are retained rather than smoothed.}{fig:attenuation}
+\figpage{saturation_all}{Sorbed inventory as a fraction of allocated nominal capacity. The profiles are deterministic simulations; low capacity use can coexist with little incremental uptake.}{fig:saturation}
+\figpage{condition_all}{Mean fouling, physical integrity and actual hotspot coverage through time. Matching physical histories overlap. Coverage and bypass are distinct: a nominally intact footprint can still lose effective performance as fouling diverts flow.}{fig:condition}
+\begin{table}[htbp]\centering\small
+\caption{Six-year baseline decomposition using a common discrete transport operator and hotspot weighting. Differences are percentage points.}\label{tab:barrier}
+\begin{tabular}{lrrr}\toprule
+Element & Total (\%) & Barrier reference (\%) & Difference (pp) \\
+\midrule
+Pb & 61.32 & 61.19 & 0.1279 \\
+Hg & 61.57 & 61.19 & 0.3759 \\
+Cu & 61.19 & 61.19 & 0.005172 \\
+\bottomrule\end{tabular}\end{table}
+
+The baseline chemical increment is much smaller than the total attenuation. Cumulative storage and an endpoint increment answer different questions: mass retained during an earlier uptake transient can remain in the core even when the later flux approaches a resistance-controlled regime. Subtracting an approximate continuum barrier from a discrete transient result previously introduced small misleading differences, especially for Cu; the revised reference removes that operator mismatch.
+
+\subsection{Spatial source and water transport}
+All standard plume windows last 24 hours. The comparison below uses a three-year mat state when that age is within the scenario horizon, and the actual one-year endpoint for A. The source is held fixed during each window and the water starts clean. The final-age source plate in Appendix~\ref{app:spatial} additionally shows each scenario endpoint.
+\begin{table}[htbp]\centering\small
+\caption{Pb comparison at the stated mat age. Source is kg per 24-hour window; endpoint concentration maxima are ng/L.}\label{tab:spatial-results}
+\begin{tabular}{lrrrrrrr}\toprule
+ID & Age (yr) & Bare kg & Mat kg & Reduction (\%) & Bare peak & Mat peak & $R_{\max}$ \\
+\midrule
+A & 1 & 0.2931 & 0.0295 & 89.93 & 59.99 & 6.039 & 0.1007 \\
+B & 3 & 0.2931 & 0.06726 & 77.05 & 39.37 & 9.035 & 0.2295 \\
+C & 3 & 0.929 & 0.2535 & 72.71 & 124.8 & 34.06 & 0.2729 \\
+D & 3 & 0.2931 & 0.07169 & 75.54 & 39.37 & 10.32 & 0.2621 \\
+E & 3 & 0.2931 & 0.06726 & 77.05 & 39.37 & 9.035 & 0.2295 \\
+F & 3 & 0.3262 & 0.2351 & 27.95 & 43.83 & 28.29 & 0.6454 \\
+\bottomrule\end{tabular}\end{table}
+
+Unlike the previous geometry, the configured damaged tiles intersect the hotspot. Their source changes are therefore represented spatially. Scenario E changes observation timing rather than material coefficients; equality with a matched physical trajectory is expected whenever the policy produces the same servicing history. Scenario F leaves 55\% of the hotspot geometrically uncovered before bypass, so its column performance cannot be presented as whole-area performance.
+
+\figpage{flux_30}{Regenerated residual Pb source maps at three years, or the actual one-year endpoint for A, with one shared source scale. Ages are shown in each panel.}{fig:fluxlate}
+\figpage{spatial_B}{Baseline B at three years: matched with/without endpoint water concentrations, their cellwise ratio, and effective reactive cover.}{fig:spatialB}
+\figpage{profiles_all}{Final Pb profiles through the core for every scenario. Colours show local sorbed load in mg per kg of core; panel scales are stated separately. Similar tiles are deterministic columns, not independent experimental replicates.}{fig:profiles}
+\begin{figure}[htbp]\centering\includegraphics[width=\linewidth]{figures/surfaces.pdf}
+\caption{Final six-year baseline Pb load through the core and the three-year endpoint plume shown as surfaces. Height denotes different labelled quantities; concentration is not seabed elevation.}\label{fig:surfaces}\end{figure}
+
+\subsection{Three maintenance policies on a common emission basis}
+The comparison uses identical source and forcing assumptions, seed and nominal monitoring configuration. Calendar and evidence-informed servicing share the actual sample calendar; the bare reference has no installed-mat observations. All policies integrate the same whole-hotspot residual source, including uncovered and bypassed area. Calendar service is triggered on the next decision boundary after its interval is reached; the baseline services occur on days 750 and 1500. Evidence-informed service depends on arrived compatible measurements, their quality, attribution and uncertainty. The economic column below is the assumed service ledger; it excludes full lifecycle costs.
+\begin{table}[htbp]\centering\small
+\caption{Six-year cumulative whole-hotspot emission (kg), service events and assumed service expenditure.}\label{tab:policies}
+\begin{tabular}{lrrrrr}\toprule
+Policy & Pb emitted & Hg emitted & Cu emitted & Services & Cost (EUR) \\
+\midrule
+No mat & 642.3 & 5.138 & 1285 & 0 & 0 \\
+Calendar & 62.74 & 0.4271 & 163.8 & 2 & 3.734e+06 \\
+Evidence & 141.6 & 1.08 & 297.9 & 0 & 0 \\
+\bottomrule\end{tabular}\end{table}
+
+\begin{table}[htbp]\centering\small
+\caption{Pb inventory accounting in the policy comparison. Column inputs and outputs use the full tile-column control volume and are not added to the area-mixed emission above.}\label{tab:policy-ledger}
+\begin{tabular}{lrrrr}\toprule
+Policy & Column input (kg) & Active (kg) & Retrieved (kg) & Column out (kg) \\
+\midrule
+No mat & 0 & 0 & 0 & 0 \\
+Calendar & 42.77 & 8.832 & 18 & 15.94 \\
+Evidence & 38.71 & 10.28 & 0 & 28.43 \\
+\bottomrule\end{tabular}\end{table}
+
+\figpage{policy}{Policy comparison using whole-hotspot Pb emission for every policy. Active plus retrieved column inventory is shown separately. Costs are assumed service expenditure, not total project cost or profit.}{fig:policy}
+Sparse Pb/Hg chemistry constrains evidence-informed decisions. Cu is simulated but not observed, and missing Cu no longer contributes evidence of performance loss. Unknown source and flux intervals are identified explicitly; no interval midpoint is a field measurement. Recommendations to sample or inspect do not adapt the future campaign schedule in this demonstrator. This comparison therefore does not establish the value of an optimised monitoring programme.
+
+\subsection{Integration and conservation checks}
+The regenerated audit compares final timeline flux with the integrated spatial source for every element and policy, validates every plume age against its simulation horizon, checks observation-ID uniqueness, and checks all individual column and water ledgers. Initial samples are unadvanced; the integration ends at the exact requested time, including a partial last step. The zero-sorption reference is tested against independent stationary face balances and grid refinement, and nonlinear transient profiles against an adaptive ODE reference.
+\begin{table}[htbp]\centering\small
+\caption{Audit of regenerated scenario outputs. Relative errors are dimensionless. Conservation and agreement are numerical checks, not material validation.}\label{tab:scenario-audit}
+\begin{tabular}{lrrll}\toprule
+ID & Worst budget error & Source agreement error & Valid ages & Unique IDs \\
+\midrule
+A & 3.371e-14 & 9.245e-15 & True & True \\
+B & 1.661e-13 & 2.062e-15 & True & True \\
+C & 1.439e-13 & 1.872e-15 & True & True \\
+D & 9.371e-14 & 2.496e-15 & True & True \\
+E & 1.101e-13 & 2.637e-15 & True & True \\
+F & 5.685e-14 & 3.026e-16 & True & True \\
+\bottomrule\end{tabular}\end{table}
+
+\input{numerical_results}

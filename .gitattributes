@@ -1,0 +1,5 @@
+# Keep manuscript delivery checksums stable across operating systems.
+manuscript/** -text whitespace=cr-at-eol
+*.pdf binary
+*.png binary
+manuscript/verification/*.txt -whitespace

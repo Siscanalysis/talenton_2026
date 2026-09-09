@@ -1,0 +1,32 @@
+\section{Purpose, scope and evidence provenance}
+\label{sec:scope}
+The proposed system places a permeable, retrievable reactive mat over a contaminated seabed source. Its intended function is to reduce contaminant flux into overlying water and retain a recoverable fraction in the medium. The model represents source attenuation; it does not filter the volume swept by a current or remove contaminant from an existing water-column cell.
+
+This revised manuscript documents the executable TalentON 2026 repository and its regenerated results.\citep{repository} The source revision is identified on the title page and in the accompanying provenance inventory. Scientific source files, scenario definitions, material and measurement literature, regenerated numerical studies, and the complete gallery form the evidence corpus. Internal prompts, role instructions, handoffs and other documents used for development with agents are excluded from the manuscript's scientific evidence. Earlier output is not combined with the revised simulations.
+
+\subsection{Questions addressed}
+The report asks which material and transport assumptions produce the simulated attenuation, whether the supplied keratin papers contributed numerical inputs, why some plots have abrupt or non-monotone changes, which observations can support maintenance, and what deployment scale implies for materials and cost. It also distinguishes numerical correctness from physical validation. A small conservation residual checks a particular control volume; it does not validate material properties or establish ecological benefit.
+
+\begin{table}[htbp]\centering\small
+\caption{Evidence classes used throughout the manuscript.}\label{tab:evidence-classes}
+\begin{tabular}{p{.23\linewidth}p{.66\linewidth}}\toprule
+Class & Meaning\\\midrule
+External measurement & Published observation retaining its original material, analyte, matrix and experimental conditions.\\
+Literature input & A mechanism or number adopted from a source; transfer to the proposed mat remains a separate question.\\
+Assumption & Chosen numerical parameter, operating factor, cost or score without a measurement of the proposed system.\\
+Synthetic output & Consequence of the model and observation generator; not a measurement of an environmental site.\\
+Numerical verification & Comparison with independent numerical references, conservation identities, refinement or behavioural regression checks.\\
+Reproducibility record & Configuration, source fingerprint, data arrays and test or build outputs identifying what was actually computed.\\
+\bottomrule\end{tabular}\end{table}
+
+\subsection{Revised computational evidence}
+All six scenario trajectories, their plume windows and the three-policy comparison were regenerated following the corrections described in this report. The long horizon, time-step, observation-cadence and tidal-window studies were also rerun. Numerical values in the current result tables are derived from these runs. The prior manuscript described coordinate, timing and observation defects in an earlier version; those descriptions are replaced here by the implemented corrections and their regression checks.
+
+The offline gallery retains interactive figures and downloadable context, while the manuscript redraws its scientific arrays as vector plates. The package contains LaTeX sources, a bibliography, figure scripts, machine-readable scenario and policy summaries, numerical-study data, and a verification inventory. No generated illustration is used as measured scientific evidence. The conceptual and geometric drawings are vector schematics with explicit labels.
+
+\subsection{System represented and boundaries}
+A one-dimensional column represents aqueous transport and finite-rate uptake through each reactive core. A spatial source operator mixes covered, uncovered, bypassed and damaged parts of the hotspot. Separate short two-dimensional simulations show transport from frozen mat states. The observation path converts hidden states into synthetic records with sampling times, analytical fractions, censoring, uncertainty and result delays; estimates and recommendations consume only records available at the decision time.
+
+Pb, Hg and Cu are simulated physically. The implemented chemical observation channels support Pb and Hg; Cu remains unobserved and is excluded from evidence-based diagnoses. Missing hydraulic-head and tilt models produce missing records, not normal-condition measurements. No fitted machine-learning model, formal design optimiser or empirically established value-of-information analysis is present.
+
+The 600 by 400~m coastal domain and 80 by 80~m hotspot are hypothetical. Regional data and maps give deployment context but are not assimilated into the default run. The simulations are therefore not calibrated models of Bornholm, Kiel Bay or a particular harbour.\par

@@ -1,0 +1,102 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[british]{babel}
+\usepackage[margin=24mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,graphicx,booktabs,longtable,array,tabularx}
+\usepackage{float,caption,xcolor,enumitem,microtype,fancyhdr}
+\usepackage{etoolbox}
+% Compatibility fix for longtable v4.24 (latex3/latex2e issue 1907).
+% Upstream v4.25 uses finite shrink in these two output-routine skips.
+% On newer versions the patterns do not occur and this is a no-op.
+\makeatletter
+\patchcmd{\LT@output}{\vss}{\vskip\z@\@plus1fil\@minus\normalbaselineskip}{}{}
+\patchcmd{\LT@output}{\vss}{\vskip\z@\@plus1fil\@minus\normalbaselineskip}{}{}
+\makeatother
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xurl}
+\usepackage[unicode,colorlinks=true,linkcolor=teal!60!black,citecolor=teal!60!black,urlcolor=teal!60!black]{hyperref}
+\definecolor{ink}{HTML}{183C50}
+\definecolor{accent}{HTML}{155E75}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{2em}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.16}
+\captionsetup{font=small,labelfont=bf,skip=8pt}
+\setlist{nosep,leftmargin=*}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{ink}{Reactive seabed mat: scientific software report}}
+\fancyhead[R]{\small TalentON 2026}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\hypersetup{pdftitle={A Selective Reactive Seabed Mat: Scientific Basis, Model Assumptions and Demonstrator Results},pdfsubject={Documented report of the TalentON 2026 software repository},pdfkeywords={keratin, reactive cap, seabed, lead, mercury, copper, finite volume, monitoring, maintenance}}
+\newcommand{\sourcecode}[1]{\texttt{\small\detokenize{#1}}}
+\newcommand{\figpage}[3]{\begin{figure}[p]\centering\includegraphics[width=\linewidth,height=.78\textheight,keepaspectratio]{figures/#1.pdf}\caption{#2}\label{#3}\end{figure}}
+\input{revision}
+\begin{document}
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\vspace*{12mm}
+{\large\textcolor{accent}{TALENTON 2026\quad /\quad TECHNICAL MANUSCRIPT}}\par
+\vspace{14mm}
+{\Huge\bfseries\textcolor{ink}{A Selective Reactive\\[4pt] Seabed Mat}}\par
+\vspace{7mm}
+{\Large Scientific basis, model assumptions\\ and demonstrator results}\par
+\vspace{9mm}
+{\large Keratin media, Pb--Hg--Cu transport, monitoring\\ and maintenance in an offline research demonstrator}\par
+\vspace{13mm}
+\includegraphics[width=\linewidth]{figures/concept.pdf}
+\vfill
+\begin{minipage}{\linewidth}\small
+Prepared from the inspected \texttt{reactive-seabed-mat-demo} software snapshot.\\
+Scientific source revision: \texttt{\sourceRevision}.\\
+Report date: 9 September 2026.\quad Software version: 0.2.0.\\[5pt]
+\textbf{Evidence status:} synthetic computational demonstration. The manuscript distinguishes external measurements, explicit assumptions, regenerated outputs and independent numerical checks. The proposed keratin mat has no field validation in the inspected evidence.
+\end{minipage}
+\end{titlepage}
+\pagenumbering{roman}
+\hypersetup{pageanchor=true}
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\input{abstract}
+
+\vspace{5pt}\textbf{Keywords:} reactive capping; keratin; sediment--water exchange; finite-volume modelling; lead; mercury; copper; observation uncertainty; maintenance.
+\clearpage
+\tableofcontents
+\clearpage
+\listoffigures
+\clearpage
+\listoftables
+\clearpage
+\pagenumbering{arabic}
+\input{scope}
+\input{evidence}
+\input{methods}
+\begin{figure}[htbp]\centering
+\includegraphics[width=.77\linewidth]{figures/geometry.pdf}
+\caption{Corrected deployment geometry using lower-left tile coordinates throughout the column builder, source operator and plotting code. Baseline tiles cover the 6,400~m$^2$ hotspot. The centred undersized design covers 45\% while preserving the hotspot aspect ratio. Bypass and physical damage reduce effective reactive cover separately.}
+\label{fig:geometry}\end{figure}
+\clearpage
+\input{monitoring}
+\input{results}
+\input{deployment}
+\begin{figure}[htbp]\centering\includegraphics[width=\linewidth]{figures/scale.pdf}
+\caption{Area comparison redrawn from the regenerated gallery data. The four regional areas are designated historical dumping areas with different definitions; they are neither mapped continuous contamination nor eligible mat footprints. The hypothetical 0.64~ha hotspot is orders of magnitude smaller. The logarithmic axis makes this scale gap visible.}\label{fig:scale}\end{figure}
+\begin{figure}[htbp]\centering\includegraphics[width=\linewidth]{figures/priority.pdf}
+\caption{Illustrative candidate scores reproduced from the repository's deterministic priority function. The generic harbour has the strongest assumed match to the modelled metal chemistry. Scores use assumed receptor distances and weights; depth and logistics do not enter the score. The ordering is not a measured risk ranking or site-selection decision.}\label{fig:priority}\end{figure}
+\begin{figure}[htbp]\centering\includegraphics[width=.94\linewidth]{figures/context.pdf}
+\caption{Regional context redrawn from the repository's schematic coordinates. The outline is deliberately schematic and is not a navigational or survey map. Markers provide geographical context for the scale calculation; no mat deployment, object location or handling operation is implied.}\label{fig:context}\end{figure}
+\clearpage
+\input{discussion}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+\clearpage
+\appendix
+\input{appendices}
+\end{document}

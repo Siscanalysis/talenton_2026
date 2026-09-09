@@ -1,0 +1,39 @@
+[
+  {
+    "command": [
+      "C:\\Users\\Artelnics\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\pdflatex.exe",
+      "-disable-installer",
+      "-interaction=nonstopmode",
+      "-halt-on-error",
+      "manuscript.tex"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "C:\\Users\\Artelnics\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\bibtex.exe",
+      "manuscript"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "C:\\Users\\Artelnics\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\pdflatex.exe",
+      "-disable-installer",
+      "-interaction=nonstopmode",
+      "-halt-on-error",
+      "manuscript.tex"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "C:\\Users\\Artelnics\\AppData\\Local\\Programs\\MiKTeX\\miktex\\bin\\x64\\pdflatex.exe",
+      "-disable-installer",
+      "-interaction=nonstopmode",
+      "-halt-on-error",
+      "manuscript.tex"
+    ],
+    "exit_code": 0
+  }
+]

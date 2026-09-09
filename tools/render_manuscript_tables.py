@@ -58,9 +58,30 @@ for name in NAMES:
 text+=table('Final footprint after physical condition, Pb column inventories and monitoring workload. Coverage excludes edge/fouling bypass; records include explicit missing results.','tab:scenario-results','lrrrrr',['Scenario','Coverage (\\%)','Active Pb (kg)','Retrieved Pb (kg)','Services','Records'],rows)
 text+=r'''Increasing occupancy does not imply full exhaustion. A low accessible concentration or partition slope can hold the equilibrium load below the allocated capacity. Conversely, decreasing effective coverage can worsen hotspot emission even if surviving columns remain effective. The scenario-D time series now resolves the local physical events at their true times. Any accepted service changes active-media inventory and restores the serviced tile's condition; retrieved mass remains in its separate ledger.
 
-\figpage{attenuation_all}{Whole-hotspot attenuation in all six regenerated scenarios. The common 0--101\% axis includes the complete response of the undersized design. Event-time discontinuities are retained rather than smoothed.}{fig:attenuation}
+'''
+event_rows=[]
+for name in ['increased_leak','displaced_section']:
+    groups={}
+    for point in S[name]['timeline']:
+        groups.setdefault(point['elapsed_s'],[]).append(point)
+    for group in groups.values():
+        before,after=group[0],group[-1]
+        change=after['attenuation']['Pb']-before['attenuation']['Pb']
+        if len(group)<2 or abs(change)<1e-9: continue
+        event=('Source increase' if name=='increased_leak' else
+               'Replacement' if change>0 else
+               'Displacement' if abs(after['elapsed_years']-1.5)<1e-9 else 'Integrity loss')
+        flux='mean_residual_flux_kg_per_m2_per_s'
+        event_rows.append([LETTERS[name],event,f(after['elapsed_years']),
+            pct(before['attenuation']['Pb']),pct(after['attenuation']['Pb']),
+            f(after[flux]['Pb']/before[flux]['Pb'])])
+text+=table('Resolved Pb jumps at a shared event time. The flux ratio is immediately after divided by immediately before; attenuation can rise while absolute emission rises because its bare-source denominator also changes.',
+    'tab:event-jumps','llrrrr',['ID','Event','Age (yr)','Before (\\%)','After (\\%)','Flux ratio'],event_rows)
+text+=r'''In scenario C, the source step raises the absolute residual flux even though the instantaneous attenuation ratio improves. Subsequent storage adjustment and Pb capacity locking explain the later bend. In D, the upward jump follows the recorded replacement of a displaced tile; it is followed by a separate integrity-loss event on another tile. These events are explicit changes in the model state, not measurement noise.
+
+\figpage{attenuation_all}{Whole-hotspot attenuation in all six regenerated scenarios. The shared axis includes the complete response of the undersized design. Event-time discontinuities are retained rather than smoothed.}{fig:attenuation}
 \figpage{saturation_all}{Sorbed inventory as a fraction of allocated nominal capacity. The profiles are deterministic simulations; low capacity use can coexist with little incremental uptake.}{fig:saturation}
-\figpage{condition_all}{Mean fouling, physical integrity and actual hotspot coverage through time. Coverage and bypass are distinct: a nominally intact footprint can still lose effective performance as fouling diverts flow.}{fig:condition}
+\figpage{condition_all}{Mean fouling, physical integrity and actual hotspot coverage through time. Matching physical histories overlap. Coverage and bypass are distinct: a nominally intact footprint can still lose effective performance as fouling diverts flow.}{fig:condition}
 '''
 text+=table('Six-year baseline decomposition using a common discrete transport operator and hotspot weighting. Differences are percentage points.','tab:barrier','lrrr',['Element','Total (\\%)','Barrier reference (\\%)','Difference (pp)'],[[e,pct(bm['attenuation'][e]),pct(bm['barrier_only_attenuation'][e]),f(100*(bm['attenuation'][e]-bm['barrier_only_attenuation'][e]))] for e in ['Pb','Hg','Cu']])
 text+=r'''The baseline chemical increment is much smaller than the total attenuation. Cumulative storage and an endpoint increment answer different questions: mass retained during an earlier uptake transient can remain in the core even when the later flux approaches a resistance-controlled regime. Subtracting an approximate continuum barrier from a discrete transient result previously introduced small misleading differences, especially for Cu; the revised reference removes that operator mismatch.
@@ -79,10 +100,10 @@ text+=r'''Unlike the previous geometry, the configured damaged tiles intersect t
 \figpage{spatial_B}{Baseline B at three years: matched with/without endpoint water concentrations, their cellwise ratio, and effective reactive cover.}{fig:spatialB}
 \figpage{profiles_all}{Final Pb profiles through the core for every scenario. Colours show local sorbed load in mg per kg of core; panel scales are stated separately. Similar tiles are deterministic columns, not independent experimental replicates.}{fig:profiles}
 \begin{figure}[htbp]\centering\includegraphics[width=\linewidth]{figures/surfaces.pdf}
-\caption{Baseline Pb load through the core and the three-year endpoint plume shown as surfaces. Height denotes different labelled quantities; concentration is not seabed elevation.}\label{fig:surfaces}\end{figure}
+\caption{Final six-year baseline Pb load through the core and the three-year endpoint plume shown as surfaces. Height denotes different labelled quantities; concentration is not seabed elevation.}\label{fig:surfaces}\end{figure}
 
 \subsection{Three maintenance policies on a common emission basis}
-The comparison uses identical physical assumptions, seed and scheduled campaigns. All policies integrate the same whole-hotspot residual source, including uncovered and bypassed area. Calendar service is triggered on the next decision boundary after its interval is reached. Evidence-informed service depends on arrived compatible measurements, their quality, attribution and uncertainty. The economic column below is the assumed service ledger; it excludes full lifecycle costs.
+The comparison uses identical source and forcing assumptions, seed and nominal monitoring configuration. Calendar and evidence-informed servicing share the actual sample calendar; the bare reference has no installed-mat observations. All policies integrate the same whole-hotspot residual source, including uncovered and bypassed area. Calendar service is triggered on the next decision boundary after its interval is reached; the baseline services occur on days 750 and 1500. Evidence-informed service depends on arrived compatible measurements, their quality, attribution and uncertainty. The economic column below is the assumed service ledger; it excludes full lifecycle costs.
 '''
 rows=[]
 for key,label in [('none','No mat'),('fixed','Calendar'),('evidence_informed','Evidence')]:
@@ -96,9 +117,11 @@ Sparse Pb/Hg chemistry constrains evidence-informed decisions. Cu is simulated b
 The regenerated audit compares final timeline flux with the integrated spatial source for every element and policy, validates every plume age against its simulation horizon, checks observation-ID uniqueness, and checks all individual column and water ledgers. Initial samples are unadvanced; the integration ends at the exact requested time, including a partial last step. The zero-sorption reference is tested against independent stationary face balances and grid refinement, and nonlinear transient profiles against an adaptive ODE reference.
 '''
 rows=[]
+seen=set()
 for a in A:
-    if a['policy']=='evidence_informed':
+    if a['policy']=='evidence_informed' and a['scenario'] not in seen:
         rows.append([LETTERS[a['scenario']],f(a['maximum_ledger_relative_imbalance']),f(max(a['final_timeline_source_relative_error'].values())),str(a['all_window_ages_valid']),str(a['unique_observation_ids'])])
+        seen.add(a['scenario'])
 text+=table('Audit of regenerated scenario outputs. Relative errors are dimensionless. Conservation and agreement are numerical checks, not material validation.','tab:scenario-audit','lrrll',['ID','Worst budget error','Source agreement error','Valid ages','Unique IDs'],rows)
 text+=r'''\input{numerical_results}
 '''

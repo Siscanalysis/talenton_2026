@@ -1,0 +1,69 @@
+\section{Reproduction and numerical traceability}
+\label{app:reproduction}
+The manuscript resides in the repository's \path{manuscript/} directory together with its section sources, BibTeX database, vector figures, portable result summaries and verification records. The full interactive gallery is \path{docs/gallery/index.html}. The provenance inventory lists content hashes and the source revision used for the corrected simulations. Internal development prompts and third-party article PDFs are not distributed as manuscript source evidence.
+
+\subsection{Build the manuscript}
+From \path{manuscript/}, use the included PowerShell build script or run:
+\begin{verbatim}
+pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+bibtex manuscript
+pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+pdflatex -interaction=nonstopmode -halt-on-error manuscript.tex
+\end{verbatim}
+All required images and bibliography data are local. The source includes a compatibility patch for the installed longtable version; it is a no-op where the upstream correction is already present.
+
+\subsection{Recompute the scientific results}
+Install the repository's declared Python dependencies in a separate environment. From the repository root, run:
+\begin{verbatim}
+python -m pytest -q
+python tools/build_gallery.py --workers 2
+python tools/revision_numerics.py
+python tools/benchmark_layer_memo.py --days 30
+python tools/timescale_check.py --workers 2
+python tools/export_manuscript_data.py
+python manuscript/extract_gallery.py
+python manuscript/make_figures.py
+python tools/render_manuscript_tables.py
+python tools/render_numerical_results.py --output manuscript
+\end{verbatim}
+The gallery and time-scale tools cache their own local computations using source/configuration fingerprints. Locally produced pickle caches are not portable evidence and must not be loaded from untrusted sources. Portable JSON summaries, configuration hashes and rendered figures are committed. Complete per-run exports in \path{results/revision/} include observations, estimate histories, actions, ledgers, configurations and offline reports and can be regenerated using the commands above.
+
+The verification records cover the entire test suite, all regenerated scenario and policy ledgers, source-map/timeline agreement, exact horizons, observation identifiers, numerical refinement, and PDF build checks. Passing these checks establishes the stated implementation behaviour, not empirical validation of seawater capacities or ecological outcomes. Table values retain a useful reporting precision without implying comparable physical certainty.
+
+\input{suppliers_datasets}
+\clearpage
+\section{Additional spatial figures}
+\label{app:spatial}
+These plates complete the six-scenario comparison. The principal late comparison uses a three-year state where that age exists, and the actual one-year endpoint for scenario A. The different age also gives A a different prescribed tidal phase, which explains its different plume direction. The final-age source plate also shows all actual scenario endpoints. With/without concentrations share a scale within each pair. A zero source outside the prescribed hotspot means no modelled input, not a measurement below detection.
+
+\figpage{flux_00}{Initial residual Pb source from the unadvanced commissioned mat state. The mat core begins with zero contaminant inventory; uncovered area and edge bypass still emit.}{fig:fluxzero}
+\figpage{flux_final}{Residual Pb source at each scenario's actual final age, shown in each panel. Baseline coverage is 100\% and scenario F coverage is 45\% before degradation/bypass.}{fig:fluxfinal}
+\figpage{spatial_A}{Scenario A at its actual one-year endpoint: water concentrations, concentration ratio and effective cover.}{fig:spatialA}
+\figpage{spatial_C}{Scenario C at three years, after the prescribed source increase. Larger concentrations reflect both stronger driving and the mat response.}{fig:spatialC}
+\figpage{spatial_D}{Scenario D at three years. Fault targets now overlap the source, and snapshots use the condition and replacement history at this age.}{fig:spatialD}
+\figpage{spatial_E}{Scenario E at three years. Delayed observations alter evidence availability; physical changes occur only through accepted service events.}{fig:spatialE}
+\figpage{spatial_F}{Scenario F at three years. A thin core, 45\% geometric coverage, increased seepage and larger edge leakage form a compound stress case.}{fig:spatialF}
+\clearpage
+\section{Assumption coverage and remaining evidence gaps}
+\label{app:assumptions}
+The report's numerical tables state the current implemented defaults. This final register groups the assumptions that are not well represented by a single scalar or that could otherwise be lost among implementation details.
+\begin{longtable}{p{.24\linewidth}p{.64\linewidth}}
+\caption{Qualitative assumption register and scientific implications.}\label{tab:assumption-register}\\
+\toprule Assumption family & Scope and consequence\\\midrule\endfirsthead
+\toprule Assumption family & Scope and consequence\\\midrule\endhead
+Sediment source & Concentrations and seepage are prescribed piecewise constants over a hypothetical uniform hotspot. No finite sediment reservoir, source depletion, heterogeneous redirection, consolidation or bioturbation is resolved.\\
+Material selectivity & Element-specific availability and allocations are fixed assumptions. Independent capped uptake laws do not represent a coupled competitive multispecies sorption model.\\
+Chemical species & Pb, Hg and Cu physical channels are element-level abstractions. No mechanistic equilibrium speciation, microbial transformation or methylmercury production is solved.\\
+Medium ageing & Fouling modifies assigned transport/reaction properties; capacity loss, damage, displacement and burial are distinct state mechanisms. Real biological degradation, particle release and structural fatigue are not calibrated.\\
+Textile physics & Carrier layers contribute diffusive resistance with assumed geometry and porosity. Full pressure-driven geotextile hydraulics, strain and anchoring mechanics are absent.\\
+Hydrodynamics & Uniform prescribed tidal velocity replaces a momentum model; mixing depth and horizontal diffusivity are constant. Boundary water is clean, exported contaminant does not re-enter, and vertical structure is unresolved.\\
+Coupling & Multi-year columns see zero bottom-water concentration. Plume windows start clean and use frozen sources. They do not represent a continuous multiyear coastal concentration history.\\
+Observation synthesis & Noise, missingness, analytical limits, delays and campaign timing are assumed. Instrument names in the research inventory do not validate those values or imply a live connection.\\
+Uncertainty & Reported intervals use deterministic arithmetic and assumed widening. Material ranges are not joint probability distributions; ensemble and nominal confidence labels do not establish calibrated predictive coverage.\\
+Maintenance & Rules use thresholds and attribution heuristics. Simulated acceptance of replacements is not hardware actuation. The sampling programme does not adapt when further sampling is recommended.\\
+Economics & Every quoted euro value is assumed. Service ledgers omit complete installation, monitoring, permitting, retrieval and long-term disposal accounting. Recovered material has no assumed resale credit.\\
+Deployment & Designated historical areas, generic receptors and fixed production rates are illustrative. No selected site, feasible laying campaign, technical access or bounded receptor benefit is established.\\
+Environmental benefit & Lower modelled dissolved concentration is not a demonstrated reduction in bioavailability, toxicity, methylmercury, benthic harm or human exposure. No field outcome is asserted.\\
+Scope of future extensions & Optimisation, formal value-of-information analysis, fitted machine learning and a field-calibrated digital twin are outside the implemented result set.\\
+\bottomrule
+\end{longtable}

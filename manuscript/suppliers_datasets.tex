@@ -1,0 +1,87 @@
+\section{Supplier and external-data evidence catalogue}
+\label{app:suppliers-data}
+
+\subsection{Instrument and service candidates}
+
+The repository's scientific sensor matrix records nineteen candidates as of 8 September 2026. Table~\ref{tab:suppliers} summarises that dated inventory, including its gaps, rather than asserting present availability or independent performance verification. All interface descriptions in the table are \emph{reported by that inventory}; hardware revisions, manuals, calibration and suitability for a particular seawater deployment remain to be confirmed. No instruments were connected or field-tested, and no supplier quotations support the model's costs. The separate summary also mentions WiMo sensors and a possible PSA 10.226 topside Hg analyser.\cite{repository}
+
+\begingroup\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{p{0.28\linewidth}p{0.22\linewidth}p{0.43\linewidth}}
+\caption{Complete grouped supplier inventory. L: a listing recorded in the repository; H: historical evidence; I: indexed lead with incomplete direct retrieval; R: research prototype. These are source-record statuses, not current stock or suitability certifications. FR, IT, DK and NL identify EU-based suppliers; the remaining countries listed are European non-EU locations.}\label{tab:suppliers}\\
+\toprule
+Supplier and candidate & Purpose; recorded interface & Status and unresolved point \\
+\midrule
+\endfirsthead
+\toprule
+Supplier and candidate & Purpose; recorded interface & Status and unresolved point \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Nortek, Norway: Aquadopp 500 m Gen 2 & Point current; RS422, vendor configuration software & L. Current context only; duty cycle and exact binary integration need confirmation. \\
+Sonardyne, UK: Origin 65 ADCP & Current profile; RS232, Ethernet, acoustic link, portal/SDK & L. Deep-profile instrument; useful near-bed resolution in the shallow model domain is unestablished. \\
+Aanderaa, Norway: DCPS 5400/DCS family & Currents; serial or AiCaP bus, model dependent & L. Exact model accuracy, outputs and support must be established from its manual. \\
+Star-Oddi, Iceland: DST centi-TD & Temperature/depth; recovered logger with PC/SeaStar readout & L. Data become available on retrieval; this is not a telemetered chemistry channel. \\
+Aqualabo, FR: CTZN & Conductivity, salinity, temperature; Modbus over RS485 or SDI-12 & L. Register map and deployment depth unresolved; IP68 alone is insufficient. \\
+Aqualabo, FR: PHEHT & pH/redox/temperature; Modbus/SDI-12 reported & L. Some interface details came from third-party listings; seawater calibration and drift unresolved. \\
+Aqualabo, FR: NTU & Turbidity; Modbus over RS485 or SDI-12 & L. Depth, fouling control and matrix response need confirmation. \\
+nke, FR: MoSens; WiMo family & Context carrier/sonde; Modbus, configuration tools & L. Electrical layer and exact registers depend on selected sensors; no demonstrated open API. \\
+IDRONAUT, IT: VIP & Dynamic/labile Pb, Cd, Cu, Zn; historical RS232/software & H. Current support and seawater limits not verified. A mercury electrode does not imply an Hg analyte channel. \\
+Metrohm, Switzerland: 884 Professional VA, Bi electrode & Laboratory Pb/Cd; viva software/PC & L. Cited application method lacks a demonstrated spiked-seawater Pb result; field deployment not applicable. \\
+Milestone, IT: DMA-80 evo & Laboratory total Hg, possible media assay; PC export unresolved & I. Mass sensitivity does not establish a seawater concentration limit; species-specific Hg unresolved. \\
+P S Analytical, UK: 10.035 Merlin; 10.226 lead & Laboratory total Hg; possible topside liquid analyser & I. Water handling, fraction, saline-matrix limits and data outputs not verified in the repository. \\
+DGT Research, UK: LSPM-NP & Sediment accumulated labile metals; passive, no digital interface & L. Retrieval and laboratory analysis required. Listed Chelex device does not establish Hg suitability. \\
+Unisense, DK: MiniChamber Lander & Chamber incubation; logger, RS232 guest devices & L. Listed sensors are not Pb/Hg detectors; timed water subsampling and metal analysis need validation. \\
+Rhizosphere Research Products, NL: Rhizon CSS & Porewater extraction; passive vacuum sampler & L. No direct measurement or telemetry; metal blanks, adsorption and in-mat sampling need evaluation. \\
+Exail, FR: Gaps M5 USBL & Acoustic position; output format unresolved & L. Headline slant-range accuracy does not establish practical tile-displacement precision. \\
+Blueye, Norway: X3 & ROV imagery/condition; payload ports, app and SDK & L. Visible condition only; buried material and chemical loading remain unobserved. \\
+Subsea Tech, FR: inspection/survey services & ROV/USV survey, photogrammetry, bathymetry & L. No sediment-cap project validation, availability or quoted service rate established. \\
+University of Geneva, Switzerland: TracMetal/Au-GIME & Research in-situ Hg(II) and other metals; protocol unresolved & R. Research evidence does not establish a supported purchasable system or a multi-year deployment. \\
+\end{longtable}
+\endgroup
+
+The proposed pilot architecture combines current/context measurements, passive Pb exposure, porewater grabs, chamber subsamples and physical surveys, followed by an assay whenever media are retrieved. The repository has not verified a commercially supported instrument providing the simulated six-hourly Pb channel at its assumed 12 ng\,L$^{-1}$ detection limit. It has also not verified an equivalent continuous in-situ Hg channel. These are findings about the documented search, not claims that no such technologies can exist.
+
+A control area is essential to interpreting attenuation against a changing source: matching chamber and porewater measurements over capped and uncapped patches would support a counterfactual comparison, with uncertainty from spatial variability. Clean sampling, preservation, matrix-specific analysis and analytical fraction must accompany the instrument choice; established water-analysis methods do not make the complete proposed seabed system validated.\cite{epa1631,epa2008} Media capacity in place, internal fouling, edge bypass, methylmercury formation and benthic-community response remain beyond this inventory's demonstrated observations.
+
+\subsection{Scientific data catalogue and access state}
+
+The data catalogue contains eight resources and two explicit search gaps. None of its external datasets is bundled or used to calibrate the default simulations. Its access labels distinguish a checked portal, a discovered listing, and a retrieved metadata record; none alone proves that a numerical dataset was downloaded and incorporated. The packaged synthetic observation file is a format/edge-case fixture, not a measured time series or a sorption-calibration dataset.\cite{repository}
+
+\begin{table}[htbp]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\caption{Scientific resources recorded by the repository and their actual role. External numerical data were not loaded into the default report scenarios.}
+\label{tab:datasets}
+\begin{tabular}{p{0.26\linewidth}p{0.34\linewidth}p{0.33\linewidth}}
+\toprule
+Resource & Potential scientific contribution & Repository access/integration state \\
+\midrule
+ICES DOME (D1) & Contaminants/effects in sediment, water and biota; European monitoring context & Portal confirmed; no dataset download or model fit.\cite{icesDome} \\
+OSPAR CEMP 2024 (D2) & Assessed hazardous-substance levels and trends & Dataset listing recorded; not downloaded. \\
+OSPAR ODIMS (D3) & Environmental datastream catalogue & Portal confirmed; no model integration. \\
+EMODnet Chemistry (D4) & Aggregated European-seas contaminant observations/products & Portal confirmed; not a source of default hotspot concentrations.\cite{emodnetChemistry} \\
+HELCOM metals indicators (D5) & Baltic status and trends & Indicator/portal context; not a local porewater calibration.\cite{helcomMercury} \\
+Hyl\'en et al., Baltic benthic fluxes (D6) & Chamber-data structure: 498 phosphorus fluxes, 59 stations & Record retrieved; phosphorus only, not Pb/Hg validation.\cite{hylen2025} \\
+US EPA sediment amendments (D7) & Treatment-practice and performance context & Technical-report listing; not a calibration dataset. \\
+USGS benthic chamber (D8) & Chamber design and measurement method & Method reference; shallow freshwater setting.\cite{benthicFluxMonitoring} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ICES/EMODnet sediment concentrations cannot be inserted into the porewater boundary condition by changing units: solid-to-water partitioning requires additional evidence and uncertainty. The recorded gaps are an open dataset of marine reactive-cap Pb/Hg flux attenuation and isotherms for the actual keratin core in seawater. ``Not found in the repository's search'' is the supported conclusion, rather than a universal assertion of absence. Product-specific attribution, access terms, redistribution permissions, analytical fractions and update dates would need checking before any new dataset is incorporated.
+
+\subsection{Supplied laboratory literature and parameter records}
+
+The paper audit adds three fully inspected articles: the 35-page Enkhzaya journal pre-proof, the 14-page Zubair composite article and the 14-page Zubair review \citep{enkhzaya2020,zubair2025,zubair2026}. Page numbers in the companion traceability register refer to those supplied copies. Enkhzaya's Cu isotherm parameters are on PDF page~32 (printed page~31), kinetic parameters on PDF page~33, and experimental conditions on pages~5 and~21. Zubair's Pb composite result appears in the abstract and Fig.~10, with matrix, dose and preparation details on page~13. The review's modified-human-hair Hg lead appears on page~5 and was checked against the primary publisher abstract/highlights \citep{liang2023}; the full Hg methods were not retrieved.
+
+The source register distinguishes a fitted maximum, a dose-dependent batch uptake, removal efficiency, a distribution ratio and a kinetic coefficient. It stores original units, derived conversions, source discrepancies and whether a number entered the operating configuration. None of the newly extracted numbers was substituted into the default seawater model. The previously cited review supplied background context; the numerical defaults and synthetic commissioning ranges retain their assumption labels. Article hashes permit exact-copy identification, while the supplied PDFs and article images are not redistributed. Section~\ref{sec:paper-traceability} explains the resulting corrections and transfer limits.
+
+\subsection{Geographical and current-data adapters}
+
+The geodata module exposes three distinct capabilities: synthetic forcing, a cached map with illustrative physics, and import of a locally cached current product. The normal scenario runner uses the prescribed forcing directly. Its outputs do not become observed geography, measured metal fields or external-current simulations because these adapters exist. Copernicus Marine is a candidate provider of resolved current products; its documented IBI product is contextual rather than data used in these default runs.\cite{copernicusIbi}
+
+An imported cache is a project JSON representation containing coordinate arrays, two velocity fields and metadata for product identity, version, source depth, native resolution, temporal averaging, tide resolution, citation and licence. It is not a direct download client for arbitrary Copernicus or EMODnet products. Missing files are refused. The caller must already project coordinates into the metric computational system; the adapter uses nearest-neighbour regridding, and no finer grid creates new sub-grid information. Bathymetry remains visual context in this build, not a spatially varying numerical water depth or a hydrodynamic solver.
+
+The current cache contains one pair of two-dimensional velocity arrays, without a time dimension. Repeated calls timestamp the same fields; a metadata declaration of tide resolution does not itself provide evolving tidal currents. The adapter rejects a declared non-tide-resolving product when requested for a tidal scenario, but a genuine temporal import and coupling still require additional implementation and verification. Thus external-data pathways are defined software interfaces and evidence requirements, while the manuscript's scenario results remain offline synthetic demonstrations.

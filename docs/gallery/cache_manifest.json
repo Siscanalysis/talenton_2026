@@ -1,0 +1,59 @@
+{
+  "scientific_source_fingerprint": "9885029b25616f22",
+  "runs": [
+    {
+      "scenario": "fresh_mat",
+      "policy": "evidence_informed",
+      "config_hash": "203f05d1983636ed",
+      "cache_file": "9885029b25616f22-203f05d1983636ed.pkl.gz"
+    },
+    {
+      "scenario": "progressive_saturation",
+      "policy": "evidence_informed",
+      "config_hash": "6b2321b91be8a4f8",
+      "cache_file": "9885029b25616f22-6b2321b91be8a4f8.pkl.gz"
+    },
+    {
+      "scenario": "increased_leak",
+      "policy": "evidence_informed",
+      "config_hash": "16e114fe618a443f",
+      "cache_file": "9885029b25616f22-16e114fe618a443f.pkl.gz"
+    },
+    {
+      "scenario": "displaced_section",
+      "policy": "evidence_informed",
+      "config_hash": "173597cfe68d2e0e",
+      "cache_file": "9885029b25616f22-173597cfe68d2e0e.pkl.gz"
+    },
+    {
+      "scenario": "delayed_chemistry",
+      "policy": "evidence_informed",
+      "config_hash": "232c3c6404f9945d",
+      "cache_file": "9885029b25616f22-232c3c6404f9945d.pkl.gz"
+    },
+    {
+      "scenario": "undersized_mat",
+      "policy": "evidence_informed",
+      "config_hash": "fd2a7f25d3b47de7",
+      "cache_file": "9885029b25616f22-fd2a7f25d3b47de7.pkl.gz"
+    },
+    {
+      "scenario": "progressive_saturation",
+      "policy": "none",
+      "config_hash": "036af1e79d494c70",
+      "cache_file": "9885029b25616f22-036af1e79d494c70.pkl.gz"
+    },
+    {
+      "scenario": "progressive_saturation",
+      "policy": "fixed",
+      "config_hash": "0177907abe666804",
+      "cache_file": "9885029b25616f22-0177907abe666804.pkl.gz"
+    },
+    {
+      "scenario": "progressive_saturation",
+      "policy": "evidence_informed",
+      "config_hash": "c856c32dd426d0ef",
+      "cache_file": "9885029b25616f22-c856c32dd426d0ef.pkl.gz"
+    }
+  ]
+}

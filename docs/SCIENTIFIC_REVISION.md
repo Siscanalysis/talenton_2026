@@ -45,7 +45,7 @@ settings, not fitted values from the supplied papers. In particular:
 | Zero burial or absent Cu treated as evidence of a failure | Require resolved physical anomalies and measured compatible chemical pairs; unobserved Cu does not drive attribution |
 | Missing head/tilt physics emitted normal-condition values | Emit missing observations when the simulator provides no such model |
 | Retired-media or cross-replacement samples contaminated a new estimate | Filter current-media evidence by the service boundary and exposure interval |
-| Above-range intervals invented a finite upper bound | Preserve the open upper bound; strict JSON uses null and explicit nonfinite-path metadata |
+| Above-range intervals invented a finite upper bound | Standalone interval reconstruction preserves the open upper bound; strict JSON uses null and explicit nonfinite-path metadata. The separate coupled-QC limitation below remains |
 | Policy comparison used different emission quantities | Every policy integrates the actual whole-hotspot residual source; active and retrieved column inventories remain distinct |
 | Outputs omitted observation/estimate/action histories | Export the full histories, final QC and hashes alongside configurations, ledgers and reports |
 | Static plots clipped low attenuation or used wrong tile outlines | Correct geometry and ranges, common paired concentration scales, exact event jumps and actual-age labels |
@@ -86,3 +86,18 @@ costs and deployment scores remain assumptions. The current Pb/Hg estimator is
 interval arithmetic with heuristic attribution, not a calibrated Bayesian
 ensemble. Cu is unobserved. Recommendations to obtain more evidence do not
 adapt the future campaign schedule. These limits remain explicit in the report.
+
+The final saved-record audit also identifies a remaining censoring/QC interface
+limitation. Records preserve their detection bounds, and standalone interval
+arithmetic supports them, but scalar QC has no applicable range or spike check
+for generated bounds without values. With no applied check, an input passed
+flag becomes `NOT_EVALUATED` (2), which the coupled estimator's passed-only gate
+excludes. In fresh-mat scenario A, the day-1 Hg chamber result is below LOD
+([0, 0.05] micrograms/m2/day) and the day-181 result is below LOQ
+([0.05, 0.20]); both raw flags are 1 and processed flags are 2. The quantified
+day-361 result arrives on day 382, after the one-year horizon. The final Hg
+chamber age is consequently unavailable and its attenuation interval is [0,1];
+the run records twelve sampling recommendations and no service. These are the
+reported results of the current conservative gate, not evidence of validated
+assimilation of censoring intervals. The limitation is documented without
+changing the frozen scientific implementation or regenerating different results.

@@ -1,0 +1,100 @@
+[
+  [
+    "",
+    "Scenario",
+    "Years",
+    "Final attenuation",
+    "Saturation",
+    "Coverage",
+    "Active mat (kg)",
+    "Services"
+  ],
+  [
+    "A",
+    "fresh_mat",
+    "1.0",
+    "89.9 %",
+    "45 %",
+    "100 %",
+    "6.88",
+    "0"
+  ],
+  [
+    "B",
+    "progressive_saturation",
+    "6.0",
+    "61.3 %",
+    "67 %",
+    "100 %",
+    "10.3",
+    "0"
+  ],
+  [
+    "C",
+    "increased_leak",
+    "6.0",
+    "57.9 %",
+    "100 %",
+    "100 %",
+    "15.5",
+    "0"
+  ],
+  [
+    "D",
+    "displaced_section",
+    "4.0",
+    "70.2 %",
+    "63 %",
+    "96 %",
+    "9.75",
+    "1"
+  ],
+  [
+    "E",
+    "delayed_chemistry",
+    "4.0",
+    "71.7 %",
+    "64 %",
+    "100 %",
+    "9.86",
+    "0"
+  ],
+  [
+    "F",
+    "undersized_mat",
+    "4.0",
+    "25.9 %",
+    "67 %",
+    "45 %",
+    "0.923",
+    "0"
+  ],
+  [
+    "Policy",
+    "Pb into the water (kg)",
+    "Pb retained (kg)",
+    "Services",
+    "Assumed cost (EUR)"
+  ],
+  [
+    "none",
+    "642.3",
+    "0",
+    "0",
+    "0"
+  ],
+  [
+    "fixed",
+    "62.74",
+    "26.84",
+    "2",
+    "3,733,600"
+  ],
+  [
+    "evidence_informed",
+    "141.6",
+    "10.28",
+    "0",
+    "0"
+  ]
+]

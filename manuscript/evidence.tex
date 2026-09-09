@@ -1,0 +1,121 @@
+\section{Scientific evidence and interpretation}
+\label{sec:evidence}
+
+\subsection{What existing evidence establishes}
+
+The project combines an established sediment-remediation concept with a proposed reactive medium and a simulation of monitoring and maintenance. These components have different evidential status. Reactive capping has been investigated in field experiments; keratin sorption has been investigated mainly in laboratory aqueous systems; and the specific mat represented here has neither a measured seawater capacity nor a field performance record. Consequently, external studies establish plausibility, comparators and failure mechanisms. They do not validate the numerical performance of the demonstrator.
+
+Sediment contamination can remain important even where the overlying water shows little local enrichment. In Kiel Bay, \citet{gosnell2023} reported mean sediment Hg concentrations of $125\pm76$~ng\,g$^{-1}$ around Kolberger Heide compared with $14\pm18$~ng\,g$^{-1}$ at control sites, while dissolved water-column Hg showed no corresponding site separation. Sediment--water exchange varied strongly between cores. This supports the distinction between controlling a seabed source and removing a visible water-column plume. It does not establish the demonstrator's hypothetical porewater concentrations, seepage rate or geographic applicability.
+
+The geometry is also established prior art. CETCO's manufacturer documentation describes a permeable composite of geotextiles and granular organoclay for subaqueous sediment capping \citep{cetco2017}. The documentation supports the existence of a manufactured reactive geocomposite; its organic-contaminant sorption data cannot be assigned to keratin or to Pb, Hg and Cu. Analytical cap models incorporating transport and retardation also predate this software \citep{lampert2009}. More detailed reactive-transport work has explicitly considered arsenic, inorganic mercury and methylmercury within sediment caps \citep{bessinger2012}. The defensible contribution is therefore the particular computational integration and evaluation of serviceable tiles, with material selectivity, retrieval and operational performance remaining hypotheses to test. This report makes no patentability or freedom-to-operate determination.
+
+\subsection{Keratin: material rationale and transfer limits}
+
+Keratin is a reasonable candidate for investigation because its chemistry provides several possible metal-binding groups, and wool or feather residues offer potential feedstocks. \citet{zhang2019} tested four waste keratin biofibres in batch metal-sorption experiments. Pb isotherms fitted a Langmuir description, while pseudo-second-order kinetics gave the better kinetic fit among the tested formulations. This supports investigating finite sorption capacity; it does not make a capped linear isotherm with first-order relaxation an experimentally established description of a flowing marine mat. In particular, the material tested, solution chemistry, contact time and experimental concentration range remain part of every reported capacity.
+
+The repository transcribes a freshwater Pb capacity envelope of approximately 4--33~mg\,g$^{-1}$ from several sources, while adopting a lower operating capacity. The full numerical tables underlying that entire envelope were not independently accessible during preparation of this report. The envelope is therefore treated as a provisional literature input, rather than a verified performance range for the proposed material. Neither its lower bound nor its upper bound defines a confidence interval for seawater operation. The directly verified experimental examples in Table~\ref{tab:material-evidence} demonstrate why sorbent form and water chemistry must accompany a numerical capacity.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Examples of published material evidence. These are different materials and experimental conditions, not a ranking of candidate mats.}
+\label{tab:material-evidence}
+\begin{tabular}{p{0.25\linewidth}p{0.22\linewidth}p{0.43\linewidth}}
+\toprule
+Material and source & Reported result & Transfer limitation \\
+\midrule
+Pure wool-keratin nanofibres \citep{aluigi2012} & Cu uptake 20~mg\,g$^{-1}$; batch experiments at pH~6 & Electrospun fibres of roughly 400~nm diameter and a 1~g\,L$^{-1}$ adsorbent dose; not a bulk felt in seawater. \\
+Keratin-modified magnetite \citep{zhang2021} & Maximum Cu uptake 27.4~mg\,g$^{-1}$ under favourable conditions & Composite powder; reported conditions include pH~5, 293~K and 40~mg\,L$^{-1}$ CuSO$_4$ solution. This is not a keratin-only capacity. \\
+Polyurea-crosslinked Ca-alginate aerogel \citep{paraskevopoulou2021} & Pb uptake reported as 29~mg\,g$^{-1}$ in ultrapure water and 13~mg\,g$^{-1}$ in seawater & A specific aerogel containing substantial synthetic polymer; useful evidence of matrix effects, not a keratin surrogate. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+No verified measurement of Hg capacity for the proposed keratin core in flowing seawater is available. This must not be read as an absence of keratin-derived Hg sorbents: mechanically activated, ammonium-thioglycolate-reduced human hair has reported uptake of 476.7~mg\,g$^{-1}$ \citep{liang2023}. That primary publisher result was identified through the supplied review \citep{zubair2026}; its complete experimental protocol was not retrieved here. The chemically modified hair is a different material, so the demonstrator's Hg operating capacity remains an assumption. The sulfur-based calculation can be reproduced as a deliberately idealised reference: with an assumed sulfur mass fraction of 0.04 and two sulfur sites per Hg atom,
+\begin{equation}
+q_{\mathrm{Hg,ideal}}=
+\frac{0.04}{32.06}\frac{200.59}{2}
+\simeq0.125\ \mathrm{g\,g^{-1}}
+=125\ \mathrm{mg\,g^{-1}}.
+\end{equation}
+This calculation assumes that all sulfur belongs to suitable accessible binding sites. It ignores unreduced disulfides, chemical processing, competing species and steric or transport limitations. It is a bound conditional on that composition and stoichiometry, not a universal ceiling for every keratin derivative. Taking 2\% of this idealised value gives 2.5~mg\,g$^{-1}$, the demonstrator's assumed Hg capacity; the 2\% accessibility itself is not measured. Classical experiments show that disulfide reduction changes both wool chemistry and mechanical properties \citep{patterson1941}. Increasing accessible thiols may therefore involve a trade-off with durability that a capacity calculation alone cannot resolve.
+
+\subsection{Traceability of the three supplied papers}
+\label{sec:paper-traceability}
+
+The revision independently inspected the three articles supplied with the project and compared their experimental numbers with the recorded parameter history. The 2026 review already appeared in the repository as background reference K5, but no numerical fitting of its tables was recorded. Neither the Enkhzaya wool experiment nor the Zubair composite experiment supplied the original simulation parameters. The existing Pb, Hg and Cu capacities of 1.0, 2.5 and 3.0~mg\,g$^{-1}$ remain assumptions. Hypothetical Pb and Cu commissioning ranges represent information provided to a synthetic operator, not measurements conducted on a real batch. The source register records the article hashes, page locations, unit conversions and use decisions without distributing the article files.
+
+\citet{enkhzaya2020} report Langmuir Cu maxima of 0.239, 0.817 and 0.268~mmol\,g$^{-1}$ for untreated wool and wool treated with 0.05 and 0.02~M Na$_2$S, respectively. Using 63.546~mg Cu per mmol gives 15.19, 51.92 and 17.03~mg\,g$^{-1}$. The conditions were 10~mg sorbent in 15~mL solution, initial Cu 1--100~mg\,L$^{-1}$, pH~5, 303~K and 48~h equilibration. Their preparation temperature, 323~K for one hour, is a separate quantity. The stronger treatment lost 44.24\% of the starting wool mass and changed its structure; the milder treatment lost 1.51\%. Capacity per gram of recovered material therefore does not establish capacity per gram of feedstock, mechanical durability or hydraulic behaviour.
+
+The supplied Enkhzaya pre-proof also has limitations for quantitative reuse. Its Table~2 gives 0.268~mmol\,g$^{-1}$ for SW-IV, while Fig.~5 approaches approximately 0.36~mmol\,g$^{-1}$. A SW-III kinetic fitted equilibrium uptake of 0.2721~mmol\,g$^{-1}$ exceeds the total inventory of 0.23605~mmol\,g$^{-1}$ implied by the kinetic caption's 10~mg\,L$^{-1}$, 15~mL and 10~mg dose. The unresolved table/caption discrepancies are recorded rather than fitted by the simulator. Their pseudo-second-order coefficients also have different dimensions and a different governing law from the first-order relaxation used here.
+
+\citet{zubair2025} studied a chicken-feather-keratin composite with acrylamide-functionalised graphene oxide, abbreviated CFK-SMGO. The journal volume is dated 2025, while the article was published online in 2024. The composite removed 99.21\% of Pb after 24~h at pH~7.5, with 600~$\mu$g\,L$^{-1}$ of each of eight metal(loid)s, 0.1~g composite and 10~mL solution. Its matrix contained 0.02~M NaCl and 0.01~M CaCl$_2$, giving ionic strength 0.05~M. Thus this experiment includes calcium competition and should not be described as salt-free. It lacks the complete marine major-ion and organic-ligand matrix, and the measured composite is not neat keratin. Cu and Hg were not tested.
+
+The Pb percentage corresponds to a batch uptake of
+\begin{equation}
+q_{\mathrm{Pb,batch}}=
+\frac{0.600\ \mathrm{mg\,L^{-1}}\times0.010\ \mathrm{L}\times0.9921}
+{0.100\ \mathrm{g}}
+=0.059526\ \mathrm{mg\,g^{-1}}.
+\end{equation}
+Only 0.060~mg\,g$^{-1}$ was available at that dose, even at complete removal. The result establishes neither a 99.21~mg\,g$^{-1}$ capacity nor a 0.059526~mg\,g$^{-1}$ saturation maximum. It also does not establish 99.21\% attenuation of a flowing seabed source. The experiment used pH values 5.5, 7.5 and 10.5 and contact times 1, 3, 6, 12 and 24~h; the narrative specifies 24$^\circ$C whereas the methods specify approximately 20$^\circ$C. Four laboratory acid-regeneration cycles are evidence about that composite, not a measured field servicing rule.
+
+The review's additional high capacities concern distinct modified polymers, powders and composites \citep{zubair2026}. Its high-salinity example concerns uranium on an amidoxime-modified aerogel, and cannot be assigned to Pb, Hg or Cu. These papers improve the material-screening rationale and correct the literature account, but do not justify changing a single capacity while retaining all other unmeasured marine properties. Batch isotherms and flow-through tests on the finished medium are needed to replace the present assumptions.
+
+\subsection{Speciation is a central uncertainty}
+
+Total dissolved concentration, free-ion concentration and the sorbent-accessible pool are different quantities. Marine ligands, major ions, pH and redox conditions alter these relationships. A constant available fraction is a useful scenario parameter, but it is not a speciation calculation and is not determined uniquely by a free-ion percentage.
+
+For Pb, a Bay of Bengal study combining voltammetry with equilibrium calculations found strong organic complexation under its experimental conditions, including a modelled free-ion fraction of 0.7\% \citep{nabi2025}. This illustrates the importance of dissolved organic matter alongside carbonate and chloride. It also shows why a fixed carbonate percentage should not be presented as universal seawater composition. Site porewater may differ substantially from either open-sea water or an acidified batch solution.
+
+For Cu, \citet{paul2021} found that more than 99\% of dissolved Cu was organically complexed in eight of nine fitted deep-sea porewater samples, with free Cu below 6~pM in those samples. These observations justify testing a small accessible fraction, but they do not determine the value 0.02 used in the demonstrator. A complex can dissociate or exchange ligands during contact with a sorbent; accessibility depends on that timescale and on surface affinity. Thus a negligible simulated Cu sorption contribution is conditional on the adopted material and speciation parameters. It cannot demonstrate that keratin is universally incapable of Cu removal in seawater.
+
+Hg speciation requires equally careful interpretation. Chloride complexes can be important in saline oxic solutions, while organic ligands and sulfide may dominate other settings. Experiments with natural organic-matter isolates demonstrated Hg binding stronger than chloride competition under the tested conditions \citep{benoit2001}. In activated-carbon experiments, chloride, sulfide and dissolved organic matter altered both adsorption kinetics and phase partitioning; increasing chloride did not simply suppress adsorption, whereas dissolved organic matter reduced carbon-associated Hg \citep{chen2020}. These primary results do not transfer a numerical affinity to keratin. They do show that a universal ``chloride penalty'' is an inadequate chemical explanation. The model's separate available fractions, partition slopes and capacity assumptions should be varied together and ultimately replaced by measurements on the finished medium.
+
+\subsection{Flux comparators and the assumed source strength}
+
+The relevant performance measure is a change in areal contaminant flux across the sediment--water interface. Porewater concentration reduction, water-column concentration reduction and biotic uptake reduction answer related but different questions. Table~\ref{tab:flux-evidence} places the available experiments on their original measurement basis.
+
+\begin{table}[htbp]
+\centering\small
+\caption{External flux evidence and calculated comparisons. The studies differ in contaminant, environment and transport regime; none is a direct validation case for a keratin mat.}
+\label{tab:flux-evidence}
+\begin{tabular}{p{0.27\linewidth}p{0.28\linewidth}p{0.35\linewidth}}
+\toprule
+Study & Quantity and result & Implication \\
+\midrule
+Trondheim harbour field experiment \citep{cornelissen2011} & Benthic-chamber PAH flux reduction by a factor of 2--10, equivalent to 50--90\% & Marine field evidence for activated-carbon capping of organics; not a maximum attainable by all caps or a metal result. \\
+Carbon-nanotube sediment-capping experiment \citep{chen2025} & Control Pb fluxes 0.97, 2.50 and 1.51; capped fluxes 0.76, 0.59 and 0.25~$\mu$g\,m$^{-2}$\,d$^{-1}$ at days 15, 45 and 90 & Corresponding calculated reductions are 21.6, 76.4 and 83.4\%; laboratory sediment evidence using another sorbent. \\
+San Francisco Bay sediments \citep{rivera1994} & Diffusive Pb fluxes $2.6\times10^{-9}$ to $3.1\times10^{-8}$~mol\,m$^{-2}$\,d$^{-1}$ & With molar mass 207.2~g\,mol$^{-1}$, approximately 0.54--6.42~$\mu$g\,m$^{-2}$\,d$^{-1}$; diffusion rather than the demonstrator's assumed advective component. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The default porewater Pb concentration and Darcy velocity imply an advective component of
+\begin{equation}
+(10^{-3}\ \mathrm{kg\,m^{-3}})
+(3\times10^{-8}\ \mathrm{m\,s^{-1}})
+=2592\ \mathrm{\mu g\,m^{-2}\,d^{-1}}.
+\end{equation}
+This is approximately 400--4800 times the San Francisco Bay diffusive range after consistent conversion. The factor compares different transport mechanisms and is not evidence that such a seepage flux is physically impossible. It does establish that absolute mass capture and replacement times are driven by a deliberately strong hypothetical source. The implemented bare-sediment reference also includes film exchange (equation~\ref{eq:bare_attenuation}), giving 45,792~$\mu$g\,m$^{-2}$\,d$^{-1}$ for baseline Pb against clean bottom water. The value 2592 is only the advective component and must not be labelled as the complete bare flux.
+
+Similarly, a high simulated attenuation should be described as the response of an idealised model with prescribed contact, seepage and transport resistance. It is neither a field prediction nor a rigorous empirical upper bound. The physical resistance of the mat and the incremental contribution from active sorption should be reported separately. An inert-layer comparison is especially informative when the residual flux approaches the geometric barrier's own limiting behaviour.
+
+\subsection{Methylmercury and ecological response}
+
+Reducing dissolved total Hg does not, by itself, demonstrate reduced methylmercury risk. \citet{johnson2010} observed increased methylmercury beneath a sediment cap in laboratory estuarine microcosms, coincident with an upward extension of anaerobic microbial activity. The study also found that the location and duration of the increase did not necessarily cause a significant cap--water-interface effect in the sediments studied. Its lesson is to evaluate formation and transport together, especially for thin or unstable caps.
+
+Conversely, \citet{gilmour2013} found that activated carbon and thiol-functionalised silica, added at 2--7\% of sediment dry mass, reduced porewater methylmercury by 45--95\% and uptake into a test oligochaete by 30--90\% relative to controls. These were sediment amendments in microcosms, not an overlying keratin mat. Together with reactive-transport results \citep{bessinger2012}, the experiments support treating methylmercury as a separate, uncertain response rather than assuming that every Hg-binding material improves every Hg endpoint.
+
+The keratin-specific hypothesis is that degradation products, organic carbon and sulfur chemistry could alter sediment microbial processes. The direction and magnitude of that effect have not been established for this design. A fixed methylmercury fraction or phenomenological risk channel cannot validate the ecological acceptability of the material.
+
+There is also a risk independent of methylmercury. The Grenland fjord field study found substantial effects of powdered activated carbon on benthic community composition and function still present 49 months after capping, with only 11--44\% of the calculated potential bioturbation and bioirrigation activity remaining in treated fields \citep{raymond2021}. This is evidence of a possible remediation trade-off for that amendment and setting, not a prediction that keratin will have the same effects. Encapsulation, biodegradability and feedstock origin are design properties; none demonstrates low ecological impact without testing.
+
+\subsection{Data and analytical methods needed for validation}
+
+The available European data infrastructure can support site characterisation. ICES DOME provides contaminant monitoring records and retains distinctions such as matrix, units, detection limits and qualifier flags \citep{icesDome}. EMODnet Chemistry provides harmonised contaminant collections and maps covering seawater, sediment and biota \citep{emodnetChemistry}. HELCOM's mercury indicator evaluates Hg in biota over a defined assessment period \citep{helcomMercury}. These records do not automatically provide porewater boundary concentrations, Darcy seepage or cap attenuation. Converting sediment concentration to porewater concentration introduces an additional partitioning assumption; converting regional water concentrations to local source flux is an inverse problem.
+
+The Baltic benthic-flux dataset of \citet{hylen2025} contains 498 phosphorus-flux measurements from 59 stations. It is useful for chamber methodology and data organisation, but contains no trace-metal flux validation for this model. The regional Copernicus IBI product is a possible source of hydrodynamic forcing \citep{copernicusIbi}; using it would still require documented interpolation, near-bed interpretation and spatial-resolution checks. None of these external products is presented here as having calibrated the offline synthetic demonstrations.
+
+Laboratory methods must also match the reported chemical fraction. EPA Method~200.8 provides a trace-element ICP-MS framework, while Method~1631 specifies Hg analysis by oxidation, purge-and-trap and cold-vapour atomic fluorescence \citep{epa2008,epa1631}. They are method references, not evidence that a particular subsea instrument achieves the demonstrator's detection limits. Seawater matrix effects, contamination blanks, filtration, preservation and recovery must be verified by the analytical laboratory. Total-Hg analysis cannot substitute for a separate methylmercury determination.
+
+The evidence therefore points to a staged validation programme: test the finished medium in relevant seawater and porewater; measure flow-through breakthrough and hydraulic resistance; evaluate degradation, release and methylmercury response; and finally compare replicated capped and uncapped locations with physical-condition surveys. Predictions should be specified before each experiment and assessed on held-out measurements. Until those steps are completed, the repository is a useful platform for examining assumptions and designing measurements, with simulated outcomes conditional on its chosen parameters.

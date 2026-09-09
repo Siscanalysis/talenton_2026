@@ -1,0 +1,191 @@
+[
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "203f05d1983636ed",
+    "configured_duration_s": 31557600.0,
+    "final_elapsed_s": 31557600.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 6.42694448794716e-15,
+      "Hg": 9.245141472424951e-15,
+      "Pb": 5.891429294072994e-15
+    },
+    "maximum_ledger_relative_imbalance": 3.371391304091157e-14,
+    "policy": "evidence_informed",
+    "run_id": "fresh_mat",
+    "scenario": "fresh_mat",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "6b2321b91be8a4f8",
+    "configured_duration_s": 189345600.0,
+    "final_elapsed_s": 189345600.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 1.9304785623250413e-15,
+      "Hg": 2.0621332036059124e-15,
+      "Pb": 1.936690089936929e-15
+    },
+    "maximum_ledger_relative_imbalance": 1.660954694358148e-13,
+    "policy": "evidence_informed",
+    "run_id": "progressive_saturation",
+    "scenario": "progressive_saturation",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "16e114fe618a443f",
+    "configured_duration_s": 189345600.0,
+    "final_elapsed_s": 189345600.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 1.4975855261389731e-15,
+      "Hg": 9.178056364819914e-16,
+      "Pb": 1.871901084224314e-15
+    },
+    "maximum_ledger_relative_imbalance": 1.4388810764135858e-13,
+    "policy": "evidence_informed",
+    "run_id": "increased_leak",
+    "scenario": "increased_leak",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "173597cfe68d2e0e",
+    "configured_duration_s": 126230400.0,
+    "final_elapsed_s": 126230400.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 2.4962408739813135e-15,
+      "Hg": 2.311750407067721e-15,
+      "Pb": 2.3053721849548277e-15
+    },
+    "maximum_ledger_relative_imbalance": 9.370669912843464e-14,
+    "policy": "evidence_informed",
+    "run_id": "displaced_section",
+    "scenario": "displaced_section",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "232c3c6404f9945d",
+    "configured_duration_s": 126230400.0,
+    "final_elapsed_s": 126230400.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 2.6369564002090856e-15,
+      "Hg": 2.429827478044812e-15,
+      "Pb": 1.767670906093611e-15
+    },
+    "maximum_ledger_relative_imbalance": 1.1013694553109376e-13,
+    "policy": "evidence_informed",
+    "run_id": "delayed_chemistry",
+    "scenario": "delayed_chemistry",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "fd2a7f25d3b47de7",
+    "configured_duration_s": 126230400.0,
+    "final_elapsed_s": 126230400.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 3.0251981540286596e-16,
+      "Hg": 1.4775820777163544e-16,
+      "Pb": 3.025856012604592e-16
+    },
+    "maximum_ledger_relative_imbalance": 5.684548698805435e-14,
+    "policy": "evidence_informed",
+    "run_id": "undersized_mat",
+    "scenario": "undersized_mat",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "036af1e79d494c70",
+    "configured_duration_s": 189345600.0,
+    "final_elapsed_s": 189345600.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    },
+    "maximum_ledger_relative_imbalance": 1.8941337744330963e-16,
+    "policy": "none",
+    "run_id": "progressive_saturation__none",
+    "scenario": "progressive_saturation",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0,
+      "Hg": 0,
+      "Pb": 0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "0177907abe666804",
+    "configured_duration_s": 189345600.0,
+    "final_elapsed_s": 189345600.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 4.8187721490140544e-15,
+      "Hg": 5.229095995240535e-15,
+      "Pb": 2.6298794677002623e-15
+    },
+    "maximum_ledger_relative_imbalance": 3.6949428413413404e-14,
+    "policy": "fixed",
+    "run_id": "progressive_saturation__fixed",
+    "scenario": "progressive_saturation",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  },
+  {
+    "all_window_ages_valid": true,
+    "config_hash": "c856c32dd426d0ef",
+    "configured_duration_s": 189345600.0,
+    "final_elapsed_s": 189345600.0,
+    "final_timeline_source_relative_error": {
+      "Cu": 1.9304785623250413e-15,
+      "Hg": 2.0621332036059124e-15,
+      "Pb": 1.936690089936929e-15
+    },
+    "maximum_ledger_relative_imbalance": 1.660954694358148e-13,
+    "policy": "evidence_informed",
+    "run_id": "progressive_saturation__evidence_informed",
+    "scenario": "progressive_saturation",
+    "unique_observation_ids": true,
+    "zero_time_inventory_kg": {
+      "Cu": 0.0,
+      "Hg": 0.0,
+      "Pb": 0.0
+    }
+  }
+]

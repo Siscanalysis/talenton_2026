@@ -1,0 +1,76 @@
+\section{Deployment scale, targeting and practical evidence requirements}
+\label{sec:deployment}
+
+\subsection{Area and material demand}
+
+The deployment calculations are an independent scaling exercise. They do not identify a measured metal hotspot at a munitions site, simulate warfare-agent removal, or establish feasibility of placing a retrievable mat there. The historical dumped-munitions context is documented by HELCOM; the present calculations use selected repository areas to compare square-metre performance with the much larger area potentially requiring intervention.\cite{helcom2025}
+
+For covered area $A$, sorbent loading $L_s$, material price $c_A$ and assumed laying rate $r_A$,
+\begin{equation}
+M_s=AL_s,\qquad C_{\mathrm{material}}=Ac_A,\qquad
+T_{\mathrm{vessel}}=A/r_A.
+\end{equation}
+The default scenario uses $L_s=4$ kg\,m$^{-2}$, $c_A=240$ EUR\,m$^{-2}$ and $r_A=20{,}000$ m$^2$ per vessel day. The last quantity is an optimistic illustrative production rate, not contractor evidence. Bornholm's primary dumpsite is represented by a published circular radius of three nautical miles.\cite{bornholm2010} With one nautical mile equal to 1,852 m, this gives $\pi(3\times1852)^2=96.9783$ km$^2$. The extended Bornholm area and the Gotland and Skagerrak areas are approximate scale inputs, not newly measured contaminated footprints.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Area-covering arithmetic recalculated from the deployment module. Costs are material only, and all loading, price and production-rate values are assumptions. Larger areas do not establish contaminant density or treatment suitability.}
+\label{tab:deployment-scale}
+\begin{tabular}{lrrrr}
+\toprule
+Area & km$^2$ & Sorbent (t) & Material (EUR bn) & Vessel days \\
+\midrule
+Synthetic hotspot & 0.0064 & 25.6 & 0.001536 & 0.32 \\
+Bornholm primary & 96.978 & 387,913 & 23.275 & 4,849 \\
+Bornholm extended & 1,000 & 4,000,000 & 240 & 50,000 \\
+Gotland illustrative area & 1,500 & 6,000,000 & 360 & 75,000 \\
+Skagerrak illustrative areas & 1,300 & 5,200,000 & 312 & 65,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Bornholm primary footprint is approximately 15,153 times the demonstrator's 6,400 m$^2$ hotspot. Its assumed laying requirement is 13.28 years of continuous operation for one vessel at the stated rate, before weather downtime, mobilisation, surveys, anchor placement or retrieval. Figure~\ref{fig:scale} presents these contrasting area scales. The arithmetic is sufficient to show that whole-area coverage is an implausibly large extrapolation of this demonstrator; it is not an economic optimisation or a demonstrated schedule.
+
+The repository also divides sorbent demand by a reference annual global greasy-wool production of 1.76 million tonnes. On that stipulated denominator the primary Bornholm area consumes 22.0\%, and the three larger areas consume 227\%, 341\% and 295\%, respectively. That comparison should be treated as a repository benchmark with uncertain external provenance, rather than an independently established contemporary supply estimate. Greasy wool is not interchangeable with deployable functionalised keratin: extraction yield, processing losses, competing uses, quality selection and fabrication capacity are absent. The comparison therefore cannot establish the actual share of industrial feedstock required.
+
+At EUR 240\,m$^{-2}$, material budgets of EUR 1, 5, 20 and 100 million buy 0.417, 2.083, 8.333 and 41.667 ha, respectively. A suggested 1--2 ha pilot would require 40--80 tonnes of core and EUR 2.4--4.8 million of material before other costs. Its nominal area represents only 0.010--0.021\% of the primary Bornholm circle. This is a scale-limited pilot concept, not a demonstrated feasible first deployment. The calculations omit commissioning, permission processes, vessel capability at depth, monitoring, biological impacts, long-term retrieval and waste treatment.
+
+\subsection{Illustrative receptor-based priority}
+
+The targeting module ranks four illustrative candidate types by proximity to named receptor classes. It evaluates
+\begin{equation}
+P_j=\sum_{r\in\mathcal R_j}\frac{w_r}{1+d_{jr}/d_{1/2}},
+\qquad d_{1/2}=5\ \mathrm{km}.
+\label{eq:priority}
+\end{equation}
+Weights are 1.0 for bathing water, shellfish/aquaculture and water intakes; 0.8 for commercial fisheries; 0.7 for protected habitats; and 0.4 for ports/navigation. Distances and weights are illustrative judgements. Neither depth nor contaminant inventory appears in Eq.~\eqref{eq:priority}; depth is reported alongside the score but does not mathematically penalise it. The score also omits current direction, residence time, exposure duration, receptor population, dose--response and regulatory thresholds.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Recomputed candidate scores. Chemistry compatibility is a separate label based on listed contaminants, not proof of sorption or complete treatment. Candidate areas and distances are illustrative.}
+\label{tab:priority}
+\begin{tabular}{p{0.39\linewidth}rrp{0.25\linewidth}}
+\toprule
+Candidate & Score & Depth (m) & Model-chemistry overlap \\
+\midrule
+Generic industrial harbour & 2.392 & 8 & Pb, Hg and Cu listed \\
+Kolberger Heide, Kiel Bay & 2.161 & 12 & Metal fraction only \\
+Bay of L\"ubeck coastal areas & 2.078 & 20 & No energetics model \\
+Bornholm primary & 0.375 & 90 & Metal fraction only \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The harbour example scores 6.37 times the offshore Bornholm example, because of its prescribed receptor set and shorter distances. Figure~\ref{fig:priority} shows this ranking. It supports the proposition that a small intervention should be evaluated against a specific exposure pathway, but it does not prove that these actual sites have this ordering of risk or benefit. More listed receptors increase the score, so completeness of the receptor inventory is itself a source of ranking bias. A real comparison would require a consistent receptor register, spatially resolved benthic fluxes and transport connectivity, followed by an explicit uncertainty and sensitivity analysis.
+
+Contaminant matching is more fundamental than the score. The reviewed Bay of L\"ubeck study documents energetic compounds in water and biota before remediation.\cite{bayLuebeck2025} The present physical model contains Pb, Hg and Cu only. It includes no adsorption, transformation, toxicity or treatment result for TNT, RDX, DNT, arsenic or chemical warfare agents. The manuscript therefore cannot infer suitability for those contaminants from the presence of keratin thiols or a high receptor-proximity score. Activated-carbon/keratin combinations are possible future design questions; they would be different media requiring their own experiments and models.
+
+The repository's recovery comparison, $300{,}000/(2\times365.25)=410.7$ years, is arithmetic for a stipulated 300,000-tonne inventory and a constant two-tonne-per-day operation. It is not a forecast of a national recovery programme: parallel operations, changing technology, prioritisation, weather, object classification and capacity growth are excluded. Neither this extrapolation nor material-only budget coverage demonstrates that capping should replace physical recovery. Both simply illustrate the need to define a bounded, technically suitable intervention.
+
+\subsection{Practical monitoring chain and minimum evidence}
+
+The repository's supplier document is a dated research shortlist rather than a procurement result. It distinguishes contextual sonde candidates (nke and Aqualabo), current meters (Nortek), a historically documented Pb voltammetric system (IDRONAUT VIP), and separate laboratory or topside Hg analysers (P S Analytical). It does not establish stock, current support, a common trace-metal fraction, verified analytical limits in the intended seawater matrix or installed cost. In particular, environmental sondes do not become Pb/Hg analysers by inclusion in a digital monitoring chain.
+
+A practical ingestion architecture would connect a validated digital instrument to a logger or surface gateway and then to the common timestamped record format. Physical serial links such as RS485, RS422 and RS232 are distinct from application protocols and cloud interfaces. The proposed CSV or serial-file replay is an implemented software demonstration route; a generic Modbus emulator cannot establish compatibility with an undocumented manufacturer's register map. Appropriate marine depth rating, pressure, salinity, fouling control, calibration, cycle time, data export and servicing intervals would have to be demonstrated for the selected hardware.
+
+The decisive evidence gap is spatially resolved, contaminant-specific benthic flux at a suitable authorised hotspot. Strong spatial concentration of flux could make a small treated area consequential; uniform flux would make the same intervention proportionately small. No such spatial validation dataset is supplied by the repository. A pilot claim therefore requires, in order, evidence of the target fraction and exposure pathway; a measured site map of source flux and physical seabed conditions; seawater commissioning data on the actual medium; survivability and recovery trials for the assembled mat; and a monitoring design capable of distinguishing sorption, source changes, burial and physical damage. The model organises these questions and exposes the scale problem, but its synthetic results do not answer them experimentally.

@@ -1,0 +1,20 @@
+{
+  "pdf_pages": 71,
+  "bibliography_entries": 38,
+  "bibliography_database_entries": 38,
+  "vector_graphics": 23,
+  "numbered_figures": 22,
+  "numbered_tables": 28,
+  "interactive_gallery_figures": 139,
+  "tests_passed": 530,
+  "scenarios_regenerated": 6,
+  "policies_regenerated": 3,
+  "latex_errors": false,
+  "latex_overfull_boxes": false,
+  "latex_undefined_citations": false,
+  "latex_undefined_references": false,
+  "placeholder_tokens_in_pdf": false,
+  "all_pdf_pages_visually_reviewed": true,
+  "maximum_scenario_ledger_relative_imbalance": 1.660954694358148e-13,
+  "scope": "All scenarios/policies and full numerical studies regenerated; all individual ledgers checked. These are numerical checks, not field validation."
+}

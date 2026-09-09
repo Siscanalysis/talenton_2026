@@ -51,6 +51,9 @@ def main():
     assert 'pending-source-commit' not in text and '??' not in text, 'Placeholder or unresolved reference in PDF.'
     info=output([latex_tool('pdfinfo'),str(pdf)])
     pages=int(re.search(r'Pages:\s+(\d+)',info).group(1))
+    review=json.loads((OUT/'verification/visual_review.json').read_text(encoding='utf-8'))
+    assert review['pdf_sha256']==sha(pdf), 'Visual review belongs to a different PDF.'
+    assert review['physical_pages_reviewed']==list(range(1,pages+1)), 'Visual page review is incomplete.'
     fonts=output([latex_tool('pdffonts'),str(pdf)])
     assert all(line.split()[-5]=='yes' for line in fonts.splitlines()[2:] if line.strip()), 'Unembedded PDF font.'
     (OUT/'verification/pdf_fonts.txt').write_text(fonts,encoding='utf-8')
@@ -76,23 +79,33 @@ def main():
         'latex_errors':False,'latex_overfull_boxes':False,
         'latex_undefined_citations':False,'latex_undefined_references':False,
         'placeholder_tokens_in_pdf':False,
+        'all_pdf_pages_visually_reviewed':True,
         'maximum_scenario_ledger_relative_imbalance':max(a['maximum_ledger_relative_imbalance'] for a in audits),
         'scope':'All scenarios/policies and full numerical studies regenerated; all individual ledgers checked. These are numerical checks, not field validation.'}
     write(OUT/'verification/pdf_validation.json',validation)
     scientific_docs=['ASSUMPTIONS.md','MODEL_SPEC.md','DATA_CONTRACT.md','MATERIAL_KERATIN.md',
         'EVIDENCE_BASE.md','PRIOR_ART.md','LIMITATIONS.md','DEPLOYMENT_SCALE.md','TIMESCALES.md',
-        'NUMERICAL_VERIFICATION.md','PAPER_PARAMETER_TRACEABILITY.md','SCIENTIFIC_REVISION.md']
+        'NUMERICAL_VERIFICATION.md','PAPER_PARAMETER_TRACEABILITY.md','SCIENTIFIC_REVISION.md',
+        'SENSOR_SUPPLIERS.md','REFERENCES.md']
     files=[]
     for folder in ['src','app','tests']:
         files.extend((ROOT/folder).rglob('*.py'))
     files.extend(ROOT/'docs'/name for name in scientific_docs)
     files.extend((ROOT/'research').rglob('*.json'))
+    files.extend(ROOT/'research/sensors'/name for name in ['sensor_matrix.md','measurement_chain.md'])
     files.extend(ROOT/name for name in ['pyproject.toml','requirements.lock.txt','README.md'])
     files.extend(ROOT/'tools'/name for name in ['build_gallery.py','timescale_check.py','revision_numerics.py',
-        'benchmark_layer_memo.py','export_manuscript_data.py','render_manuscript_tables.py','render_numerical_results.py'])
+        'benchmark_layer_memo.py','export_manuscript_data.py','render_manuscript_tables.py','render_numerical_results.py',
+        'finalize_manuscript.py','package_manuscript.py'])
     files.extend([ROOT/'docs/gallery/index.html',ROOT/'docs/gallery/cache_manifest.json'])
     files=sorted(set(p for p in files if p.is_file()))
     gallery=json.loads((ROOT/'docs/gallery/cache_manifest.json').read_text())
+    digest=hashlib.sha256()
+    for source in sorted((ROOT/'src').rglob('*.py')):
+        if source.name not in ('cli.py','results.py') and 'visualization' not in source.parts:
+            digest.update(source.relative_to(ROOT).as_posix().encode())
+            digest.update(source.read_bytes())
+    assert gallery['scientific_source_fingerprint']==digest.hexdigest()[:16], 'Stale scientific gallery cache.'
     packages={name:importlib.metadata.version(name) for name in ['numpy','scipy','fipy','matplotlib','plotly','pytest']}
     provenance={'schema_version':'2.0','generated_utc':datetime.now(timezone.utc).isoformat(),
         'repository':'https://github.com/Siscanalysis/talenton_2026',

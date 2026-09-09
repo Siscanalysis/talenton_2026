@@ -7,27 +7,37 @@ from pathlib import Path
 from dataclasses import asdict
 from collections import Counter
 import gzip
+import hashlib
 import json
 import pickle
+import shutil
 import sys
 
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
-from reactive_seabed_mat.config import config_to_dict
+from reactive_seabed_mat.config import config_to_dict, config_hash
 from reactive_seabed_mat.results import ledger_to_dict, write_json
 from reactive_seabed_mat.cli import _write_result
 
 
 def main():
     manifest = json.loads((ROOT / 'docs/gallery/cache_manifest.json').read_text())
+    digest = hashlib.sha256()
+    for source in sorted((ROOT / 'src').rglob('*.py')):
+        if source.name not in ('cli.py', 'results.py') and 'visualization' not in source.parts:
+            digest.update(source.relative_to(ROOT).as_posix().encode())
+            digest.update(source.read_bytes())
+    assert manifest['scientific_source_fingerprint'] == digest.hexdigest()[:16], 'Stale scientific gallery cache.'
     summaries, policies, audits = {}, {}, []
     output = ROOT / 'manuscript'
     for entry in manifest['runs']:
         with gzip.open(ROOT / '.revision_cache/gallery' / entry['cache_file'], 'rb') as handle:
             result = pickle.load(handle)
         config, maintenance = result.config, result.maintenance
+        assert entry['config_hash'] == config_hash(config), 'Cached configuration identity mismatch.'
+        assert entry['scenario'] == config.scenario and entry['policy'] == config.policy.kind
         windows = []
         for window in result.windows:
             metrics = {}
@@ -69,6 +79,7 @@ def main():
         budget_errors += [abs(l.relative_imbalance) for w in result.windows
                           for budget in (w.ledger_with_mat, w.ledger_without_mat) for l in budget.values()]
         audit = {'scenario': config.scenario, 'policy': config.policy.kind,
+            'run_id': config.run_id, 'config_hash': config_hash(config),
             'maximum_ledger_relative_imbalance': max(budget_errors),
             'final_timeline_source_relative_error': errors,
             'zero_time_inventory_kg': dict(result.timeline[0].retained_kg),
@@ -90,6 +101,9 @@ def main():
     write_json(output / 'data/current_scenario_configurations.json',
                {name: summary['config'] for name, summary in summaries.items()})
     write_json(output / 'verification/scenario_audit.json', audits)
+    for source in [ROOT/'research/references/paper_parameter_traceability.json',
+                   ROOT/'docs/PAPER_PARAMETER_TRACEABILITY.md']:
+        shutil.copy2(source, output/'data'/source.name.lower())
     print(f'Exported {len(summaries)} scenarios and {len(policies)} policies; all integration audits passed.')
 
 

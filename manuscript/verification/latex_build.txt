@@ -1,0 +1,311 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex.fmt)
+ restricted \write18 enabled.
+entering extended mode
+(manuscript.tex
+LaTeX2e <2025-11-01>
+L3 programming layer <2025-12-24>
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/base\size11.clo))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/lm\lmodern.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.de
+f)
+*************************************
+* Local config file bblopts.cfg used
+*
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/arabi\bblopts.cfg)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/en\b
+abel-british.tex)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/babel-english\briti
+sh.ldf
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/babel-english\engli
+sh.ldf)))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.s
+ty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
+)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty))
+
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.c
+fg))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
+For additional information on amsmath, use the `?' option.
+
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.sty)
+)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.sty)
+ (C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.sty
+))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amssymb.st
+y
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amsfonts.s
+ty))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.s
+ty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.s
+ty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphi
+cs.cfg)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex
+.def)))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/booktabs\booktabs.s
+ty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/tools\longtable.sty
+) (C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/tools\array.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/tools\tabularx.sty)
+ (C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/float\float.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption.sty
+
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption3.st
+y)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/caption\ltcaption.s
+ty))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\color.
+cfg)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/graphics\mathcolor.
+ltx))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/enumitem\enumitem.s
+ty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/microtype\microtype
+.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/etoolbox\etoolbox.s
+ty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/microtype\microtype
+-pdftex.def)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/microtype\microtype
+.cfg))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/fancyhdr\fancyhdr.s
+ty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/natbib\natbib.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/xurl\xurl.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref.s
+ty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/kvsetkeys\kvsetkeys
+.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kvde
+finekeys.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/pdfescape\pdfesca
+pe.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds.s
+ty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdftex
+cmds.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infware
+rr.sty)))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/hycolor\hycolor.sty
+)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\nameref.st
+y
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/refcount\refcount.s
+ty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/gettitlestring\ge
+ttitlestring.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptions
+.sty)))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/stringenc\stringe
+nc.sty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\pd1enc.def
+)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/intcalc\intcalc.s
+ty)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\puenc.def)
+
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/bitset\bitset.sty
+
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/bigintcalc\bigint
+calc.sty)))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hpdftex.de
+f
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/rerunfilecheck\reru
+nfilecheck.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/generic/uniquecounter\uni
+quecounter.sty))) (revision.tex)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmr.fd)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend
+-pdftex.def) (manuscript.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pd
+f.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstop
+df-base.sty
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-s
+ys.cfg))
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/microtype\mt-cmr.cf
+g) (manuscript.out) (manuscript.out)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/microtype\mt-msa.cf
+g) (C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
+)
+(C:\Users\Artelnics\AppData\Local\Programs\MiKTeX\tex/latex/microtype\mt-msb.cf
+g) [1{C:/Users/Artelnics/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/U
+sers/Artelnics/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc} <./f
+igures/concept.pdf>] (abstract.tex) [1{C:/Users/Artelnics/AppData/Local/Program
+s/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}{C:/Users/Artelnics/AppData/Local/Pro
+grams/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}] (manuscript.toc [2]) [3]
+(manuscript.lof [4]) [5] (manuscript.lot [6{C:/Users/Artelnics/AppData/Local/Pr
+ograms/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}]) [7] (scope.tex [1])
+(evidence.tex [2]
+Underfull \hbox (badness 7832) in paragraph at lines 26--26
+[]|\T1/lmr/m/n/10 (+20) Pure wool-keratin nan-
+
+Underfull \hbox (badness 1205) in paragraph at lines 26--26
+\T1/lmr/m/n/10 (+20) batch ex-per-i-ments at
+
+Underfull \hbox (badness 10000) in paragraph at lines 27--27
+[]|\T1/lmr/m/n/10 (+20) Keratin-modified mag-
+
+Underfull \hbox (badness 6526) in paragraph at lines 28--28
+[]|\T1/lmr/m/n/10 (+20) Polyurea-crosslinked Ca-
+[3] [4]
+Underfull \hbox (badness 1796) in paragraph at lines 88--89
+\T1/lmr/m/n/10 (+20) prox-im-ately 0.54--6.42 $\OML/lmm/m/it/10 ^^V$\T1/lmr/m/n
+/10 (+20) gm$[]$d$[]$;
+
+Underfull \hbox (badness 1721) in paragraph at lines 88--89
+\T1/lmr/m/n/10 (+20) dif-fu-sion rather than the demon-
+[5] [6]) (methods.tex [7]
+Underfull \hbox (badness 1442) in paragraph at lines 43--44
+[]|\T1/lmr/m/n/10.95 (+20) Upward only; $\OT1/lmr/m/n/10.95 (+20) 0\OML/lmm/m/i
+t/10.95 :\OT1/lmr/m/n/10.95 (+20) 947 []$ \T1/lmr/m/n/10.95 (+20) de-
+
+Underfull \hbox (badness 7326) in paragraph at lines 48--49
+[]|\T1/lmr/m/n/10.95 (+20) Intended equal tiles of side
+[8] [9] [10] [11{C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/enc/dvi
+ps/lm/lm-mathex.enc}] [12] [13] [14] [15]) [16] [17 <./figures/geometry.pdf>]
+(monitoring.tex
+Underfull \hbox (badness 7759) in paragraph at lines 20--21
+[]|\T1/lmr/m/n/10 (+20) Pb filtered-dissolved and Hg
+[18]
+Underfull \hbox (badness 10000) in paragraph at lines 48--48
+[]|\T1/lmr/m/n/10 (+20) 180 d; labor-at-ory
+
+Underfull \hbox (badness 10000) in paragraph at lines 49--49
+[]|\T1/lmr/m/n/10 (+20) 180 d; labor-at-ory
+[19] [20] [21] [22]) (results.tex [23] [24] [25] [26 <./figures/attenuation_all
+.pdf>] [27 <./figures/saturation_all.pdf>] [28 <./figures/condition_all.pdf>]
+[29 <./figures/flux_30.pdf>] (numerical_results.tex [30] [31 <./figures/spatial
+_B.pdf>] [32 <./figures/profiles_all.pdf>] [33 <./figures/surfaces.pdf> <./figu
+res/policy.pdf>] [34] [35 <./figures/reactive_numerical_audit.pdf>] [36]
+[37 <./figures/timescale_audit.pdf>])) (deployment.tex [38 <./figures/coastal_d
+iscretisation_audit.pdf>] [39] [40]) [41 <./figures/scale.pdf>] [42 <./figures/
+priority.pdf> <./figures/context.pdf>] (discussion.tex [43] [44]) [45]
+(manuscript.bbl
+Underfull \hbox (badness 1237) in paragraph at lines 9--16
+\T1/lmr/m/n/10.95 (+20) strator, ver-sion 0.2.0, 2026.  URL [][]$\T1/lmtt/m/n/1
+0.95 h t t p s : / / g i t h u b . c o m / S i s c a n a l y s i s / t a
+[46] [47] [48]) [49] (appendices.tex (suppliers_datasets.tex [50]
+Underfull \hbox (badness 10000) in paragraph at lines 22--22
+\T1/lmr/m/n/10 (+20) vendor con-fig-ur-a-tion
+
+Underfull \hbox (badness 1292) in paragraph at lines 23--23
+[]|\T1/lmr/m/n/10 (+20) Sonardyne, UK: Ori-gin 65
+
+Underfull \hbox (badness 10000) in paragraph at lines 24--24
+[]|\T1/lmr/m/n/10 (+20) Currents; serial or
+
+Underfull \hbox (badness 10000) in paragraph at lines 24--24
+\T1/lmr/m/n/10 (+20) AiCaP bus, model
+
+Underfull \hbox (badness 4242) in paragraph at lines 25--25
+[]|\T1/lmr/m/n/10 (+20) Star-Oddi, Ice-land: DST
+
+Underfull \hbox (badness 10000) in paragraph at lines 25--25
+[]|\T1/lmr/m/n/10 (+20) Temperature/depth;
+
+Underfull \hbox (badness 1389) in paragraph at lines 26--26
+[]|\T1/lmr/m/n/10 (+20) Conductivity, sa-lin-ity,
+
+Underfull \hbox (badness 10000) in paragraph at lines 30--30
+[]|\T1/lmr/m/n/10 (+20) Dynamic/labile Pb,
+
+Underfull \hbox (badness 10000) in paragraph at lines 31--31
+[]|\T1/lmr/m/n/10 (+20) Laboratory Pb/Cd;
+
+Underfull \hbox (badness 2326) in paragraph at lines 32--32
+[]|\T1/lmr/m/n/10 (+20) Laboratory total Hg,
+
+Underfull \hbox (badness 1571) in paragraph at lines 32--32
+\T1/lmr/m/n/10 (+20) pos-sible me-dia as-say;
+
+Underfull \hbox (badness 2326) in paragraph at lines 33--33
+[]|\T1/lmr/m/n/10 (+20) Laboratory total Hg;
+
+Underfull \hbox (badness 10000) in paragraph at lines 35--35
+[]|\T1/lmr/m/n/10 (+20) Chamber in-cub-a-tion;
+
+Underfull \hbox (badness 4913) in paragraph at lines 35--35
+\T1/lmr/m/n/10 (+20) log-ger, RS232 guest
+
+Underfull \hbox (badness 10000) in paragraph at lines 36--36
+[]|\T1/lmr/m/n/10 (+20) Rhizosphere Re-search
+
+Underfull \hbox (badness 10000) in paragraph at lines 36--36
+\T1/lmr/m/n/10 (+20) Products, NL: Rhizon
+
+Underfull \hbox (badness 6125) in paragraph at lines 36--36
+[]|\T1/lmr/m/n/10 (+20) Porewater ex-trac-tion;
+
+Underfull \hbox (badness 10000) in paragraph at lines 38--38
+[]|\T1/lmr/m/n/10 (+20) ROV im-
+
+Underfull \hbox (badness 10000) in paragraph at lines 38--38
+\T1/lmr/m/n/10 (+20) agery/condition;
+
+Underfull \hbox (badness 3861) in paragraph at lines 39--39
+[]|\T1/lmr/m/n/10 (+20) Subsea Tech, FR: in-spec-
+
+Underfull \hbox (badness 10000) in paragraph at lines 39--39
+[]|\T1/lmr/m/n/10 (+20) ROV/USV sur-vey,
+
+Underfull \hbox (badness 10000) in paragraph at lines 39--39
+\T1/lmr/m/n/10 (+20) pho-to-gram-metry,
+[51]
+Underfull \hbox (badness 1377) in paragraph at lines 65--66
+[]|\T1/lmr/m/n/10 (+20) Indicator/portal con-text; not a
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--68
+[]|\T1/lmr/m/n/10 (+20) USGS benthic cham-ber
+[52] [53]) [54] [55] [56 <./figures/flux_00.pdf>] [57 <./figures/flux_final.pdf
+>] [58 <./figures/spatial_A.pdf> <./figures/spatial_C.pdf>] [59 <./figures/spat
+ial_D.pdf>] [60 <./figures/spatial_E.pdf>] [61 <./figures/spatial_F.pdf>]
+[62]) [63] (manuscript.aux) )
+(see the transcript file for additional information)<C:/Users/Artelnics/AppData
+/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pfb><C:/Users/Artelnics/App
+Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pfb><C:/Users/Artelnics
+/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmex10.pfb><C:/Users/Artel
+nics/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pfb><C:/Users/A
+rtelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi6.pfb><C:/User
+s/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi7.pfb><C:/U
+sers/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi8.pfb><C
+:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmib10.p
+fb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr1
+0.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/l
+mr12.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
+m/lmr6.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/public
+/lm/lmr7.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/publ
+ic/lm/lmr8.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type1/pu
+blic/lm/lmri10.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/type
+1/public/lm/lmsy10.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fonts/
+type1/public/lm/lmsy7.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/fon
+ts/type1/public/lm/lmsy8.pfb><C:/Users/Artelnics/AppData/Local/Programs/MiKTeX/
+fonts/type1/public/lm/lmtt10.pfb>
+Output written on manuscript.pdf (71 pages, 1315397 bytes).
+Transcript written on manuscript.log.
+pdflatex: major issue: So far, you have not checked for MiKTeX updates.

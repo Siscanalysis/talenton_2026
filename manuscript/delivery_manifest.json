@@ -1,0 +1,461 @@
+{
+  "files": [
+    {
+      "path": "abstract.tex",
+      "bytes": 2259,
+      "sha256": "bd5397418c2a9b1146f762a8811b0e37d7c72c02a1db0028fd4b759c2cb2e523"
+    },
+    {
+      "path": "appendices.tex",
+      "bytes": 8121,
+      "sha256": "3afbf50d9a6b02e038407d724234f09a9527fe8d3b681bd223cbf5ff83176060"
+    },
+    {
+      "path": "build.ps1",
+      "bytes": 586,
+      "sha256": "432e1fb1de1354a6bb2f1d6586031b146cee0a4ed3a12bea24325ba0bec3741e"
+    },
+    {
+      "path": "data/current_scenario_configurations.json",
+      "bytes": 57768,
+      "sha256": "9614f4c75739b9781e7c28ec3fe20c8eb85c12e0475c3f2ec6e42e7e98b5c3e5"
+    },
+    {
+      "path": "data/gallery_plots.json",
+      "bytes": 6267945,
+      "sha256": "8afb54b7c064552370fd5b7da31fde41eacbc1ab2e1603f2959f66f9a86a38fa"
+    },
+    {
+      "path": "data/gallery_tables.json",
+      "bytes": 1241,
+      "sha256": "49fefc3f15ce4adf846e86856661893018818c674fd20be46786badb67bcfa4f"
+    },
+    {
+      "path": "data/layer_memo_benchmark.json",
+      "bytes": 663,
+      "sha256": "a3d4d13f60cc431e526b45e0b6aac6d1fe57c4e7319ffde70906cf97766f7339"
+    },
+    {
+      "path": "data/paper_parameter_traceability.json",
+      "bytes": 42610,
+      "sha256": "e4870ce762c1ec01c878df423a00072c7b1b29514e8b87466b69119bdefae94f"
+    },
+    {
+      "path": "data/paper_parameter_traceability.md",
+      "bytes": 12395,
+      "sha256": "483db9ce60f6572d25c403d744e4f2dde35dea140da10f9edbd779079a551a07"
+    },
+    {
+      "path": "data/policy_summary.json",
+      "bytes": 1151193,
+      "sha256": "4f3eeb28ce58b96de92ee53ac0d9be54dbee556198ce89eefcca80d87946fc11"
+    },
+    {
+      "path": "data/reactive_numerical_audit.json",
+      "bytes": 27180,
+      "sha256": "493fd5133a97ed9873eecaa8953e6586e5044b7264fc94bca471366736b72e82"
+    },
+    {
+      "path": "data/scenario_summary.json",
+      "bytes": 2425637,
+      "sha256": "99431d720dde9f0822498a30d00d7e9d77a9124677c40ac67191485d1a55db9c"
+    },
+    {
+      "path": "data/spatial_summary.csv",
+      "bytes": 875,
+      "sha256": "c4be7e6c5b4f7f1edd261ba3585b6ba70006fff2f606a77f180923285a0751a9"
+    },
+    {
+      "path": "data/timescale_audit.json",
+      "bytes": 132083,
+      "sha256": "2ffac001a62e5f9278a82c8d74b669b6d08e49e28607ef0f8435e0940f8b2d90"
+    },
+    {
+      "path": "deployment.tex",
+      "bytes": 9474,
+      "sha256": "d0c741e2eac71bbacd56a5dadfe001ac1f5fc97ab1c4457be4b33b531cf799cc"
+    },
+    {
+      "path": "discussion.tex",
+      "bytes": 8888,
+      "sha256": "de4e65bed39fd2247ad4df70241af95b83b91febac105db7ad3244d802de9400"
+    },
+    {
+      "path": "evidence.tex",
+      "bytes": 21056,
+      "sha256": "658db00d7be9fb2547a684f7388ca20c27659cb49b8d69ee0adce1894fe28b64"
+    },
+    {
+      "path": "extract_gallery.py",
+      "bytes": 1477,
+      "sha256": "e61b0432c1ea4a46eb0e14869371d4278f24b56df632f564050976aed155319e"
+    },
+    {
+      "path": "figures/attenuation_all.pdf",
+      "bytes": 20042,
+      "sha256": "9a1206e9ec8e5fc9888626aebd0d2dd2c618427dd161ab8994f56487d4258a72"
+    },
+    {
+      "path": "figures/attenuation_all.png",
+      "bytes": 224734,
+      "sha256": "6c5b6d98f224bf23e33d9184e54bf1720022da76a4936b0261e40bff42632d91"
+    },
+    {
+      "path": "figures/coastal_discretisation_audit.pdf",
+      "bytes": 19224,
+      "sha256": "9a52cf0f69bb6e0115e362b0358efba752cb9198feaeb44de11cfcfa934beb48"
+    },
+    {
+      "path": "figures/coastal_discretisation_audit.png",
+      "bytes": 79180,
+      "sha256": "f4c17d0be4534a4af66cb9b2a3de1a5f6375f13ce07cfab23fda9428617b1dd7"
+    },
+    {
+      "path": "figures/concept.pdf",
+      "bytes": 16829,
+      "sha256": "0179a89d925b2fcf8f4ff7edb4098de467845976602bdaea6c40f68dd8780161"
+    },
+    {
+      "path": "figures/concept.png",
+      "bytes": 61141,
+      "sha256": "91ca27765c3f827f23328a2429761d034fb9278b786741a304dc183cb216bef6"
+    },
+    {
+      "path": "figures/condition_all.pdf",
+      "bytes": 14718,
+      "sha256": "772199f052402944e3e772bb24f41b346428983054748acb54bafc4be52a3d52"
+    },
+    {
+      "path": "figures/condition_all.png",
+      "bytes": 77950,
+      "sha256": "9a5abcfe9bdcb0e1f4bf30376d2568500f46ee88396fb9038f3db83138e5e352"
+    },
+    {
+      "path": "figures/context.pdf",
+      "bytes": 14370,
+      "sha256": "73dabca6093c2cf7b357f4449e4e0f0489a0402553f1047c620bdb02d58e87ad"
+    },
+    {
+      "path": "figures/context.png",
+      "bytes": 83425,
+      "sha256": "7b95e831ceb2fac0e242171ec05b88c678d9292c452d7f0416fde473f991fd4f"
+    },
+    {
+      "path": "figures/flux_00.pdf",
+      "bytes": 24798,
+      "sha256": "058c6caa2faa66bb64abb2e3f23729c44bcd33635165c91a625552791d7e841a"
+    },
+    {
+      "path": "figures/flux_00.png",
+      "bytes": 139672,
+      "sha256": "467fa62e402a58e337cbb658a49f3b9a20b14542ba044f7a6d0b89cc7fa836ba"
+    },
+    {
+      "path": "figures/flux_30.pdf",
+      "bytes": 25115,
+      "sha256": "42f37735a8a96b212dce25d059d8b32e0ab7a66fded4defd8374206cf4f80399"
+    },
+    {
+      "path": "figures/flux_30.png",
+      "bytes": 141197,
+      "sha256": "784958a89d3796362ca26c2096b9be3a14888c040a1341b4f6f91dacc1b4865e"
+    },
+    {
+      "path": "figures/flux_final.pdf",
+      "bytes": 25156,
+      "sha256": "d6eab6c695dc9b6d8757892c64760cb08c85e491327455664c0a033e99bf73ce"
+    },
+    {
+      "path": "figures/flux_final.png",
+      "bytes": 141484,
+      "sha256": "2801de555d0012cd44faa17e44ac3ad18a717fb7a3d3a5f56e478cdd77e878dc"
+    },
+    {
+      "path": "figures/geometry.pdf",
+      "bytes": 12419,
+      "sha256": "c725ddd8c5e3bbcbcfe64299b32457060d76b3fbcd1b7f6721b0059bbd4c6362"
+    },
+    {
+      "path": "figures/geometry.png",
+      "bytes": 44077,
+      "sha256": "c1a3b5066c39968871d3463ad026914b520042f1e7c1a97cf93d6d61ae58b4a8"
+    },
+    {
+      "path": "figures/policy.pdf",
+      "bytes": 13995,
+      "sha256": "e8ac708a8336e01e272d868e842a4ddbd596afb14add36b6f09dde4af29eb4d8"
+    },
+    {
+      "path": "figures/policy.png",
+      "bytes": 56040,
+      "sha256": "23614ea0e3c6c9c2cc0e40394db989be456948bbe13c84ad12e71d6a82743b06"
+    },
+    {
+      "path": "figures/priority.pdf",
+      "bytes": 13272,
+      "sha256": "5aa637adac9eb9982200d648b7cce5a54807f4046d9b8b98569349f0b37c88f4"
+    },
+    {
+      "path": "figures/priority.png",
+      "bytes": 29368,
+      "sha256": "da2ccc50f881d9ff4e27c7e6dae1bfbe5fdb8544e80ac812ab19e9c3e0d847e1"
+    },
+    {
+      "path": "figures/profiles_all.pdf",
+      "bytes": 59867,
+      "sha256": "5723a2cfc89dccddd7015911d735f609cb38e474fe5d979a6d90ab4e72be7def"
+    },
+    {
+      "path": "figures/profiles_all.png",
+      "bytes": 172565,
+      "sha256": "667aa2b15bb538bd767749c0c2309ba47f9d2a1dbf88baeb6e81ce62b71a017e"
+    },
+    {
+      "path": "figures/reactive_numerical_audit.pdf",
+      "bytes": 27193,
+      "sha256": "31652e9002d174df7f828401c46c6adb6074787d8ed1478353d8fa09d1c50f79"
+    },
+    {
+      "path": "figures/reactive_numerical_audit.png",
+      "bytes": 215426,
+      "sha256": "aac3d9e439bbbd5b209a5f7ee0cb560f1079668d1ae9cc76bf15d4e4b22fb1d6"
+    },
+    {
+      "path": "figures/saturation_all.pdf",
+      "bytes": 21104,
+      "sha256": "947121d5a2514d7702c46a3cf7cbc25e694175db711f0ecaef3a3ac95cb17aca"
+    },
+    {
+      "path": "figures/saturation_all.png",
+      "bytes": 206605,
+      "sha256": "274b02ac7d5a3d66a18079db93ae5f9d6534f7e62d0a9deda476055965821204"
+    },
+    {
+      "path": "figures/scale.pdf",
+      "bytes": 16693,
+      "sha256": "e2c8d680521646ccfc3c19888abd56f69f5d600b4e84f11daa9eecd7350c1ffe"
+    },
+    {
+      "path": "figures/scale.png",
+      "bytes": 43050,
+      "sha256": "b4007f34d780a111825cd3da4a629f8299b74fffb80b6a1183f5a5610a891623"
+    },
+    {
+      "path": "figures/spatial_A.pdf",
+      "bytes": 31227,
+      "sha256": "15bd640c1543982ba8e4c786d2248075430aa72b5d240830ed4eb3abce9fc1c5"
+    },
+    {
+      "path": "figures/spatial_A.png",
+      "bytes": 104219,
+      "sha256": "74765516d2033b4ab69c43269e051da950138a15ae2cf3219d71f8f152478504"
+    },
+    {
+      "path": "figures/spatial_B.pdf",
+      "bytes": 30650,
+      "sha256": "d10da8c0fe0394fde587c54832b8ce4182debc04690d2764aaf048980fae1b2a"
+    },
+    {
+      "path": "figures/spatial_B.png",
+      "bytes": 105450,
+      "sha256": "307876598baf9f7e05738dc3888ed166f3651ca2722a516e3371337cb9fcda26"
+    },
+    {
+      "path": "figures/spatial_C.pdf",
+      "bytes": 30633,
+      "sha256": "cb5c3ca51d1f5abe8b728a79946e951ebfba79e8fa6b3a5cd810c0f4c5de84b3"
+    },
+    {
+      "path": "figures/spatial_C.png",
+      "bytes": 103037,
+      "sha256": "fdeb8e7aa161158eaf7f8bbcbb7597cbded099d664cf672fcc319e00ff21a6b7"
+    },
+    {
+      "path": "figures/spatial_D.pdf",
+      "bytes": 32656,
+      "sha256": "12d02c476d323670099604f91ca38e0255d8f374d0ccdd1588063469412113a8"
+    },
+    {
+      "path": "figures/spatial_D.png",
+      "bytes": 106616,
+      "sha256": "9d3a11b6f87e13d23b9bc2408bcd4d779ed8c6a7dec2b9a455caf517c48fcece"
+    },
+    {
+      "path": "figures/spatial_E.pdf",
+      "bytes": 30568,
+      "sha256": "14f5fd5ed0fc6cecc2871c47b83069bd97df33e598d5109fc99cee4846bb5385"
+    },
+    {
+      "path": "figures/spatial_E.png",
+      "bytes": 105625,
+      "sha256": "ffe6c2e4c0e7a1cf40fb8d15095e40aca2541cae7d48b78728621c88133b2d5b"
+    },
+    {
+      "path": "figures/spatial_F.pdf",
+      "bytes": 33040,
+      "sha256": "4e81c85f65520691493dc369288b3cb88dc152e3f616249e78220b6a2dda6d24"
+    },
+    {
+      "path": "figures/spatial_F.png",
+      "bytes": 106795,
+      "sha256": "6fab378575598a67375e0daa512f03a191b96e4cba60645defabf393a2ea2e4b"
+    },
+    {
+      "path": "figures/surfaces.pdf",
+      "bytes": 67400,
+      "sha256": "e5a36544bab5d3f84aaa4848a9e63069f523b54fb0c5e4088c830679b28815cf"
+    },
+    {
+      "path": "figures/surfaces.png",
+      "bytes": 242157,
+      "sha256": "bd02e3f856d9c29d83a3a8b9cd76b23af79e3115bcec7dd0b46de5c297a5acd6"
+    },
+    {
+      "path": "figures/timescale_audit.pdf",
+      "bytes": 28006,
+      "sha256": "6aa759428656ee860963b8fa4e35b8072dddb3bfa4ddfdf3c4753bec3fedff05"
+    },
+    {
+      "path": "figures/timescale_audit.png",
+      "bytes": 227690,
+      "sha256": "d1fb5e59cbee533a95ce3cb48e32dd897fa43e7030dc2a62566116261cd7ca39"
+    },
+    {
+      "path": "make_figures.py",
+      "bytes": 13721,
+      "sha256": "f0a79e3a535b27293973b0f35bbd5109896ad5fd96f9ec941f380baa53052daf"
+    },
+    {
+      "path": "manuscript.bbl",
+      "bytes": 17729,
+      "sha256": "eceb91b16d9e936a4fc96c95fb0d5fb5060fa1e9bad5be5cdfbbc7d7078ae186"
+    },
+    {
+      "path": "manuscript.pdf",
+      "bytes": 1315397,
+      "sha256": "20e9b0cfc58f07faf35d6a0edc66163820f8034c72489949fd432acc4c9b82ad"
+    },
+    {
+      "path": "manuscript.tex",
+      "bytes": 5721,
+      "sha256": "94b59edc4d828dcbb6de2ce8388e5d0c7fb47f845fe0f62fd489e3ba4750611a"
+    },
+    {
+      "path": "methods.tex",
+      "bytes": 35502,
+      "sha256": "8c4eea18c742c7496009f81cdd49638eb0b6dbb14720f24f9eb9c05d4a4033b9"
+    },
+    {
+      "path": "monitoring.tex",
+      "bytes": 23984,
+      "sha256": "db9486c5078fa2bb68225addb5413735d7edcd5448287136bbbc104e78a50b71"
+    },
+    {
+      "path": "numerical_results.tex",
+      "bytes": 13585,
+      "sha256": "c900f705c647dc1b89f75181958b5d5d2945478c694382e5519ab3c332f0e3a1"
+    },
+    {
+      "path": "provenance.json",
+      "bytes": 22962,
+      "sha256": "67f4ee649a4e443b179cdff9cdcf42a42bc735072c0468997607bbfefa6ea1d1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5427,
+      "sha256": "5dc263c6c0e748ec062d71da4b74d429e1ca0ed2e55f0e98b98b465fc3044d60"
+    },
+    {
+      "path": "references.bib",
+      "bytes": 16100,
+      "sha256": "32448584e214a643be2fa6fbb96c26da4199780e1706b702c1b21f7da3497505"
+    },
+    {
+      "path": "results.tex",
+      "bytes": 13131,
+      "sha256": "c176a6aa344e5e8902a39eb82d3361bbfdcd60beb873805c861ba796af785eaf"
+    },
+    {
+      "path": "revision.tex",
+      "bytes": 71,
+      "sha256": "5f8d08d65ae25f466aea76040ea779d29426b556391828b1281e24127fa86cd8"
+    },
+    {
+      "path": "scope.tex",
+      "bytes": 4899,
+      "sha256": "ce300b4e73c242926c2eb59731dd68b2a4b1b6274963251be91984e059b6d8ba"
+    },
+    {
+      "path": "suppliers_datasets.tex",
+      "bytes": 12437,
+      "sha256": "1189565fe5fea1134ccfc97115fd9e1b72c7c2c3b989244b372f6ae4b2f875af"
+    },
+    {
+      "path": "verification/bibtex_build.txt",
+      "bytes": 227,
+      "sha256": "92242f532a4ef013eb34af3c18fdeb1477cca17023e45d65be4c9173b75804cf"
+    },
+    {
+      "path": "verification/build_commands.json",
+      "bytes": 976,
+      "sha256": "e2a9c16ffb2425fd45dc9246ba4eaa6fe77f44a2007178d9e7baf65e53609381"
+    },
+    {
+      "path": "verification/latex_build.txt",
+      "bytes": 15503,
+      "sha256": "283035d15de126a2be89d8e2cb82d2465560560fce6e6ec79a4cf692752d2838"
+    },
+    {
+      "path": "verification/pdf_fonts.txt",
+      "bytes": 5605,
+      "sha256": "2e410c700d226e61f438527580ab8f06466cbfc8c9b1e2e24419b9d97313face"
+    },
+    {
+      "path": "verification/pdf_info.txt",
+      "bytes": 854,
+      "sha256": "ee52af8398b87fc64a118ed5356436e757b3ef6d658a202e8bac0f07206f66dd"
+    },
+    {
+      "path": "verification/pdf_validation.json",
+      "bytes": 751,
+      "sha256": "df11229b25c59c0a65c29c8f5ec67d1a3ba5dd4e6ebcb0747c154a978953f576"
+    },
+    {
+      "path": "verification/scenario_audit.json",
+      "bytes": 5681,
+      "sha256": "1390717087dd57d48de759ea8e29fd2893b86e6f45c0440feea28b90b824d754"
+    },
+    {
+      "path": "verification/test_results.txt",
+      "bytes": 690,
+      "sha256": "e486ed1c5dfe97875148315aa43f3077cb5fc6693f0ce04681d6bc01c1179976"
+    },
+    {
+      "path": "verification/visual_review.json",
+      "bytes": 7784,
+      "sha256": "b82e4e6345e75b5e31b6d931184272b080c060116acb7e43e1f23e31722c2adf"
+    }
+  ],
+  "source_revision": "f3bbcf7d7d4ae755edb0d2d49480ba2799fdadc3",
+  "pdf_validation": {
+    "pdf_pages": 71,
+    "bibliography_entries": 38,
+    "bibliography_database_entries": 38,
+    "vector_graphics": 23,
+    "numbered_figures": 22,
+    "numbered_tables": 28,
+    "interactive_gallery_figures": 139,
+    "tests_passed": 530,
+    "scenarios_regenerated": 6,
+    "policies_regenerated": 3,
+    "latex_errors": false,
+    "latex_overfull_boxes": false,
+    "latex_undefined_citations": false,
+    "latex_undefined_references": false,
+    "placeholder_tokens_in_pdf": false,
+    "all_pdf_pages_visually_reviewed": true,
+    "maximum_scenario_ledger_relative_imbalance": 1.660954694358148e-13,
+    "scope": "All scenarios/policies and full numerical studies regenerated; all individual ledgers checked. These are numerical checks, not field validation."
+  },
+  "excluded": "Temporary LaTeX files, local simulation caches, internal agent-development files and supplied article PDFs."
+}

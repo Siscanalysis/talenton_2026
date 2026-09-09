@@ -1,0 +1,13 @@
+{
+  "duration_days": 30.0,
+  "cached_seconds": 6.62495889980346,
+  "naive_seconds": 7.75334749976173,
+  "speedup": 1.1703238641966136,
+  "complete_result_exactly_equal": true,
+  "python": "3.12.13",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "runner_sha256": "4d8472f30c2e73933a014975ef9aa88cf27aa1561b74c90a9413af53f1a845b6",
+  "config_sha256": "d4a0ef6c2a2937e64f89c02e1fd0fdcb441b02ff7342020f772afa3145cd1a18",
+  "comparison": "All fields of MatTimelineResult, recursively; arrays require identical shape, dtype and bytes",
+  "caveat": "One local paired wall-clock measurement, cached path first; concurrent load and warm-up can affect speedup"
+}

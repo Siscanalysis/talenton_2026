@@ -1,0 +1,362 @@
+\begin{thebibliography}{38}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[{Reactive Seabed Mat Demonstrator contributors}(2026)]{repository}
+{Reactive Seabed Mat Demonstrator contributors}.
+\newblock Selective reactive seabed mat: demonstrator, version 0.2.0, 2026.
+\newblock URL \url{https://github.com/Siscanalysis/talenton_2026}.
+\newblock Scientific revision dated 9 September 2026, with baseline commit
+  158d103ec9deafe86d9ea142c0e292df456a3c59 retained for traceability. The
+  published revision, scientific source inventory and SHA-256 hashes accompany
+  this manuscript.
+
+\bibitem[Gosnell et~al.(2023)Gosnell, Heimb{\"u}rger-Boavida, Beck,
+  Ukotije-Ikwut, and Achterberg]{gosnell2023}
+Kathleen~J. Gosnell, Lars-Eric Heimb{\"u}rger-Boavida, Aaron~J. Beck, Peter~R.
+  Ukotije-Ikwut, and Eric~P. Achterberg.
+\newblock World war munitions as a source of mercury in the southwest {Baltic
+  Sea}.
+\newblock \emph{Chemosphere}, 345:\penalty0 140522, 2023.
+\newblock \doi{10.1016/j.chemosphere.2023.140522}.
+\newblock URL \url{https://pubmed.ncbi.nlm.nih.gov/37879375/}.
+
+\bibitem[{CETCO}(2017)]{cetco2017}
+{CETCO}.
+\newblock {Reactive Core Mat} with {Organoclay}: Technical data, 2017.
+\newblock URL
+  \url{https://www.mineralstech.com/docs/default-source/performance-materials-documents/cetco/water-and-remediation/technical-data-sheets/tds_rcm_organoclay_am_en_201705_v2.pdf}.
+\newblock Manufacturer technical data sheet. Accessed 9 September 2026.
+
+\bibitem[Lampert and Reible(2009)]{lampert2009}
+David~J. Lampert and Danny Reible.
+\newblock An analytical modeling approach for evaluation of capping of
+  contaminated sediments.
+\newblock \emph{Soil and Sediment Contamination: An International Journal},
+  18\penalty0 (4):\penalty0 470--488, 2009.
+\newblock \doi{10.1080/15320380902962387}.
+\newblock URL
+  \url{https://www.tandfonline.com/doi/abs/10.1080/15320380902962387}.
+
+\bibitem[Bessinger et~al.(2012)Bessinger, Vlassopoulos, Serrano, and
+  O'Day]{bessinger2012}
+B.~A. Bessinger, D.~Vlassopoulos, S.~Serrano, and P.~A. O'Day.
+\newblock Reactive transport modeling of subaqueous sediment caps and
+  implications for the long-term fate of arsenic, mercury, and methylmercury.
+\newblock \emph{Aquatic Geochemistry}, 18\penalty0 (4):\penalty0 297--326,
+  2012.
+\newblock \doi{10.1007/s10498-012-9165-4}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC4802735/}.
+
+\bibitem[Zhang et~al.(2019)Zhang, Carrillo, L{\'o}pez-Mesas, and
+  Palet]{zhang2019}
+Helan Zhang, Fernando Carrillo, Montserrat L{\'o}pez-Mesas, and Cristina Palet.
+\newblock Valorization of keratin biofibers for removing heavy metals from
+  aqueous solutions.
+\newblock \emph{Textile Research Journal}, 89\penalty0 (7):\penalty0
+  1153--1165, 2019.
+\newblock \doi{10.1177/0040517518764008}.
+\newblock URL \url{https://doi.org/10.1177/0040517518764008}.
+
+\bibitem[Aluigi et~al.(2012)Aluigi, Tonetti, Vineis, Tonin, Casasola, and
+  Ferrero]{aluigi2012}
+Annalisa Aluigi, Cinzia Tonetti, Claudia Vineis, Claudio Tonin, Roberta
+  Casasola, and Franco Ferrero.
+\newblock Wool keratin nanofibres for copper({II}) adsorption.
+\newblock \emph{Journal of Biobased Materials and Bioenergy}, 6\penalty0
+  (2):\penalty0 230--236, 2012.
+\newblock \doi{10.1166/jbmb.2012.1204}.
+\newblock URL \url{https://iris.polito.it/handle/11583/2500021}.
+
+\bibitem[Zhang et~al.(2021)Zhang, Guo, Li, Zhang, Wu, Mao, and
+  Zhang]{zhang2021}
+Xinyue Zhang, Yani Guo, Wenjun Li, Jinyuan Zhang, Hailiang Wu, Ningtao Mao, and
+  Hui Zhang.
+\newblock Magnetically recyclable wool keratin modified magnetite powders for
+  efficient removal of {Cu2+} ions from aqueous solutions.
+\newblock \emph{Nanomaterials}, 11\penalty0 (5):\penalty0 1068, 2021.
+\newblock \doi{10.3390/nano11051068}.
+\newblock URL \url{https://www.mdpi.com/2079-4991/11/5/1068}.
+
+\bibitem[Paraskevopoulou et~al.(2021)Paraskevopoulou, Raptopoulos, Leontaridou,
+  Papastergiou, Sakellari, and Karavoltsos]{paraskevopoulou2021}
+Patrina Paraskevopoulou, Grigorios Raptopoulos, Faidra Leontaridou, Maria
+  Papastergiou, Aikaterini Sakellari, and Sotirios Karavoltsos.
+\newblock Evaluation of polyurea-crosslinked alginate aerogels for seawater
+  decontamination.
+\newblock \emph{Gels}, 7\penalty0 (1):\penalty0 27, 2021.
+\newblock \doi{10.3390/gels7010027}.
+\newblock URL \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC8005931/}.
+
+\bibitem[Liang et~al.(2023)Liang, Liang, Zhong, Liu, Li, Zhang, Yin, and
+  Huang]{liang2023}
+Xingtang Liang, Yu~Liang, Shuming Zhong, Zijie Liu, Fengzhi Li, Yanjun Zhang,
+  Yanzhen Yin, and Zuqiang Huang.
+\newblock Mechanochemical-assisted reduction of human hair for efficient and
+  selective removal of aqueous {Hg(II)} to the ppb level.
+\newblock \emph{Journal of Molecular Liquids}, 371:\penalty0 121124, 2023.
+\newblock \doi{10.1016/j.molliq.2022.121124}.
+\newblock URL \url{https://doi.org/10.1016/j.molliq.2022.121124}.
+\newblock Primary publisher abstract and highlights verified; full methods not
+  retrieved.
+
+\bibitem[Zubair et~al.(2026)Zubair, Rauf, and Ullah]{zubair2026}
+Muhammad Zubair, Zahid Rauf, and Aman Ullah.
+\newblock Keratin-derived bio-adsorbents for water remediation: Current and
+  future trends.
+\newblock \emph{Bioresource Technology Reports}, 33:\penalty0 102508, 2026.
+\newblock \doi{10.1016/j.biteb.2025.102508}.
+\newblock URL \url{https://doi.org/10.1016/j.biteb.2025.102508}.
+\newblock Complete supplied review inspected; previously cited in the
+  repository as K5.
+
+\bibitem[Patterson et~al.(1941)Patterson, Geiger, Mizell, and
+  Harris]{patterson1941}
+Wilbur~I. Patterson, Walton~B. Geiger, Louis~R. Mizell, and Milton Harris.
+\newblock Role of cystine in the structure of the fibrous protein, wool.
+\newblock \emph{Journal of Research of the National Bureau of Standards},
+  27:\penalty0 89--104, 1941.
+\newblock URL
+  \url{https://nvlpubs.nist.gov/nistpubs/jres/27/jresv27n1p89_A1b.pdf}.
+
+\bibitem[Enkhzaya et~al.(2020)Enkhzaya, Shiomori, and
+  Oyuntsetseg]{enkhzaya2020}
+Solongo Enkhzaya, Koichiro Shiomori, and Bolormaa Oyuntsetseg.
+\newblock Effective adsorption of {Au(III)} and {Cu(II)} by chemically treated
+  sheep wool and the binding mechanism.
+\newblock \emph{Journal of Environmental Chemical Engineering}, 8\penalty0
+  (5):\penalty0 104021, 2020.
+\newblock \doi{10.1016/j.jece.2020.104021}.
+\newblock URL \url{https://doi.org/10.1016/j.jece.2020.104021}.
+\newblock Supplied journal pre-proof inspected; source table and figure
+  discrepancies documented.
+
+\bibitem[Zubair et~al.(2025)Zubair, Roopesh, and Ullah]{zubair2025}
+Muhammad Zubair, M.~S. Roopesh, and Aman Ullah.
+\newblock Green nanoengineered keratin derived bio-adsorbent for heavy metals
+  removal from aqueous media.
+\newblock \emph{Advanced Sustainable Systems}, 9:\penalty0 2400491, 2025.
+\newblock \doi{10.1002/adsu.202400491}.
+\newblock URL \url{https://doi.org/10.1002/adsu.202400491}.
+\newblock Published online in 2024; complete supplied article inspected.
+
+\bibitem[Nabi et~al.(2025)Nabi, Hussam, and Khan]{nabi2025}
+M.~Nabi, Abul Hussam, and Amir~H. Khan.
+\newblock Ionic speciation of ecotoxic lead (2+), cadmium (2+), and naturally
+  occurring ions with dissolved organic matter in seawater from the {Bay of
+  Bengal} by differential pulse anodic stripping voltammetry, continuous
+  binding model, and computational chemical equilibria: Effect of global
+  warming.
+\newblock \emph{Water}, 17\penalty0 (10):\penalty0 1470, 2025.
+\newblock \doi{10.3390/w17101470}.
+\newblock URL \url{https://www.mdpi.com/2073-4441/17/10/1470}.
+
+\bibitem[Paul et~al.(2021)Paul, Zitoun, Noowong, Manirajah, and
+  Koschinsky]{paul2021}
+Sophie A.~L. Paul, Rebecca Zitoun, Ann Noowong, Mythili Manirajah, and Andrea
+  Koschinsky.
+\newblock Copper-binding ligands in deep-sea pore waters of the {Pacific Ocean}
+  and potential impacts of polymetallic nodule mining on the copper cycle.
+\newblock \emph{Scientific Reports}, 11:\penalty0 18425, 2021.
+\newblock \doi{10.1038/s41598-021-97813-3}.
+\newblock URL \url{https://www.nature.com/articles/s41598-021-97813-3}.
+
+\bibitem[Benoit et~al.(2001)Benoit, Mason, Gilmour, and Aiken]{benoit2001}
+J.~M. Benoit, R.~P. Mason, C.~C. Gilmour, and G.~R. Aiken.
+\newblock Constants for mercury binding by organic matter isolates from the
+  {Florida Everglades}.
+\newblock \emph{Geochimica et Cosmochimica Acta}, 65\penalty0 (24):\penalty0
+  4445--4451, 2001.
+\newblock \doi{10.1016/S0016-7037(01)00742-6}.
+\newblock URL \url{https://pubs.usgs.gov/publication/70022790}.
+
+\bibitem[Chen et~al.(2020)Chen, Ting, Ch'ng, and Hsi]{chen2020}
+Chi Chen, Yu~Ting, Boon-Lek Ch'ng, and Hsing-Cheng Hsi.
+\newblock Influence of sulfide, chloride and dissolved organic matter on
+  mercury adsorption by activated carbon in aqueous system.
+\newblock \emph{Sustainable Environment Research}, 30:\penalty0 22, 2020.
+\newblock \doi{10.1186/s42834-020-00065-5}.
+\newblock URL
+  \url{https://link.springer.com/article/10.1186/s42834-020-00065-5}.
+
+\bibitem[Cornelissen et~al.(2011)]{cornelissen2011}
+Gerard Cornelissen et~al.
+\newblock Remediation of contaminated marine sediment using thin-layer capping
+  with activated carbon: A field experiment in {Trondheim Harbor, Norway}.
+\newblock \emph{Environmental Science \& Technology}, 45\penalty0
+  (14):\penalty0 6110--6116, 2011.
+\newblock \doi{10.1021/es2011397}.
+\newblock URL \url{https://pubs.acs.org/doi/10.1021/es2011397}.
+
+\bibitem[Chen et~al.(2025)Chen, Zhu, You, Wang, Zhou, and Hang]{chen2025}
+Xiang Chen, Dongdong Zhu, Xiaohui You, Yan Wang, Li~Zhou, and Xiaoshuai Hang.
+\newblock Effect of nitric acid-modified multi-walled carbon nanotube capping
+  on copper and lead release from sediments.
+\newblock \emph{Toxics}, 13\penalty0 (11):\penalty0 912, 2025.
+\newblock \doi{10.3390/toxics13110912}.
+\newblock URL \url{https://www.mdpi.com/2305-6304/13/11/912}.
+
+\bibitem[Rivera-Duarte and Flegal(1994)]{rivera1994}
+Ignacio Rivera-Duarte and A.~Russell Flegal.
+\newblock Benthic lead fluxes in {San Francisco Bay, California, USA}.
+\newblock \emph{Geochimica et Cosmochimica Acta}, 58\penalty0 (15):\penalty0
+  3307--3313, 1994.
+\newblock \doi{10.1016/0016-7037(94)90059-0}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/0016703794900590}.
+
+\bibitem[Johnson et~al.(2010)Johnson, Reible, and Katz]{johnson2010}
+Nathan~W. Johnson, Danny~D. Reible, and Lynn~E. Katz.
+\newblock Biogeochemical changes and mercury methylation beneath an in-situ
+  sediment cap.
+\newblock \emph{Environmental Science \& Technology}, 44\penalty0
+  (19):\penalty0 7280--7286, 2010.
+\newblock \doi{10.1021/es100161p}.
+\newblock URL \url{https://pubs.acs.org/doi/10.1021/es100161p}.
+
+\bibitem[Gilmour et~al.(2013)Gilmour, Riedel, Riedel, Kwon, Landis, Brown,
+  Menzie, and Ghosh]{gilmour2013}
+Cynthia~C. Gilmour, Georgia~S. Riedel, Gerhardt Riedel, Seokjoon Kwon, Richard
+  Landis, Steven~S. Brown, Charles~A. Menzie, and Upal Ghosh.
+\newblock Activated carbon mitigates mercury and methylmercury bioavailability
+  in contaminated sediments.
+\newblock \emph{Environmental Science \& Technology}, 47\penalty0
+  (22):\penalty0 13001--13010, 2013.
+\newblock \doi{10.1021/es4021074}.
+\newblock URL \url{https://pubmed.ncbi.nlm.nih.gov/24156748/}.
+
+\bibitem[Raymond et~al.(2021)Raymond, Samuelsson, Agrenius, Schaanning, and
+  Gunnarsson]{raymond2021}
+Caroline Raymond, G{\"o}ran~S. Samuelsson, Stefan Agrenius, Morten~T.
+  Schaanning, and Jonas~S. Gunnarsson.
+\newblock Impaired benthic macrofauna function 4 years after sediment capping
+  with activated carbon in the {Grenland fjords, Norway}.
+\newblock \emph{Environmental Science and Pollution Research}, 28:\penalty0
+  16181--16197, 2021.
+\newblock \doi{10.1007/s11356-020-11607-0}.
+\newblock URL
+  \url{https://link.springer.com/article/10.1007/s11356-020-11607-0}.
+
+\bibitem[{International Council for the Exploration of the
+  Sea}(2026)]{icesDome}
+{International Council for the Exploration of the Sea}.
+\newblock {DOME}: Contaminants and biological effects of contaminants in
+  sediment, 2026.
+\newblock URL \url{https://dome.ices.dk/views/ContaminantsSediment.aspx}.
+\newblock Data portal and data policy. Accessed 9 September 2026.
+
+\bibitem[{EMODnet Chemistry}(2025)]{emodnetChemistry}
+{EMODnet Chemistry}.
+\newblock Contaminant data and maps: How to make the most of the map viewer,
+  2025.
+\newblock URL
+  \url{https://emodnet.ec.europa.eu/en/contaminant-data-and-maps-how-make-most-map-viewer}.
+\newblock Published 28 February 2025. Accessed 9 September 2026.
+
+\bibitem[{HELCOM}(2023)]{helcomMercury}
+{HELCOM}.
+\newblock Mercury.
+\newblock Core indicator report, HELCOM, 2023.
+\newblock URL \url{https://indicators.helcom.fi/indicator/mercury/}.
+\newblock Assessment period 2016--2021. Accessed 9 September 2026.
+
+\bibitem[Hyl{\'e}n et~al.(2025)Hyl{\'e}n, Ekeroth, Dale, Kononets, Lenstra,
+  Tengberg, van~de Velde, Sommer, Slomp, and Hall]{hylen2025}
+Astrid Hyl{\'e}n, Nils Ekeroth, Andrew Dale, Mikhail Kononets, Wytze Lenstra,
+  Anders Tengberg, Sebastiaan van~de Velde, Stefan Sommer, Caroline Slomp, and
+  Per Hall.
+\newblock In situ measured benthic fluxes of dissolved inorganic phosphorus in
+  the {Baltic Sea}.
+\newblock Zenodo, dataset, version 3, 2025.
+\newblock URL \url{https://zenodo.org/records/17465937}.
+\newblock Phosphorus data, not metal-flux data. Accessed 9 September 2026.
+
+\bibitem[{Copernicus Marine Service}(2026)]{copernicusIbi}
+{Copernicus Marine Service}.
+\newblock Atlantic-iberian biscay irish ocean physics analysis and forecast,
+  2026.
+\newblock URL
+  \url{https://data.marine.copernicus.eu/product/IBI_ANALYSISFORECAST_PHY_005_001/description}.
+\newblock Product IBI\_ANALYSISFORECAST\_PHY\_005\_001. Accessed 9 September
+  2026.
+
+\bibitem[{U.S. Environmental Protection Agency}(1994)]{epa2008}
+{U.S. Environmental Protection Agency}.
+\newblock Method 200.8, revision 5.4: Determination of trace elements in waters
+  and wastes by inductively coupled plasma mass spectrometry.
+\newblock Technical report, U.S. Environmental Protection Agency, 1994.
+\newblock URL
+  \url{https://www.epa.gov/sites/default/files/2015-08/documents/method_200-8_rev_5-4_1994.pdf}.
+
+\bibitem[{U.S. Environmental Protection Agency}(2002)]{epa1631}
+{U.S. Environmental Protection Agency}.
+\newblock Method 1631, revision e: Mercury in water by oxidation, purge and
+  trap, and cold vapor atomic fluorescence spectrometry.
+\newblock Technical Report EPA-821-R-02-019, U.S. Environmental Protection
+  Agency, 2002.
+\newblock URL \url{https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=P1008IW8.TXT}.
+
+\bibitem[Guyer et~al.(2009)Guyer, Wheeler, and Warren]{fipy2009}
+Jonathan~E. Guyer, Daniel Wheeler, and James~A. Warren.
+\newblock {FiPy}: Partial differential equations with {Python}.
+\newblock \emph{Computing in Science \& Engineering}, 11\penalty0 (3):\penalty0
+  6--15, 2009.
+\newblock \doi{10.1109/MCSE.2009.52}.
+\newblock URL
+  \url{https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=854461}.
+
+\bibitem[Menheer(2004)]{benthicFluxMonitoring}
+M.~A. Menheer.
+\newblock Development of a benthic-flux chamber for measurement of ground-water
+  seepage and water sampling for mercury analysis at the sediment-water
+  interface.
+\newblock Scientific Investigations Report 2004-5298, U.S. Geological Survey,
+  2004.
+\newblock URL \url{https://pubs.usgs.gov/publication/sir20045298}.
+
+\bibitem[{U.S. Integrated Ocean Observing System}(2026)]{qartod}
+{U.S. Integrated Ocean Observing System}.
+\newblock Quality assurance / quality control of real time oceanographic data
+  ({QARTOD}), 2026.
+\newblock URL \url{https://ioos.noaa.gov/project/qartod/}.
+\newblock Accessed 9 September 2026.
+
+\bibitem[{SciPy developers}(2026)]{scipy_solve_ivp}
+{SciPy developers}.
+\newblock {scipy.integrate.solve\_ivp}, 2026.
+\newblock URL
+  \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html}.
+\newblock Official numerical integration documentation. Accessed 9 September
+  2026.
+
+\bibitem[{HELCOM}(2025)]{helcom2025}
+{HELCOM}.
+\newblock Thematic assessment on hazardous submerged objects in the {Baltic
+  Sea}: Warfare materials.
+\newblock Technical report, HELCOM, 2025.
+\newblock URL
+  \url{https://helcom.fi/wp-content/uploads/2025/06/Thematic-Assessment-on-Hazardous-Submerged-Objects-in-the-Baltic-Sea-Warfare-Materials.pdf}.
+
+\bibitem[Missiaen and Noppe(2010)]{bornholm2010}
+Tine Missiaen and Lieselot Noppe.
+\newblock Detailed seismic imaging of a chemical munition dumpsite in the
+  {Bornholm Basin}, south-western {Baltic}.
+\newblock \emph{Environmental Earth Sciences}, 60:\penalty0 81--94, 2010.
+\newblock \doi{10.1007/s12665-009-0171-9}.
+\newblock URL \url{https://www.vliz.be/imisdocs/publications/ocrd/223331.pdf}.
+
+\bibitem[B{\"u}nning et~al.(2025)B{\"u}nning, Strehse, and
+  Maser]{bayLuebeck2025}
+Tobias~H. B{\"u}nning, Jennifer~S. Strehse, and Edmund Maser.
+\newblock Towards a good environmental status: a 4-year monitoring study on the
+  contamination of the {Bay of Luebeck} with energetic compounds prior to
+  munitions remediation.
+\newblock \emph{Archives of Toxicology}, 99:\penalty0 2313--2325, 2025.
+\newblock \doi{10.1007/s00204-025-04027-x}.
+\newblock URL
+  \url{https://link.springer.com/article/10.1007/s00204-025-04027-x}.
+
+\end{thebibliography}

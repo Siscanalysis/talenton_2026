@@ -1,0 +1,1917 @@
+{
+  "delayed_chemistry": {
+    "config_version": "0.2.0",
+    "costs": {
+      "benthic_chamber_deployment_eur": 2800.0,
+      "deployment_vessel_day_eur": 6500.0,
+      "dgt_deployment_eur": 260.0,
+      "lab_hg_sample_eur": 210.0,
+      "mat_material_eur_per_m2": 240.0,
+      "porewater_sample_eur": 180.0,
+      "provenance": "assumption",
+      "rov_survey_eur": 4200.0,
+      "sensor_check_eur": 350.0,
+      "tile_replacement_eur": 1900.0,
+      "used_media_handling_eur_per_kg": 12.0
+    },
+    "degradation": {
+      "burial_growth_m_per_s": 0.0,
+      "burial_resistance_s_per_m": 200000000.0,
+      "events": [],
+      "fouling_bypass_coupling": 0.35,
+      "fouling_growth_per_s": 5e-09
+    },
+    "domain": {
+      "crs": "LOCAL_METRIC",
+      "dx_m": 10.0,
+      "dy_m": 10.0,
+      "land_rectangles": [
+        [
+          0.0,
+          0.0,
+          600.0,
+          40.0
+        ]
+      ],
+      "mixing_depth_m": 5.0,
+      "mode": "synthetic",
+      "nx": 60,
+      "ny": 40
+    },
+    "dt_s": 21600.0,
+    "duration_s": 126230400.0,
+    "elements": [
+      "Pb",
+      "Hg",
+      "Cu"
+    ],
+    "ensemble_size": 64,
+    "forcing": {
+      "diffusivity_m2_per_s": 0.6,
+      "kind": "tidal",
+      "product_ref": null,
+      "provenance": "synthetic_demo",
+      "temporal_averaging": "instantaneous_synthetic",
+      "tidal_amplitude_m_per_s": 0.18,
+      "tidal_period_s": 44712.0,
+      "tidal_phase_rad": 0.0,
+      "u_mean_m_per_s": 0.04,
+      "v_mean_m_per_s": 0.0
+    },
+    "hotspot": {
+      "description": "Hypothetical authorised contaminant hotspot for a demonstration. Not a located real site, and not an ordnance object. Real work near historical marine munitions requires specialist and environmental approval [S02, S03].",
+      "film_transfer_m_per_s": 5e-07,
+      "hotspot_id": "authorised_hotspot_1",
+      "label": "synthetic_demo",
+      "length_m": 80.0,
+      "schedule": [
+        {
+          "porewater_kg_per_m3": {
+            "Cu": 0.002,
+            "Hg": 8e-06,
+            "Pb": 0.001
+          },
+          "seepage_velocity_m_per_s": 3e-08,
+          "start_s": 0.0
+        }
+      ],
+      "width_m": 80.0,
+      "x_m": 260.0,
+      "y_m": 180.0
+    },
+    "layer_engine": "scipy_banded_implicit",
+    "mat": {
+      "bulk_density_kg_per_m3": 400.0,
+      "coverage_fraction": 1.0,
+      "edge_leakage_fraction": 0.02,
+      "edge_leakage_interval": [
+        0.005,
+        0.08
+      ],
+      "mat_id": "mat_A",
+      "media": [
+        {
+          "allocation_fraction": 0.6,
+          "available_fraction": 0.25,
+          "available_fraction_interval": [
+            0.05,
+            0.6
+          ],
+          "commissioned_q_max_interval": [
+            0.00075,
+            0.0013
+          ],
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Pb",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0012
+          ],
+          "k_rate_per_s": 0.0004,
+          "kd_interval": [
+            0.5,
+            20.0
+          ],
+          "kd_m3_per_kg": 3.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0003,
+            0.008
+          ],
+          "q_max_kg_per_kg": 0.001,
+          "source_ref": "keratin biosorption literature derated for seawater; see docs/MATERIAL_KERATIN.md [K1-K4]"
+        },
+        {
+          "allocation_fraction": 0.3,
+          "available_fraction": 0.1,
+          "available_fraction_interval": [
+            0.01,
+            0.4
+          ],
+          "commissioned_q_max_interval": null,
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Hg",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            3e-05,
+            0.0008
+          ],
+          "k_rate_per_s": 0.0002,
+          "kd_interval": [
+            2.0,
+            300.0
+          ],
+          "kd_m3_per_kg": 30.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0002,
+            0.025
+          ],
+          "q_max_kg_per_kg": 0.0025,
+          "source_ref": "assumed fraction of a conditional sulfur-site calculation [K4]; 476.7 mg/g reported for reduced human hair [K15] is not a validated capacity for this core in seawater. Seawater Hg is above 99 per cent chloro-complexed [K10]. Hg uptake also depends strongly on sulfide, chloride and dissolved organic matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
+        },
+        {
+          "allocation_fraction": 0.1,
+          "available_fraction": 0.02,
+          "available_fraction_interval": [
+            0.002,
+            0.15
+          ],
+          "commissioned_q_max_interval": [
+            0.002,
+            0.0045
+          ],
+          "d_eff_interval": [
+            9e-11,
+            5.5e-10
+          ],
+          "d_eff_m2_per_s": 2.2e-10,
+          "element": "Cu",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0015
+          ],
+          "k_rate_per_s": 0.0005,
+          "kd_interval": [
+            1.0,
+            60.0
+          ],
+          "kd_m3_per_kg": 8.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0005,
+            0.02
+          ],
+          "q_max_kg_per_kg": 0.003,
+          "source_ref": "wool keratin nanofibre Cu(II) Langmuir capacity 20 mg/g [K9], derated by an order of magnitude for a bulk felt core, then limited by organic complexation: above 99 per cent of dissolved Cu in seawater is bound to strong ligands [K11]. See docs/MATERIAL_KERATIN.md section 3b"
+        }
+      ],
+      "media_id": "media_A0",
+      "n_layer_nodes": 40,
+      "overlap_m": 0.1,
+      "porosity": 0.5,
+      "preload_kg_per_m2": {},
+      "thickness_m": 0.01,
+      "tiles_x": 3,
+      "tiles_y": 3
+    },
+    "notes": "",
+    "observations": {
+      "bottom_water_probe_period_s": 21600.0,
+      "chamber_deployment_period_s": 15552000.0,
+      "chamber_lod_ug_per_m2_per_d": 0.05,
+      "chamber_loq_ug_per_m2_per_d": 0.2,
+      "chamber_relative_noise": 0.35,
+      "dgt_deployment_period_s": 15552000.0,
+      "dgt_exposure_s": 259200.0,
+      "environmental_period_s": 3600.0,
+      "environmental_relative_noise": 0.02,
+      "lab_latency_s": 6480000.0,
+      "lab_lod_ng_per_l": 1.5,
+      "lab_loq_ng_per_l": 5.0,
+      "lab_relative_noise": 0.08,
+      "missing_probability": 0.03,
+      "porewater_sample_period_s": 7776000.0,
+      "probe_latency_s": 0.0,
+      "probe_lod_ng_per_l": 12.0,
+      "probe_loq_ng_per_l": 40.0,
+      "probe_range_top_ng_per_l": 5000.0,
+      "probe_relative_noise": 0.2,
+      "sensor_drift_per_s": 6e-09,
+      "sensor_drift_start_s": 39447000.0,
+      "sensor_dropout_window_s": [
+        31557600.0,
+        39447000.0
+      ],
+      "stations": [
+        {
+          "depth_m": 0.3,
+          "kind": "bottom_water_probe",
+          "station_id": "ST_MAT_A",
+          "tile_id": "tile_0_0",
+          "vertical_datum": "seabed",
+          "x_m": 280.0,
+          "y_m": 200.0
+        },
+        {
+          "depth_m": 0.01,
+          "kind": "porewater",
+          "station_id": "ST_MAT_B",
+          "tile_id": "tile_1_1",
+          "vertical_datum": "mat_base",
+          "x_m": 300.0,
+          "y_m": 220.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "chamber",
+          "station_id": "ST_MAT_C",
+          "tile_id": "tile_2_2",
+          "vertical_datum": "mat_top",
+          "x_m": 320.0,
+          "y_m": 240.0
+        },
+        {
+          "depth_m": 1.0,
+          "kind": "environmental",
+          "station_id": "ST_ENV",
+          "tile_id": null,
+          "vertical_datum": "seabed",
+          "x_m": 300.0,
+          "y_m": 260.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "survey",
+          "station_id": "SURVEY_01",
+          "tile_id": null,
+          "vertical_datum": "mat_top",
+          "x_m": 300.0,
+          "y_m": 220.0
+        }
+      ],
+      "survey_latency_s": 86400.0,
+      "survey_period_s": 15552000.0
+    },
+    "plume": {
+      "dt_s": 600.0,
+      "sample_years": [
+        0.0,
+        3.0
+      ],
+      "window_s": 86400.0
+    },
+    "policy": {
+      "allow_partial_replacement": true,
+      "decision_period_s": 2592000.0,
+      "fixed_interval_s": 63115200.0,
+      "inspection_saturation_threshold": 0.55,
+      "kind": "evidence_informed",
+      "max_data_age_s": 17280000.0,
+      "max_relative_interval_width": 1.2,
+      "min_evidence_records": 3,
+      "minimum_acceptable_attenuation": 0.7,
+      "minimum_coverage_fraction": 0.9,
+      "replacement_saturation_threshold": 0.8,
+      "saturation_decision_bound": "mid"
+    },
+    "run_id": "delayed_chemistry",
+    "scenario": "delayed_chemistry",
+    "seed": 20260908,
+    "start_utc": "2026-09-08T00:00:00Z",
+    "transport_engine": "fipy"
+  },
+  "displaced_section": {
+    "config_version": "0.2.0",
+    "costs": {
+      "benthic_chamber_deployment_eur": 2800.0,
+      "deployment_vessel_day_eur": 6500.0,
+      "dgt_deployment_eur": 260.0,
+      "lab_hg_sample_eur": 210.0,
+      "mat_material_eur_per_m2": 240.0,
+      "porewater_sample_eur": 180.0,
+      "provenance": "assumption",
+      "rov_survey_eur": 4200.0,
+      "sensor_check_eur": 350.0,
+      "tile_replacement_eur": 1900.0,
+      "used_media_handling_eur_per_kg": 12.0
+    },
+    "degradation": {
+      "burial_growth_m_per_s": 0.0,
+      "burial_resistance_s_per_m": 200000000.0,
+      "events": [
+        {
+          "magnitude": 1.0,
+          "mode": "displacement",
+          "start_s": 47336400.0,
+          "tile_id": "tile_2_0"
+        },
+        {
+          "magnitude": 0.35,
+          "mode": "local_damage",
+          "start_s": 69426720.0,
+          "tile_id": "tile_0_2"
+        }
+      ],
+      "fouling_bypass_coupling": 0.35,
+      "fouling_growth_per_s": 5e-09
+    },
+    "domain": {
+      "crs": "LOCAL_METRIC",
+      "dx_m": 10.0,
+      "dy_m": 10.0,
+      "land_rectangles": [
+        [
+          0.0,
+          0.0,
+          600.0,
+          40.0
+        ]
+      ],
+      "mixing_depth_m": 5.0,
+      "mode": "synthetic",
+      "nx": 60,
+      "ny": 40
+    },
+    "dt_s": 21600.0,
+    "duration_s": 126230400.0,
+    "elements": [
+      "Pb",
+      "Hg",
+      "Cu"
+    ],
+    "ensemble_size": 64,
+    "forcing": {
+      "diffusivity_m2_per_s": 0.6,
+      "kind": "tidal",
+      "product_ref": null,
+      "provenance": "synthetic_demo",
+      "temporal_averaging": "instantaneous_synthetic",
+      "tidal_amplitude_m_per_s": 0.18,
+      "tidal_period_s": 44712.0,
+      "tidal_phase_rad": 0.0,
+      "u_mean_m_per_s": 0.04,
+      "v_mean_m_per_s": 0.0
+    },
+    "hotspot": {
+      "description": "Hypothetical authorised contaminant hotspot for a demonstration. Not a located real site, and not an ordnance object. Real work near historical marine munitions requires specialist and environmental approval [S02, S03].",
+      "film_transfer_m_per_s": 5e-07,
+      "hotspot_id": "authorised_hotspot_1",
+      "label": "synthetic_demo",
+      "length_m": 80.0,
+      "schedule": [
+        {
+          "porewater_kg_per_m3": {
+            "Cu": 0.002,
+            "Hg": 8e-06,
+            "Pb": 0.001
+          },
+          "seepage_velocity_m_per_s": 3e-08,
+          "start_s": 0.0
+        }
+      ],
+      "width_m": 80.0,
+      "x_m": 260.0,
+      "y_m": 180.0
+    },
+    "layer_engine": "scipy_banded_implicit",
+    "mat": {
+      "bulk_density_kg_per_m3": 400.0,
+      "coverage_fraction": 1.0,
+      "edge_leakage_fraction": 0.02,
+      "edge_leakage_interval": [
+        0.005,
+        0.08
+      ],
+      "mat_id": "mat_A",
+      "media": [
+        {
+          "allocation_fraction": 0.6,
+          "available_fraction": 0.25,
+          "available_fraction_interval": [
+            0.05,
+            0.6
+          ],
+          "commissioned_q_max_interval": [
+            0.00075,
+            0.0013
+          ],
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Pb",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0012
+          ],
+          "k_rate_per_s": 0.0004,
+          "kd_interval": [
+            0.5,
+            20.0
+          ],
+          "kd_m3_per_kg": 3.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0003,
+            0.008
+          ],
+          "q_max_kg_per_kg": 0.001,
+          "source_ref": "keratin biosorption literature derated for seawater; see docs/MATERIAL_KERATIN.md [K1-K4]"
+        },
+        {
+          "allocation_fraction": 0.3,
+          "available_fraction": 0.1,
+          "available_fraction_interval": [
+            0.01,
+            0.4
+          ],
+          "commissioned_q_max_interval": null,
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Hg",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            3e-05,
+            0.0008
+          ],
+          "k_rate_per_s": 0.0002,
+          "kd_interval": [
+            2.0,
+            300.0
+          ],
+          "kd_m3_per_kg": 30.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0002,
+            0.025
+          ],
+          "q_max_kg_per_kg": 0.0025,
+          "source_ref": "assumed fraction of a conditional sulfur-site calculation [K4]; 476.7 mg/g reported for reduced human hair [K15] is not a validated capacity for this core in seawater. Seawater Hg is above 99 per cent chloro-complexed [K10]. Hg uptake also depends strongly on sulfide, chloride and dissolved organic matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
+        },
+        {
+          "allocation_fraction": 0.1,
+          "available_fraction": 0.02,
+          "available_fraction_interval": [
+            0.002,
+            0.15
+          ],
+          "commissioned_q_max_interval": [
+            0.002,
+            0.0045
+          ],
+          "d_eff_interval": [
+            9e-11,
+            5.5e-10
+          ],
+          "d_eff_m2_per_s": 2.2e-10,
+          "element": "Cu",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0015
+          ],
+          "k_rate_per_s": 0.0005,
+          "kd_interval": [
+            1.0,
+            60.0
+          ],
+          "kd_m3_per_kg": 8.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0005,
+            0.02
+          ],
+          "q_max_kg_per_kg": 0.003,
+          "source_ref": "wool keratin nanofibre Cu(II) Langmuir capacity 20 mg/g [K9], derated by an order of magnitude for a bulk felt core, then limited by organic complexation: above 99 per cent of dissolved Cu in seawater is bound to strong ligands [K11]. See docs/MATERIAL_KERATIN.md section 3b"
+        }
+      ],
+      "media_id": "media_A0",
+      "n_layer_nodes": 40,
+      "overlap_m": 0.1,
+      "porosity": 0.5,
+      "preload_kg_per_m2": {},
+      "thickness_m": 0.01,
+      "tiles_x": 3,
+      "tiles_y": 3
+    },
+    "notes": "",
+    "observations": {
+      "bottom_water_probe_period_s": 21600.0,
+      "chamber_deployment_period_s": 15552000.0,
+      "chamber_lod_ug_per_m2_per_d": 0.05,
+      "chamber_loq_ug_per_m2_per_d": 0.2,
+      "chamber_relative_noise": 0.35,
+      "dgt_deployment_period_s": 15552000.0,
+      "dgt_exposure_s": 259200.0,
+      "environmental_period_s": 3600.0,
+      "environmental_relative_noise": 0.02,
+      "lab_latency_s": 1814400.0,
+      "lab_lod_ng_per_l": 1.5,
+      "lab_loq_ng_per_l": 5.0,
+      "lab_relative_noise": 0.08,
+      "missing_probability": 0.03,
+      "porewater_sample_period_s": 7776000.0,
+      "probe_latency_s": 0.0,
+      "probe_lod_ng_per_l": 12.0,
+      "probe_loq_ng_per_l": 40.0,
+      "probe_range_top_ng_per_l": 5000.0,
+      "probe_relative_noise": 0.2,
+      "sensor_drift_per_s": 0.0,
+      "sensor_drift_start_s": null,
+      "sensor_dropout_window_s": null,
+      "stations": [
+        {
+          "depth_m": 0.3,
+          "kind": "bottom_water_probe",
+          "station_id": "ST_MAT_A",
+          "tile_id": "tile_0_0",
+          "vertical_datum": "seabed",
+          "x_m": 280.0,
+          "y_m": 200.0
+        },
+        {
+          "depth_m": 0.01,
+          "kind": "porewater",
+          "station_id": "ST_MAT_B",
+          "tile_id": "tile_1_1",
+          "vertical_datum": "mat_base",
+          "x_m": 300.0,
+          "y_m": 220.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "chamber",
+          "station_id": "ST_MAT_C",
+          "tile_id": "tile_2_2",
+          "vertical_datum": "mat_top",
+          "x_m": 320.0,
+          "y_m": 240.0
+        },
+        {
+          "depth_m": 1.0,
+          "kind": "environmental",
+          "station_id": "ST_ENV",
+          "tile_id": null,
+          "vertical_datum": "seabed",
+          "x_m": 300.0,
+          "y_m": 260.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "survey",
+          "station_id": "SURVEY_01",
+          "tile_id": null,
+          "vertical_datum": "mat_top",
+          "x_m": 300.0,
+          "y_m": 220.0
+        }
+      ],
+      "survey_latency_s": 86400.0,
+      "survey_period_s": 15552000.0
+    },
+    "plume": {
+      "dt_s": 600.0,
+      "sample_years": [
+        0.0,
+        3.0
+      ],
+      "window_s": 86400.0
+    },
+    "policy": {
+      "allow_partial_replacement": true,
+      "decision_period_s": 2592000.0,
+      "fixed_interval_s": 63115200.0,
+      "inspection_saturation_threshold": 0.55,
+      "kind": "evidence_informed",
+      "max_data_age_s": 17280000.0,
+      "max_relative_interval_width": 1.2,
+      "min_evidence_records": 3,
+      "minimum_acceptable_attenuation": 0.7,
+      "minimum_coverage_fraction": 0.9,
+      "replacement_saturation_threshold": 0.8,
+      "saturation_decision_bound": "mid"
+    },
+    "run_id": "displaced_section",
+    "scenario": "displaced_section",
+    "seed": 20260908,
+    "start_utc": "2026-09-08T00:00:00Z",
+    "transport_engine": "fipy"
+  },
+  "fresh_mat": {
+    "config_version": "0.2.0",
+    "costs": {
+      "benthic_chamber_deployment_eur": 2800.0,
+      "deployment_vessel_day_eur": 6500.0,
+      "dgt_deployment_eur": 260.0,
+      "lab_hg_sample_eur": 210.0,
+      "mat_material_eur_per_m2": 240.0,
+      "porewater_sample_eur": 180.0,
+      "provenance": "assumption",
+      "rov_survey_eur": 4200.0,
+      "sensor_check_eur": 350.0,
+      "tile_replacement_eur": 1900.0,
+      "used_media_handling_eur_per_kg": 12.0
+    },
+    "degradation": {
+      "burial_growth_m_per_s": 0.0,
+      "burial_resistance_s_per_m": 200000000.0,
+      "events": [],
+      "fouling_bypass_coupling": 0.35,
+      "fouling_growth_per_s": 5e-09
+    },
+    "domain": {
+      "crs": "LOCAL_METRIC",
+      "dx_m": 10.0,
+      "dy_m": 10.0,
+      "land_rectangles": [
+        [
+          0.0,
+          0.0,
+          600.0,
+          40.0
+        ]
+      ],
+      "mixing_depth_m": 5.0,
+      "mode": "synthetic",
+      "nx": 60,
+      "ny": 40
+    },
+    "dt_s": 21600.0,
+    "duration_s": 31557600.0,
+    "elements": [
+      "Pb",
+      "Hg",
+      "Cu"
+    ],
+    "ensemble_size": 64,
+    "forcing": {
+      "diffusivity_m2_per_s": 0.6,
+      "kind": "tidal",
+      "product_ref": null,
+      "provenance": "synthetic_demo",
+      "temporal_averaging": "instantaneous_synthetic",
+      "tidal_amplitude_m_per_s": 0.18,
+      "tidal_period_s": 44712.0,
+      "tidal_phase_rad": 0.0,
+      "u_mean_m_per_s": 0.04,
+      "v_mean_m_per_s": 0.0
+    },
+    "hotspot": {
+      "description": "Hypothetical authorised contaminant hotspot for a demonstration. Not a located real site, and not an ordnance object. Real work near historical marine munitions requires specialist and environmental approval [S02, S03].",
+      "film_transfer_m_per_s": 5e-07,
+      "hotspot_id": "authorised_hotspot_1",
+      "label": "synthetic_demo",
+      "length_m": 80.0,
+      "schedule": [
+        {
+          "porewater_kg_per_m3": {
+            "Cu": 0.002,
+            "Hg": 8e-06,
+            "Pb": 0.001
+          },
+          "seepage_velocity_m_per_s": 3e-08,
+          "start_s": 0.0
+        }
+      ],
+      "width_m": 80.0,
+      "x_m": 260.0,
+      "y_m": 180.0
+    },
+    "layer_engine": "scipy_banded_implicit",
+    "mat": {
+      "bulk_density_kg_per_m3": 400.0,
+      "coverage_fraction": 1.0,
+      "edge_leakage_fraction": 0.02,
+      "edge_leakage_interval": [
+        0.005,
+        0.08
+      ],
+      "mat_id": "mat_A",
+      "media": [
+        {
+          "allocation_fraction": 0.6,
+          "available_fraction": 0.25,
+          "available_fraction_interval": [
+            0.05,
+            0.6
+          ],
+          "commissioned_q_max_interval": [
+            0.00075,
+            0.0013
+          ],
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Pb",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0012
+          ],
+          "k_rate_per_s": 0.0004,
+          "kd_interval": [
+            0.5,
+            20.0
+          ],
+          "kd_m3_per_kg": 3.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0003,
+            0.008
+          ],
+          "q_max_kg_per_kg": 0.001,
+          "source_ref": "keratin biosorption literature derated for seawater; see docs/MATERIAL_KERATIN.md [K1-K4]"
+        },
+        {
+          "allocation_fraction": 0.3,
+          "available_fraction": 0.1,
+          "available_fraction_interval": [
+            0.01,
+            0.4
+          ],
+          "commissioned_q_max_interval": null,
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Hg",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            3e-05,
+            0.0008
+          ],
+          "k_rate_per_s": 0.0002,
+          "kd_interval": [
+            2.0,
+            300.0
+          ],
+          "kd_m3_per_kg": 30.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0002,
+            0.025
+          ],
+          "q_max_kg_per_kg": 0.0025,
+          "source_ref": "assumed fraction of a conditional sulfur-site calculation [K4]; 476.7 mg/g reported for reduced human hair [K15] is not a validated capacity for this core in seawater. Seawater Hg is above 99 per cent chloro-complexed [K10]. Hg uptake also depends strongly on sulfide, chloride and dissolved organic matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
+        },
+        {
+          "allocation_fraction": 0.1,
+          "available_fraction": 0.02,
+          "available_fraction_interval": [
+            0.002,
+            0.15
+          ],
+          "commissioned_q_max_interval": [
+            0.002,
+            0.0045
+          ],
+          "d_eff_interval": [
+            9e-11,
+            5.5e-10
+          ],
+          "d_eff_m2_per_s": 2.2e-10,
+          "element": "Cu",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0015
+          ],
+          "k_rate_per_s": 0.0005,
+          "kd_interval": [
+            1.0,
+            60.0
+          ],
+          "kd_m3_per_kg": 8.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0005,
+            0.02
+          ],
+          "q_max_kg_per_kg": 0.003,
+          "source_ref": "wool keratin nanofibre Cu(II) Langmuir capacity 20 mg/g [K9], derated by an order of magnitude for a bulk felt core, then limited by organic complexation: above 99 per cent of dissolved Cu in seawater is bound to strong ligands [K11]. See docs/MATERIAL_KERATIN.md section 3b"
+        }
+      ],
+      "media_id": "media_A0",
+      "n_layer_nodes": 40,
+      "overlap_m": 0.1,
+      "porosity": 0.5,
+      "preload_kg_per_m2": {},
+      "thickness_m": 0.01,
+      "tiles_x": 3,
+      "tiles_y": 3
+    },
+    "notes": "",
+    "observations": {
+      "bottom_water_probe_period_s": 21600.0,
+      "chamber_deployment_period_s": 15552000.0,
+      "chamber_lod_ug_per_m2_per_d": 0.05,
+      "chamber_loq_ug_per_m2_per_d": 0.2,
+      "chamber_relative_noise": 0.35,
+      "dgt_deployment_period_s": 15552000.0,
+      "dgt_exposure_s": 259200.0,
+      "environmental_period_s": 3600.0,
+      "environmental_relative_noise": 0.02,
+      "lab_latency_s": 1814400.0,
+      "lab_lod_ng_per_l": 1.5,
+      "lab_loq_ng_per_l": 5.0,
+      "lab_relative_noise": 0.08,
+      "missing_probability": 0.03,
+      "porewater_sample_period_s": 7776000.0,
+      "probe_latency_s": 0.0,
+      "probe_lod_ng_per_l": 12.0,
+      "probe_loq_ng_per_l": 40.0,
+      "probe_range_top_ng_per_l": 5000.0,
+      "probe_relative_noise": 0.2,
+      "sensor_drift_per_s": 0.0,
+      "sensor_drift_start_s": null,
+      "sensor_dropout_window_s": null,
+      "stations": [
+        {
+          "depth_m": 0.3,
+          "kind": "bottom_water_probe",
+          "station_id": "ST_MAT_A",
+          "tile_id": "tile_0_0",
+          "vertical_datum": "seabed",
+          "x_m": 280.0,
+          "y_m": 200.0
+        },
+        {
+          "depth_m": 0.01,
+          "kind": "porewater",
+          "station_id": "ST_MAT_B",
+          "tile_id": "tile_1_1",
+          "vertical_datum": "mat_base",
+          "x_m": 300.0,
+          "y_m": 220.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "chamber",
+          "station_id": "ST_MAT_C",
+          "tile_id": "tile_2_2",
+          "vertical_datum": "mat_top",
+          "x_m": 320.0,
+          "y_m": 240.0
+        },
+        {
+          "depth_m": 1.0,
+          "kind": "environmental",
+          "station_id": "ST_ENV",
+          "tile_id": null,
+          "vertical_datum": "seabed",
+          "x_m": 300.0,
+          "y_m": 260.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "survey",
+          "station_id": "SURVEY_01",
+          "tile_id": null,
+          "vertical_datum": "mat_top",
+          "x_m": 300.0,
+          "y_m": 220.0
+        }
+      ],
+      "survey_latency_s": 86400.0,
+      "survey_period_s": 15552000.0
+    },
+    "plume": {
+      "dt_s": 600.0,
+      "sample_years": [
+        0.0,
+        3.0
+      ],
+      "window_s": 86400.0
+    },
+    "policy": {
+      "allow_partial_replacement": true,
+      "decision_period_s": 2592000.0,
+      "fixed_interval_s": 63115200.0,
+      "inspection_saturation_threshold": 0.55,
+      "kind": "evidence_informed",
+      "max_data_age_s": 17280000.0,
+      "max_relative_interval_width": 1.2,
+      "min_evidence_records": 3,
+      "minimum_acceptable_attenuation": 0.7,
+      "minimum_coverage_fraction": 0.9,
+      "replacement_saturation_threshold": 0.8,
+      "saturation_decision_bound": "mid"
+    },
+    "run_id": "fresh_mat",
+    "scenario": "fresh_mat",
+    "seed": 20260908,
+    "start_utc": "2026-09-08T00:00:00Z",
+    "transport_engine": "fipy"
+  },
+  "increased_leak": {
+    "config_version": "0.2.0",
+    "costs": {
+      "benthic_chamber_deployment_eur": 2800.0,
+      "deployment_vessel_day_eur": 6500.0,
+      "dgt_deployment_eur": 260.0,
+      "lab_hg_sample_eur": 210.0,
+      "mat_material_eur_per_m2": 240.0,
+      "porewater_sample_eur": 180.0,
+      "provenance": "assumption",
+      "rov_survey_eur": 4200.0,
+      "sensor_check_eur": 350.0,
+      "tile_replacement_eur": 1900.0,
+      "used_media_handling_eur_per_kg": 12.0
+    },
+    "degradation": {
+      "burial_growth_m_per_s": 0.0,
+      "burial_resistance_s_per_m": 200000000.0,
+      "events": [],
+      "fouling_bypass_coupling": 0.35,
+      "fouling_growth_per_s": 5e-09
+    },
+    "domain": {
+      "crs": "LOCAL_METRIC",
+      "dx_m": 10.0,
+      "dy_m": 10.0,
+      "land_rectangles": [
+        [
+          0.0,
+          0.0,
+          600.0,
+          40.0
+        ]
+      ],
+      "mixing_depth_m": 5.0,
+      "mode": "synthetic",
+      "nx": 60,
+      "ny": 40
+    },
+    "dt_s": 21600.0,
+    "duration_s": 189345600.0,
+    "elements": [
+      "Pb",
+      "Hg",
+      "Cu"
+    ],
+    "ensemble_size": 64,
+    "forcing": {
+      "diffusivity_m2_per_s": 0.6,
+      "kind": "tidal",
+      "product_ref": null,
+      "provenance": "synthetic_demo",
+      "temporal_averaging": "instantaneous_synthetic",
+      "tidal_amplitude_m_per_s": 0.18,
+      "tidal_period_s": 44712.0,
+      "tidal_phase_rad": 0.0,
+      "u_mean_m_per_s": 0.04,
+      "v_mean_m_per_s": 0.0
+    },
+    "hotspot": {
+      "description": "Hypothetical authorised contaminant hotspot for a demonstration. Not a located real site, and not an ordnance object. Real work near historical marine munitions requires specialist and environmental approval [S02, S03].",
+      "film_transfer_m_per_s": 5e-07,
+      "hotspot_id": "authorised_hotspot_1",
+      "label": "synthetic_demo",
+      "length_m": 80.0,
+      "schedule": [
+        {
+          "porewater_kg_per_m3": {
+            "Cu": 0.002,
+            "Hg": 8e-06,
+            "Pb": 0.001
+          },
+          "seepage_velocity_m_per_s": 3e-08,
+          "start_s": 0.0
+        },
+        {
+          "porewater_kg_per_m3": {
+            "Cu": 0.006,
+            "Hg": 2.4e-05,
+            "Pb": 0.003
+          },
+          "seepage_velocity_m_per_s": 6e-08,
+          "start_s": 63115200.0
+        }
+      ],
+      "width_m": 80.0,
+      "x_m": 260.0,
+      "y_m": 180.0
+    },
+    "layer_engine": "scipy_banded_implicit",
+    "mat": {
+      "bulk_density_kg_per_m3": 400.0,
+      "coverage_fraction": 1.0,
+      "edge_leakage_fraction": 0.02,
+      "edge_leakage_interval": [
+        0.005,
+        0.08
+      ],
+      "mat_id": "mat_A",
+      "media": [
+        {
+          "allocation_fraction": 0.6,
+          "available_fraction": 0.25,
+          "available_fraction_interval": [
+            0.05,
+            0.6
+          ],
+          "commissioned_q_max_interval": [
+            0.00075,
+            0.0013
+          ],
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Pb",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0012
+          ],
+          "k_rate_per_s": 0.0004,
+          "kd_interval": [
+            0.5,
+            20.0
+          ],
+          "kd_m3_per_kg": 3.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0003,
+            0.008
+          ],
+          "q_max_kg_per_kg": 0.001,
+          "source_ref": "keratin biosorption literature derated for seawater; see docs/MATERIAL_KERATIN.md [K1-K4]"
+        },
+        {
+          "allocation_fraction": 0.3,
+          "available_fraction": 0.1,
+          "available_fraction_interval": [
+            0.01,
+            0.4
+          ],
+          "commissioned_q_max_interval": null,
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Hg",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            3e-05,
+            0.0008
+          ],
+          "k_rate_per_s": 0.0002,
+          "kd_interval": [
+            2.0,
+            300.0
+          ],
+          "kd_m3_per_kg": 30.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0002,
+            0.025
+          ],
+          "q_max_kg_per_kg": 0.0025,
+          "source_ref": "assumed fraction of a conditional sulfur-site calculation [K4]; 476.7 mg/g reported for reduced human hair [K15] is not a validated capacity for this core in seawater. Seawater Hg is above 99 per cent chloro-complexed [K10]. Hg uptake also depends strongly on sulfide, chloride and dissolved organic matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
+        },
+        {
+          "allocation_fraction": 0.1,
+          "available_fraction": 0.02,
+          "available_fraction_interval": [
+            0.002,
+            0.15
+          ],
+          "commissioned_q_max_interval": [
+            0.002,
+            0.0045
+          ],
+          "d_eff_interval": [
+            9e-11,
+            5.5e-10
+          ],
+          "d_eff_m2_per_s": 2.2e-10,
+          "element": "Cu",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0015
+          ],
+          "k_rate_per_s": 0.0005,
+          "kd_interval": [
+            1.0,
+            60.0
+          ],
+          "kd_m3_per_kg": 8.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0005,
+            0.02
+          ],
+          "q_max_kg_per_kg": 0.003,
+          "source_ref": "wool keratin nanofibre Cu(II) Langmuir capacity 20 mg/g [K9], derated by an order of magnitude for a bulk felt core, then limited by organic complexation: above 99 per cent of dissolved Cu in seawater is bound to strong ligands [K11]. See docs/MATERIAL_KERATIN.md section 3b"
+        }
+      ],
+      "media_id": "media_A0",
+      "n_layer_nodes": 40,
+      "overlap_m": 0.1,
+      "porosity": 0.5,
+      "preload_kg_per_m2": {},
+      "thickness_m": 0.01,
+      "tiles_x": 3,
+      "tiles_y": 3
+    },
+    "notes": "",
+    "observations": {
+      "bottom_water_probe_period_s": 21600.0,
+      "chamber_deployment_period_s": 15552000.0,
+      "chamber_lod_ug_per_m2_per_d": 0.05,
+      "chamber_loq_ug_per_m2_per_d": 0.2,
+      "chamber_relative_noise": 0.35,
+      "dgt_deployment_period_s": 15552000.0,
+      "dgt_exposure_s": 259200.0,
+      "environmental_period_s": 3600.0,
+      "environmental_relative_noise": 0.02,
+      "lab_latency_s": 1814400.0,
+      "lab_lod_ng_per_l": 1.5,
+      "lab_loq_ng_per_l": 5.0,
+      "lab_relative_noise": 0.08,
+      "missing_probability": 0.03,
+      "porewater_sample_period_s": 7776000.0,
+      "probe_latency_s": 0.0,
+      "probe_lod_ng_per_l": 12.0,
+      "probe_loq_ng_per_l": 40.0,
+      "probe_range_top_ng_per_l": 5000.0,
+      "probe_relative_noise": 0.2,
+      "sensor_drift_per_s": 0.0,
+      "sensor_drift_start_s": null,
+      "sensor_dropout_window_s": null,
+      "stations": [
+        {
+          "depth_m": 0.3,
+          "kind": "bottom_water_probe",
+          "station_id": "ST_MAT_A",
+          "tile_id": "tile_0_0",
+          "vertical_datum": "seabed",
+          "x_m": 280.0,
+          "y_m": 200.0
+        },
+        {
+          "depth_m": 0.01,
+          "kind": "porewater",
+          "station_id": "ST_MAT_B",
+          "tile_id": "tile_1_1",
+          "vertical_datum": "mat_base",
+          "x_m": 300.0,
+          "y_m": 220.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "chamber",
+          "station_id": "ST_MAT_C",
+          "tile_id": "tile_2_2",
+          "vertical_datum": "mat_top",
+          "x_m": 320.0,
+          "y_m": 240.0
+        },
+        {
+          "depth_m": 1.0,
+          "kind": "environmental",
+          "station_id": "ST_ENV",
+          "tile_id": null,
+          "vertical_datum": "seabed",
+          "x_m": 300.0,
+          "y_m": 260.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "survey",
+          "station_id": "SURVEY_01",
+          "tile_id": null,
+          "vertical_datum": "mat_top",
+          "x_m": 300.0,
+          "y_m": 220.0
+        }
+      ],
+      "survey_latency_s": 86400.0,
+      "survey_period_s": 15552000.0
+    },
+    "plume": {
+      "dt_s": 600.0,
+      "sample_years": [
+        0.0,
+        3.0
+      ],
+      "window_s": 86400.0
+    },
+    "policy": {
+      "allow_partial_replacement": true,
+      "decision_period_s": 2592000.0,
+      "fixed_interval_s": 63115200.0,
+      "inspection_saturation_threshold": 0.55,
+      "kind": "evidence_informed",
+      "max_data_age_s": 17280000.0,
+      "max_relative_interval_width": 1.2,
+      "min_evidence_records": 3,
+      "minimum_acceptable_attenuation": 0.7,
+      "minimum_coverage_fraction": 0.9,
+      "replacement_saturation_threshold": 0.8,
+      "saturation_decision_bound": "mid"
+    },
+    "run_id": "increased_leak",
+    "scenario": "increased_leak",
+    "seed": 20260908,
+    "start_utc": "2026-09-08T00:00:00Z",
+    "transport_engine": "fipy"
+  },
+  "progressive_saturation": {
+    "config_version": "0.2.0",
+    "costs": {
+      "benthic_chamber_deployment_eur": 2800.0,
+      "deployment_vessel_day_eur": 6500.0,
+      "dgt_deployment_eur": 260.0,
+      "lab_hg_sample_eur": 210.0,
+      "mat_material_eur_per_m2": 240.0,
+      "porewater_sample_eur": 180.0,
+      "provenance": "assumption",
+      "rov_survey_eur": 4200.0,
+      "sensor_check_eur": 350.0,
+      "tile_replacement_eur": 1900.0,
+      "used_media_handling_eur_per_kg": 12.0
+    },
+    "degradation": {
+      "burial_growth_m_per_s": 0.0,
+      "burial_resistance_s_per_m": 200000000.0,
+      "events": [],
+      "fouling_bypass_coupling": 0.35,
+      "fouling_growth_per_s": 5e-09
+    },
+    "domain": {
+      "crs": "LOCAL_METRIC",
+      "dx_m": 10.0,
+      "dy_m": 10.0,
+      "land_rectangles": [
+        [
+          0.0,
+          0.0,
+          600.0,
+          40.0
+        ]
+      ],
+      "mixing_depth_m": 5.0,
+      "mode": "synthetic",
+      "nx": 60,
+      "ny": 40
+    },
+    "dt_s": 21600.0,
+    "duration_s": 189345600.0,
+    "elements": [
+      "Pb",
+      "Hg",
+      "Cu"
+    ],
+    "ensemble_size": 64,
+    "forcing": {
+      "diffusivity_m2_per_s": 0.6,
+      "kind": "tidal",
+      "product_ref": null,
+      "provenance": "synthetic_demo",
+      "temporal_averaging": "instantaneous_synthetic",
+      "tidal_amplitude_m_per_s": 0.18,
+      "tidal_period_s": 44712.0,
+      "tidal_phase_rad": 0.0,
+      "u_mean_m_per_s": 0.04,
+      "v_mean_m_per_s": 0.0
+    },
+    "hotspot": {
+      "description": "Hypothetical authorised contaminant hotspot for a demonstration. Not a located real site, and not an ordnance object. Real work near historical marine munitions requires specialist and environmental approval [S02, S03].",
+      "film_transfer_m_per_s": 5e-07,
+      "hotspot_id": "authorised_hotspot_1",
+      "label": "synthetic_demo",
+      "length_m": 80.0,
+      "schedule": [
+        {
+          "porewater_kg_per_m3": {
+            "Cu": 0.002,
+            "Hg": 8e-06,
+            "Pb": 0.001
+          },
+          "seepage_velocity_m_per_s": 3e-08,
+          "start_s": 0.0
+        }
+      ],
+      "width_m": 80.0,
+      "x_m": 260.0,
+      "y_m": 180.0
+    },
+    "layer_engine": "scipy_banded_implicit",
+    "mat": {
+      "bulk_density_kg_per_m3": 400.0,
+      "coverage_fraction": 1.0,
+      "edge_leakage_fraction": 0.02,
+      "edge_leakage_interval": [
+        0.005,
+        0.08
+      ],
+      "mat_id": "mat_A",
+      "media": [
+        {
+          "allocation_fraction": 0.6,
+          "available_fraction": 0.25,
+          "available_fraction_interval": [
+            0.05,
+            0.6
+          ],
+          "commissioned_q_max_interval": [
+            0.00075,
+            0.0013
+          ],
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Pb",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0012
+          ],
+          "k_rate_per_s": 0.0004,
+          "kd_interval": [
+            0.5,
+            20.0
+          ],
+          "kd_m3_per_kg": 3.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0003,
+            0.008
+          ],
+          "q_max_kg_per_kg": 0.001,
+          "source_ref": "keratin biosorption literature derated for seawater; see docs/MATERIAL_KERATIN.md [K1-K4]"
+        },
+        {
+          "allocation_fraction": 0.3,
+          "available_fraction": 0.1,
+          "available_fraction_interval": [
+            0.01,
+            0.4
+          ],
+          "commissioned_q_max_interval": null,
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Hg",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            3e-05,
+            0.0008
+          ],
+          "k_rate_per_s": 0.0002,
+          "kd_interval": [
+            2.0,
+            300.0
+          ],
+          "kd_m3_per_kg": 30.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0002,
+            0.025
+          ],
+          "q_max_kg_per_kg": 0.0025,
+          "source_ref": "assumed fraction of a conditional sulfur-site calculation [K4]; 476.7 mg/g reported for reduced human hair [K15] is not a validated capacity for this core in seawater. Seawater Hg is above 99 per cent chloro-complexed [K10]. Hg uptake also depends strongly on sulfide, chloride and dissolved organic matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
+        },
+        {
+          "allocation_fraction": 0.1,
+          "available_fraction": 0.02,
+          "available_fraction_interval": [
+            0.002,
+            0.15
+          ],
+          "commissioned_q_max_interval": [
+            0.002,
+            0.0045
+          ],
+          "d_eff_interval": [
+            9e-11,
+            5.5e-10
+          ],
+          "d_eff_m2_per_s": 2.2e-10,
+          "element": "Cu",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0015
+          ],
+          "k_rate_per_s": 0.0005,
+          "kd_interval": [
+            1.0,
+            60.0
+          ],
+          "kd_m3_per_kg": 8.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0005,
+            0.02
+          ],
+          "q_max_kg_per_kg": 0.003,
+          "source_ref": "wool keratin nanofibre Cu(II) Langmuir capacity 20 mg/g [K9], derated by an order of magnitude for a bulk felt core, then limited by organic complexation: above 99 per cent of dissolved Cu in seawater is bound to strong ligands [K11]. See docs/MATERIAL_KERATIN.md section 3b"
+        }
+      ],
+      "media_id": "media_A0",
+      "n_layer_nodes": 40,
+      "overlap_m": 0.1,
+      "porosity": 0.5,
+      "preload_kg_per_m2": {},
+      "thickness_m": 0.01,
+      "tiles_x": 3,
+      "tiles_y": 3
+    },
+    "notes": "",
+    "observations": {
+      "bottom_water_probe_period_s": 21600.0,
+      "chamber_deployment_period_s": 15552000.0,
+      "chamber_lod_ug_per_m2_per_d": 0.05,
+      "chamber_loq_ug_per_m2_per_d": 0.2,
+      "chamber_relative_noise": 0.35,
+      "dgt_deployment_period_s": 15552000.0,
+      "dgt_exposure_s": 259200.0,
+      "environmental_period_s": 3600.0,
+      "environmental_relative_noise": 0.02,
+      "lab_latency_s": 1814400.0,
+      "lab_lod_ng_per_l": 1.5,
+      "lab_loq_ng_per_l": 5.0,
+      "lab_relative_noise": 0.08,
+      "missing_probability": 0.03,
+      "porewater_sample_period_s": 7776000.0,
+      "probe_latency_s": 0.0,
+      "probe_lod_ng_per_l": 12.0,
+      "probe_loq_ng_per_l": 40.0,
+      "probe_range_top_ng_per_l": 5000.0,
+      "probe_relative_noise": 0.2,
+      "sensor_drift_per_s": 0.0,
+      "sensor_drift_start_s": null,
+      "sensor_dropout_window_s": null,
+      "stations": [
+        {
+          "depth_m": 0.3,
+          "kind": "bottom_water_probe",
+          "station_id": "ST_MAT_A",
+          "tile_id": "tile_0_0",
+          "vertical_datum": "seabed",
+          "x_m": 280.0,
+          "y_m": 200.0
+        },
+        {
+          "depth_m": 0.01,
+          "kind": "porewater",
+          "station_id": "ST_MAT_B",
+          "tile_id": "tile_1_1",
+          "vertical_datum": "mat_base",
+          "x_m": 300.0,
+          "y_m": 220.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "chamber",
+          "station_id": "ST_MAT_C",
+          "tile_id": "tile_2_2",
+          "vertical_datum": "mat_top",
+          "x_m": 320.0,
+          "y_m": 240.0
+        },
+        {
+          "depth_m": 1.0,
+          "kind": "environmental",
+          "station_id": "ST_ENV",
+          "tile_id": null,
+          "vertical_datum": "seabed",
+          "x_m": 300.0,
+          "y_m": 260.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "survey",
+          "station_id": "SURVEY_01",
+          "tile_id": null,
+          "vertical_datum": "mat_top",
+          "x_m": 300.0,
+          "y_m": 220.0
+        }
+      ],
+      "survey_latency_s": 86400.0,
+      "survey_period_s": 15552000.0
+    },
+    "plume": {
+      "dt_s": 600.0,
+      "sample_years": [
+        0.0,
+        3.0
+      ],
+      "window_s": 86400.0
+    },
+    "policy": {
+      "allow_partial_replacement": true,
+      "decision_period_s": 2592000.0,
+      "fixed_interval_s": 63115200.0,
+      "inspection_saturation_threshold": 0.55,
+      "kind": "evidence_informed",
+      "max_data_age_s": 17280000.0,
+      "max_relative_interval_width": 1.2,
+      "min_evidence_records": 3,
+      "minimum_acceptable_attenuation": 0.7,
+      "minimum_coverage_fraction": 0.9,
+      "replacement_saturation_threshold": 0.8,
+      "saturation_decision_bound": "mid"
+    },
+    "run_id": "progressive_saturation",
+    "scenario": "progressive_saturation",
+    "seed": 20260908,
+    "start_utc": "2026-09-08T00:00:00Z",
+    "transport_engine": "fipy"
+  },
+  "undersized_mat": {
+    "config_version": "0.2.0",
+    "costs": {
+      "benthic_chamber_deployment_eur": 2800.0,
+      "deployment_vessel_day_eur": 6500.0,
+      "dgt_deployment_eur": 260.0,
+      "lab_hg_sample_eur": 210.0,
+      "mat_material_eur_per_m2": 240.0,
+      "porewater_sample_eur": 180.0,
+      "provenance": "assumption",
+      "rov_survey_eur": 4200.0,
+      "sensor_check_eur": 350.0,
+      "tile_replacement_eur": 1900.0,
+      "used_media_handling_eur_per_kg": 12.0
+    },
+    "degradation": {
+      "burial_growth_m_per_s": 0.0,
+      "burial_resistance_s_per_m": 200000000.0,
+      "events": [],
+      "fouling_bypass_coupling": 0.35,
+      "fouling_growth_per_s": 5e-09
+    },
+    "domain": {
+      "crs": "LOCAL_METRIC",
+      "dx_m": 10.0,
+      "dy_m": 10.0,
+      "land_rectangles": [
+        [
+          0.0,
+          0.0,
+          600.0,
+          40.0
+        ]
+      ],
+      "mixing_depth_m": 5.0,
+      "mode": "synthetic",
+      "nx": 60,
+      "ny": 40
+    },
+    "dt_s": 21600.0,
+    "duration_s": 126230400.0,
+    "elements": [
+      "Pb",
+      "Hg",
+      "Cu"
+    ],
+    "ensemble_size": 64,
+    "forcing": {
+      "diffusivity_m2_per_s": 0.6,
+      "kind": "tidal",
+      "product_ref": null,
+      "provenance": "synthetic_demo",
+      "temporal_averaging": "instantaneous_synthetic",
+      "tidal_amplitude_m_per_s": 0.18,
+      "tidal_period_s": 44712.0,
+      "tidal_phase_rad": 0.0,
+      "u_mean_m_per_s": 0.04,
+      "v_mean_m_per_s": 0.0
+    },
+    "hotspot": {
+      "description": "Hypothetical authorised contaminant hotspot for a demonstration. Not a located real site, and not an ordnance object. Real work near historical marine munitions requires specialist and environmental approval [S02, S03].",
+      "film_transfer_m_per_s": 5e-07,
+      "hotspot_id": "authorised_hotspot_1",
+      "label": "synthetic_demo",
+      "length_m": 80.0,
+      "schedule": [
+        {
+          "porewater_kg_per_m3": {
+            "Cu": 0.002,
+            "Hg": 8e-06,
+            "Pb": 0.001
+          },
+          "seepage_velocity_m_per_s": 8.999999999999999e-08,
+          "start_s": 0.0
+        }
+      ],
+      "width_m": 80.0,
+      "x_m": 260.0,
+      "y_m": 180.0
+    },
+    "layer_engine": "scipy_banded_implicit",
+    "mat": {
+      "bulk_density_kg_per_m3": 400.0,
+      "coverage_fraction": 0.45,
+      "edge_leakage_fraction": 0.1,
+      "edge_leakage_interval": [
+        0.005,
+        0.08
+      ],
+      "mat_id": "mat_A",
+      "media": [
+        {
+          "allocation_fraction": 0.6,
+          "available_fraction": 0.25,
+          "available_fraction_interval": [
+            0.05,
+            0.6
+          ],
+          "commissioned_q_max_interval": [
+            0.00075,
+            0.0013
+          ],
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Pb",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0012
+          ],
+          "k_rate_per_s": 0.0004,
+          "kd_interval": [
+            0.5,
+            20.0
+          ],
+          "kd_m3_per_kg": 3.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0003,
+            0.008
+          ],
+          "q_max_kg_per_kg": 0.001,
+          "source_ref": "keratin biosorption literature derated for seawater; see docs/MATERIAL_KERATIN.md [K1-K4]"
+        },
+        {
+          "allocation_fraction": 0.3,
+          "available_fraction": 0.1,
+          "available_fraction_interval": [
+            0.01,
+            0.4
+          ],
+          "commissioned_q_max_interval": null,
+          "d_eff_interval": [
+            8e-11,
+            5e-10
+          ],
+          "d_eff_m2_per_s": 2e-10,
+          "element": "Hg",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            3e-05,
+            0.0008
+          ],
+          "k_rate_per_s": 0.0002,
+          "kd_interval": [
+            2.0,
+            300.0
+          ],
+          "kd_m3_per_kg": 30.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0002,
+            0.025
+          ],
+          "q_max_kg_per_kg": 0.0025,
+          "source_ref": "assumed fraction of a conditional sulfur-site calculation [K4]; 476.7 mg/g reported for reduced human hair [K15] is not a validated capacity for this core in seawater. Seawater Hg is above 99 per cent chloro-complexed [K10]. Hg uptake also depends strongly on sulfide, chloride and dissolved organic matter [S04]. See docs/MATERIAL_KERATIN.md section 3"
+        },
+        {
+          "allocation_fraction": 0.1,
+          "available_fraction": 0.02,
+          "available_fraction_interval": [
+            0.002,
+            0.15
+          ],
+          "commissioned_q_max_interval": [
+            0.002,
+            0.0045
+          ],
+          "d_eff_interval": [
+            9e-11,
+            5.5e-10
+          ],
+          "d_eff_m2_per_s": 2.2e-10,
+          "element": "Cu",
+          "fouling_rate_capacity": 0.0,
+          "fouling_rate_diffusivity": 0.6,
+          "fouling_rate_kinetics": 0.8,
+          "k_rate_interval": [
+            0.0001,
+            0.0015
+          ],
+          "k_rate_per_s": 0.0005,
+          "kd_interval": [
+            1.0,
+            60.0
+          ],
+          "kd_m3_per_kg": 8.0,
+          "provenance": "assumption",
+          "q_max_interval": [
+            0.0005,
+            0.02
+          ],
+          "q_max_kg_per_kg": 0.003,
+          "source_ref": "wool keratin nanofibre Cu(II) Langmuir capacity 20 mg/g [K9], derated by an order of magnitude for a bulk felt core, then limited by organic complexation: above 99 per cent of dissolved Cu in seawater is bound to strong ligands [K11]. See docs/MATERIAL_KERATIN.md section 3b"
+        }
+      ],
+      "media_id": "media_A0",
+      "n_layer_nodes": 40,
+      "overlap_m": 0.1,
+      "porosity": 0.5,
+      "preload_kg_per_m2": {},
+      "thickness_m": 0.002,
+      "tiles_x": 2,
+      "tiles_y": 2
+    },
+    "notes": "",
+    "observations": {
+      "bottom_water_probe_period_s": 21600.0,
+      "chamber_deployment_period_s": 15552000.0,
+      "chamber_lod_ug_per_m2_per_d": 0.05,
+      "chamber_loq_ug_per_m2_per_d": 0.2,
+      "chamber_relative_noise": 0.35,
+      "dgt_deployment_period_s": 15552000.0,
+      "dgt_exposure_s": 259200.0,
+      "environmental_period_s": 3600.0,
+      "environmental_relative_noise": 0.02,
+      "lab_latency_s": 1814400.0,
+      "lab_lod_ng_per_l": 1.5,
+      "lab_loq_ng_per_l": 5.0,
+      "lab_relative_noise": 0.08,
+      "missing_probability": 0.03,
+      "porewater_sample_period_s": 7776000.0,
+      "probe_latency_s": 0.0,
+      "probe_lod_ng_per_l": 12.0,
+      "probe_loq_ng_per_l": 40.0,
+      "probe_range_top_ng_per_l": 5000.0,
+      "probe_relative_noise": 0.2,
+      "sensor_drift_per_s": 0.0,
+      "sensor_drift_start_s": null,
+      "sensor_dropout_window_s": null,
+      "stations": [
+        {
+          "depth_m": 0.3,
+          "kind": "bottom_water_probe",
+          "station_id": "ST_MAT_A",
+          "tile_id": "tile_0_0",
+          "vertical_datum": "seabed",
+          "x_m": 280.0,
+          "y_m": 200.0
+        },
+        {
+          "depth_m": 0.01,
+          "kind": "porewater",
+          "station_id": "ST_MAT_B",
+          "tile_id": "tile_1_1",
+          "vertical_datum": "mat_base",
+          "x_m": 300.0,
+          "y_m": 220.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "chamber",
+          "station_id": "ST_MAT_C",
+          "tile_id": "tile_2_2",
+          "vertical_datum": "mat_top",
+          "x_m": 320.0,
+          "y_m": 240.0
+        },
+        {
+          "depth_m": 1.0,
+          "kind": "environmental",
+          "station_id": "ST_ENV",
+          "tile_id": null,
+          "vertical_datum": "seabed",
+          "x_m": 300.0,
+          "y_m": 260.0
+        },
+        {
+          "depth_m": 0.0,
+          "kind": "survey",
+          "station_id": "SURVEY_01",
+          "tile_id": null,
+          "vertical_datum": "mat_top",
+          "x_m": 300.0,
+          "y_m": 220.0
+        }
+      ],
+      "survey_latency_s": 86400.0,
+      "survey_period_s": 15552000.0
+    },
+    "plume": {
+      "dt_s": 600.0,
+      "sample_years": [
+        0.0,
+        3.0
+      ],
+      "window_s": 86400.0
+    },
+    "policy": {
+      "allow_partial_replacement": true,
+      "decision_period_s": 2592000.0,
+      "fixed_interval_s": 63115200.0,
+      "inspection_saturation_threshold": 0.55,
+      "kind": "evidence_informed",
+      "max_data_age_s": 17280000.0,
+      "max_relative_interval_width": 1.2,
+      "min_evidence_records": 3,
+      "minimum_acceptable_attenuation": 0.7,
+      "minimum_coverage_fraction": 0.9,
+      "replacement_saturation_threshold": 0.8,
+      "saturation_decision_bound": "mid"
+    },
+    "run_id": "undersized_mat",
+    "scenario": "undersized_mat",
+    "seed": 20260908,
+    "start_utc": "2026-09-08T00:00:00Z",
+    "transport_engine": "fipy"
+  }
+}

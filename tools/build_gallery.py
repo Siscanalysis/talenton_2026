@@ -74,6 +74,7 @@ def _png(figure_fn, path: Path, *, title: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fig = figure_fn()
     fig.suptitle(title, fontsize=10, color="#e6e6e6")
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(path, dpi=110, facecolor="#111418", bbox_inches="tight")
     plt.close(fig)
 
@@ -143,12 +144,10 @@ def _flux_png(result, path: Path) -> None:
 
 
 def _timeline_png(result, path: Path) -> None:
-    """Attenuation per element against the barrier-only floor.
+    """Whole-hotspot attenuation and loading, with scheduled event markers.
 
-    The shaded band between each element's curve and the dashed floor IS the
-    sorbent's contribution. Plotting only the total would credit the chemistry
-    with the geometry's work, and for copper the band is invisible because the
-    contribution really is zero.
+    The same-discretisation non-sorbing steady reference is distinct from a
+    transient reactive column. Their difference includes storage and history.
     """
     if not result.timeline:
         return
@@ -184,6 +183,26 @@ def _timeline_png(result, path: Path) -> None:
                 color=colour, lw=2, label=f"{element}",
             )
 
+        events = [(entry.start_s / _SECONDS_PER_YEAR, "source change")
+                  for entry in result.config.hotspot.schedule if entry.start_s > 0]
+        events += [(event.start_s / _SECONDS_PER_YEAR,
+                    "displacement" if event.mode == "displacement" else
+                    "damage" if event.mode == "local_damage" else event.mode)
+                   for event in result.config.degradation.events]
+        events += [((event.time_utc - result.config.start_datetime).total_seconds()
+                    / _SECONDS_PER_YEAR, "service")
+                   for event in result.maintenance.service_events]
+        for index, (year, label) in enumerate(sorted(set(events))):
+            if not 0 <= year <= years[-1]:
+                continue
+            for ax in (top, bottom):
+                ax.axvline(year, color="#c8d0d8", lw=0.8, ls="--", alpha=0.45)
+            top.text(year + 0.008 * max(years[-1], 1.0),
+                     0.18 + 0.16 * (index % 3), label,
+                     transform=top.get_xaxis_transform(), rotation=90,
+                     ha="left", va="bottom", fontsize=7, color="#c8d0d8",
+                     bbox={"facecolor": "#111418", "edgecolor": "none", "alpha": 0.8})
+
         top.set_ylabel("flux attenuation (%)", color="#c8d0d8", fontsize=9)
         all_values = [100.0 * p.attenuation[e] for p in result.timeline for e in elements]
         top.set_ylim(min(0.0, min(all_values) - 1), max(101.0, max(all_values) + 1))
@@ -196,9 +215,9 @@ def _timeline_png(result, path: Path) -> None:
                 text.set_color("#c8d0d8")
         top.text(
             0.99, 0.03,
-            "dotted = barrier only, no capacity left; shaded = sorbent contribution",
+            "dotted = non-sorbing steady reference\nshading = transient difference",
             transform=top.transAxes, ha="right", va="bottom",
-            color="#9aa4b0", fontsize=6.5,
+            color="#9aa4b0", fontsize=7,
         )
         fig.tight_layout()
         return fig
@@ -207,8 +226,11 @@ def _timeline_png(result, path: Path) -> None:
 
 
 def _scale_png(rows, path: Path) -> None:
-    """Area to cover, log scale. The figure that says area capping is not a plan."""
-    names = [str(row["name"]).split(",")[0].replace("This demonstrator's", "this")
+    """Designated area on a log scale, with assumed keratin mass labels."""
+    labels = {"Bornholm Basin, primary dumpsite": "Bornholm primary",
+              "Bornholm Basin, extended area": "Bornholm extended"}
+    names = [labels.get(str(row["name"]), str(row["name"]).replace(
+        "This demonstrator's hypothetical hotspot", "Synthetic hotspot"))
              for row in rows]
     areas = [float(row["area_km2"]) for row in rows]
     tonnes = [float(row["sorbent_tonnes"]) for row in rows]
@@ -219,6 +241,7 @@ def _scale_png(rows, path: Path) -> None:
         ax.set_facecolor("#111418")
         bars = ax.bar(range(len(names)), areas, color="#ff453a")
         ax.set_yscale("log")
+        ax.set_ylim(min(areas) * 0.55, max(areas) * 4.0)
         ax.set_xticks(range(len(names)))
         ax.set_xticklabels(names, rotation=22, ha="right", fontsize=7.5)
         ax.set_ylabel("area to cover (km2, log scale)", color="#c8d0d8", fontsize=9)
@@ -236,7 +259,7 @@ def _scale_png(rows, path: Path) -> None:
         fig.tight_layout()
         return fig
 
-    _png(draw, path, title="Keratin needed to cover it. Every euro value is an assumption.")
+    _png(draw, path, title="Area to cover; labels give assumed keratin mass (t or kt)")
 
 
 def _comparison_png(rows, path: Path, element: str) -> None:
@@ -466,8 +489,9 @@ includes uncovered area and bypass; see <code>docs/EVIDENCE_BASE.md</code>.</div
 </table>
 
 <h2>Three servicing policies, identical assumptions</h2>
-<p class="caption">Scenario B. Same seed, same forcing, same hotspot schedule,
-same observation schedule. Only <code>PolicyConfig.kind</code> differs.</p>
+<p class="caption">Scenario B. Same seed, forcing, source schedule and nominal
+monitoring configuration. Fixed and evidence policies share the sample schedule;
+the bare reference has no mat observations.</p>
 <table>
 <tr><th>Policy</th><th>Pb into the water (kg)</th><th>Pb retained (kg)</th>
     <th>Services</th><th>Assumed cost (EUR)</th></tr>

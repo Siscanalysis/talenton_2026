@@ -1,6 +1,6 @@
 # Selective reactive seabed mat: demonstrator
 
-[Read the PDF manuscript](manuscript/manuscript.pdf) ? [Editable LaTeX source](manuscript/manuscript.tex) ? [Figure gallery](docs/gallery/README.md)
+[Read the PDF manuscript](manuscript/manuscript.pdf) | [Editable LaTeX source](manuscript/manuscript.tex) | [Figure gallery](docs/gallery/README.md)
 
 An offline simulator of a modular, retrievable seabed cap containing a keratin-based reactive core between permeable carrier geotextiles. It models Pb, inorganic Hg and Cu transport through individual tiles, short coastal plume windows, synthetic monitoring and maintenance recommendations. The hotspot and operating parameters are assumed; these are simulated results, without field validation.
 

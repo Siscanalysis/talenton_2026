@@ -1,0 +1,22 @@
+Title:           A Selective Reactive Seabed Mat: Scientific Basis, Model Assumptions and Demonstrator Results
+Subject:         Documented report of the TalentON 2026 software repository
+Keywords:        keratin, reactive cap, seabed, lead, mercury, copper, finite volume, monitoring, maintenance
+Author:          
+Creator:         LaTeX with hyperref
+Producer:        MiKTeX pdfTeX-1.40.28
+CreationDate:    Wed Sep  9 13:21:24 2026 Romance Summer Time
+ModDate:         Wed Sep  9 13:21:24 2026 Romance Summer Time
+Custom Metadata: yes
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           71
+Encrypted:       no
+Page size:       595.276 x 841.89 pts (A4)
+Page rot:        0
+File size:       1315397 bytes
+Optimized:       no
+PDF version:     1.5

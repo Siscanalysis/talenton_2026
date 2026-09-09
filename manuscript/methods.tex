@@ -1,0 +1,324 @@
+\section{Mathematical model, implemented assumptions and numerical methods}
+\label{sec:methods}
+
+The repository represents a reactive mat as a set of vertical columns beneath a prescribed coastal flow. Its primary physical outcome is the flux of dissolved metal leaving the sediment--mat system, rather than the removal of a volume of water passing a vertical filter. A separate observation and decision model interprets synthetic monitoring records. This section describes the executable configuration and algorithms in the inspected software snapshot. Where explanatory documents and executable behaviour differ, the equations and values below follow the latter. All site conditions, material parameters and degradation coefficients are demonstration assumptions; no parameter set constitutes a calibration against a manufactured mat or a field deployment.\cite{repository}
+
+\subsection{State variables, geometry and physical scope}
+\label{sec:state_scope}
+
+For each element $e\in\{\mathrm{Pb},\mathrm{Hg},\mathrm{Cu}\}$ and tile $j$, the reactive model stores a dissolved concentration $C_{e,j}(z,t)$ in $\mathrm{kg\,m^{-3}}$ and a sorbed loading $q_{e,j}(z,t)$ in $\mathrm{kg\,kg^{-1}}$. The coordinate $z$ increases upwards through the reactive core of thickness $L$. Loading is defined per kilogram of \emph{total} reactive medium, so an allocation factor is required when different elements are assigned different shares of the medium. Each tile also has a fouling index $f_j$, an integrity index $i_j$, burial depth $d_j$, displacement metadata and an active/inactive state. Dissolved concentrations in the coastal field are denoted $c_e(x,y,t)$ to distinguish them from concentrations inside the mat.
+
+The intended default design is an $80\times80\,\mathrm{m}$ mat composed of nine equal tiles over an identically sized hotspot. The core is $10\,\mathrm{mm}$ thick and is bounded by two $3\,\mathrm{mm}$ inert carrier geotextiles. The dry reactive-medium loading is
+\begin{equation}
+ m_s=\rho_b L=4\,\mathrm{kg\,m^{-2}}, \qquad
+ M_s=6400m_s=25\,600\,\mathrm{kg},
+ \label{eq:media_mass}
+\end{equation}
+excluding carrier textiles, fastenings and ancillary structures. The specified bulk density and porosity are independent effective parameters; the model does not impose a constitutive relation between them and the solid density of keratin. Seabed consolidation, settlement, compaction, uplift mechanics, wave loading and textile strength are absent. Each column is homogeneous laterally, and there is no resolved preferential flow, intra-mat lateral transport, bioirrigation or bioturbation.
+
+The source reservoir is prescribed rather than depleted. The code tracks transfers of Pb, Hg and Cu without elemental destruction. It does not solve chemical speciation, inter-element competitive sorption, precipitation, particle transport, redox reactions, methylation or food-web exposure. An operational measurement labelled methylmercury therefore does not imply a mechanistic methylmercury production model. Ecological effects of changing sediment redox conditions must be evaluated independently.
+
+\subsection{Default physical and numerical assumptions}
+\label{sec:default_assumptions}
+
+Table~\ref{tab:physical_defaults} records the current executable defaults. The synthetic source is deliberately strong: absolute contaminant masses follow from these assumptions, rather than from observations at a named site. Material ranges in Table~\ref{tab:material_defaults} describe uncertain inputs, not empirical confidence intervals. They must also be distinguished from the deterministic uncertainty intervals reconstructed by the estimator.
+
+\begin{longtable}{@{}p{0.34\textwidth}p{0.24\textwidth}p{0.35\textwidth}@{}}
+\caption{Current default geometry, transport and degradation assumptions. Unless marked derived, values are prescribed inputs.}\label{tab:physical_defaults}\\
+\toprule Quantity & Default & Meaning or limitation \\
+\midrule\endfirsthead
+\toprule Quantity & Default & Meaning or limitation \\
+\midrule\endhead
+\bottomrule\endfoot
+Coastal grid & $60\times40$ cells & $600\times400\,\mathrm{m}$, local Cartesian coordinates. \\
+Horizontal spacing & $10\times10\,\mathrm{m}$ & Uniform finite-volume cells. \\
+Effective mixing depth $H$ & $5\,\mathrm{m}$ & Constant depth, no vertical structure. \\
+Land strip & $0\leq y\leq40\,\mathrm{m}$ & Four rows of cells; no water storage or flux through land faces. \\
+Mean current & $(0.04,0)\,\mathrm{m\,s^{-1}}$ & Prescribed eastward component. \\
+Tidal amplitude and period & $0.18\,\mathrm{m\,s^{-1}}$; $44\,712\,\mathrm{s}$ & One rectilinear sinusoid, phase zero. \\
+Horizontal diffusivity $D_h$ & $0.6\,\mathrm{m^2\,s^{-1}}$ & Spatially uniform effective dispersion. \\
+Hotspot lower-left coordinates & $(260,180)\,\mathrm{m}$ & Shared lower-left convention for hotspot and tiles. \\
+Hotspot dimensions & $80\times80\,\mathrm{m}$ & $6400\,\mathrm{m^2}$, exactly aligned to default grid cells. \\
+Sediment Pb, Hg, Cu & $1$, $0.008$, $2\,\mathrm{mg\,L^{-1}}$ & Total dissolved driving concentrations. \\
+Darcy seepage $v$ & $3\times10^{-8}\,\mathrm{m\,s^{-1}}$ & Upward only; $0.947\,\mathrm{m\,yr^{-1}}$ derived. \\
+Benthic film transfer $k_f$ & $5\times10^{-7}\,\mathrm{m\,s^{-1}}$ & Fixed independently of the coastal current. \\
+Core thickness $L$ & $0.010\,\mathrm{m}$ & Each element uses the same geometry. \\
+Core porosity $\theta$ & $0.5$ & Constant within a column. \\
+Dry bulk density $\rho_b$ & $400\,\mathrm{kg\,m^{-3}}$ & Reactive medium only. \\
+Tile layout and nominal coverage & $3\times3$; $1.0$ & Intended equal tiles of side $26.667\,\mathrm{m}$. \\
+Overlap allowance & $0.10\,\mathrm{m}$ & A tolerance, not extra installed overlap in the layout algorithm. \\
+Clean bypass $b_0$ & $0.02$; range $[0.005,0.08]$ & Area/flux mixing factor; edges are not spatially resolved. \\
+Core cells $N$ & $40$ & $\Delta z=0.25\,\mathrm{mm}$ derived. \\
+Initial dissolved/sorbed profiles & Zero & Optional explicit uniform preload exists but is empty by default. \\
+Initial fouling/integrity & $f=0$, $i=1$ & Initially active, unburied and undisplaced. \\
+Fouling growth $r_f$ & $5\times10^{-9}\,\mathrm{s^{-1}}$ & Linear until $f=1$ after $6.34$ years without replacement. \\
+Fouling sensitivities & $\gamma_q=0$, $\gamma_k=0.8$, $\gamma_D=0.6$ & Same default values for all three elements. \\
+Fouling--bypass coefficient $\beta$ & $0.35$ & At full fouling, $b=0.37$. \\
+Burial growth & Zero & Optional imposed rate or event. \\
+Burial resistance per unit depth $r_b$ & $2\times10^8\,\mathrm{s\,m^{-2}}$ & Dimension required by the implemented $r_bd$ equation; variable name uses $\mathrm{s/m}$. \\
+Reactive time step & $21\,600\,\mathrm{s}$ ($6$ h) & Backward Euler; source and degradation fixed during a step. \\
+Default configured duration & $6$ years & Scenarios override this to $1$, $4$ or $6$ years. \\
+Plume step and window & $600\,\mathrm{s}$; $86\,400\,\mathrm{s}$ & $144$ transport steps per snapshot experiment. \\
+Requested plume states & $0$ and $3$ years & Out-of-horizon ages omitted; actual final age added. \\
+Random seed and calendar origin & $20260908$; 8 September 2026 & Reproducible synthetic observation generation; one year is $365.25$ days. \\
+\end{longtable}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Element-specific material assumptions in the executable configuration. Brackets denote supplied prior ranges. $K_d^0$ is the pre-availability slope, $a$ the sorption-availability factor and $\alpha$ the medium allocation. Capacity is per allocated kilogram before multiplication by $\alpha$.}\label{tab:material_defaults}
+\begin{tabular}{@{}p{0.33\textwidth}lll@{}}
+\toprule Parameter & Pb & Hg & Cu \\
+\midrule
+$K_d^0$ ($\mathrm{m^3\,kg^{-1}}$) & $3\ [0.5,20]$ & $30\ [2,300]$ & $8\ [1,60]$ \\
+$a$ & $.25\ [.05,.6]$ & $.10\ [.01,.4]$ & $.02\ [.002,.15]$ \\
+$\alpha$ & $0.6$ & $0.3$ & $0.1$ \\
+$q_{\max}$ ($\mathrm{mg\,g^{-1}}$) & $1\ [.3,8]$ & $2.5\ [.2,25]$ & $3\ [.5,20]$ \\
+Commissioned $q_{\max}$ range & $[.75,1.3]$ & None & $[2,4.5]$ \\
+$k$ ($10^{-4}\,\mathrm{s^{-1}}$) & $4\ [1,12]$ & $2\ [.3,8]$ & $5\ [1,15]$ \\
+$D$ ($10^{-10}\,\mathrm{m^2\,s^{-1}}$) & $2\ [.8,5]$ & $2\ [.8,5]$ & $2.2\ [.9,5.5]$ \\
+\midrule
+Apparent $aK_d^0$ & $0.75$ & $3$ & $0.16$ \\
+Column $\alpha aK_d^0$ & $0.45$ & $0.9$ & $0.016$ \\
+Capacity ($\mathrm{g\,m^{-2}}$) & $2.4$ & $3.0$ & $1.2$ \\
+Capacity across all nine tiles (kg) & $15.36$ & $19.20$ & $7.68$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The availability factors are a reduced representation of seawater chemistry. The implemented material constructor multiplies $K_d^0$ by $a$, leaving $q_{\max}$ unchanged. This is algebraically equivalent to using the accessible concentration $aC$ in the unsaturated isotherm, provided that speciation remains in rapid equilibrium with the total dissolved pool. It is not an explicit mass balance between free ions, labile complexes and strongly bound complexes. The effective $K_d$ prior limits are constructed by multiplying the corresponding lower and upper limits of $K_d^0$ and $a$; this creates an encompassing interval, not the probability distribution of a product inferred from experiments.
+
+The source-description strings retain the older wording ``Seawater Hg is above 99 per cent chloro-complexed'' and ``above 99 per cent of dissolved Cu in seawater is bound to strong ligands''. These are not universal marine speciation constants. Hg binding depends on chloride, sulphide, organic matter and redox, while the cited Cu measurements concern particular deep-sea porewater samples. The material and matrix qualifications in Section~\ref{sec:evidence} govern interpretation; those source strings do not independently calibrate the availability factors.
+
+The commissioned capacity ranges for Pb and Cu are assumptions about information that a future batch test could supply. They are not measurements contained in this repository. Hg has no commissioned range. The distinct allocation fractions prevent nominal capacity being counted three times, but they replace competition by independent, artificially partitioned sorption compartments. Neither cross-inhibition nor preferential displacement of one metal by another is solved.
+
+\subsection{Reactive transport through the core}
+\label{sec:reactive_equations}
+
+Suppressing tile and element subscripts, the conservative column equations are
+\begin{align}
+ \theta\frac{\partial C}{\partial t}
+ &=-\frac{\partial J}{\partial z}-\rho_b\frac{\partial q}{\partial t},
+ &J&=vC-\theta D_f\frac{\partial C}{\partial z},\label{eq:column_balance}\\
+ \frac{\partial q}{\partial t}
+ &=k_f^{\mathrm{rxn}}\left(q_{\mathrm{eq}}-q\right),
+ &q_{\mathrm{eq}}&=\min\!\left(KC,Q_f\right),\label{eq:sorption}
+\end{align}
+where $K=\alpha aK_d^0$, $Q_f=\alpha q_{\max}(1-\gamma_qf)$,
+$k_f^{\mathrm{rxn}}=k(1-\gamma_kf)$ and $D_f=D(1-\gamma_Df)$. The factors are clipped to $[0,1]$, with diagnostics recording clipping. The notation $k_f^{\mathrm{rxn}}$ denotes the reaction rate and is distinct from the film coefficient $k_f$.
+
+An additional numerical/constitutive rule overrides equation~\eqref{eq:sorption} when an old cell loading satisfies $q^n\geq Q_f$: the cell becomes capacity locked and $q^{n+1}=q^n$. Thus a full cell neither takes up nor releases metal, including when a lower accessible capacity is imposed by fouling. A cell below this threshold can desorb if its current loading exceeds the new equilibrium loading. This introduces an irreversible locking branch beyond a conventional reversible capped isotherm. It preserves already sorbed mass but is a modelling choice requiring experimental evaluation. A dedicated zero-source flushing check confirms a finite difference between exactly full and nearly full initial loading; smoothness across that threshold is therefore not guaranteed by this constitutive rule.
+
+The maximum attainable local equilibrium loading under an initially clean mat and the constant baseline source is especially informative:
+\begin{equation}
+ \frac{q_{\mathrm{eq}}(C_{\mathrm{sed}})}{\alpha q_{\max}}
+ =\min\!\left(1,\frac{aK_d^0 C_{\mathrm{sed}}}{q_{\max}}\right)
+ =\begin{cases}0.750&\mathrm{Pb},\\0.00960&\mathrm{Hg},\\0.1067&\mathrm{Cu}.\end{cases}
+ \label{eq:equilibrium_ceiling}
+\end{equation}
+These are source-side bounds, not spatially averaged final saturations. They show that complete nominal capacity exhaustion is not implied by extending the default run. In particular, the scenario name \emph{progressive saturation} describes increasing loading; for the current parameters, declining chemical attenuation can also mean approach to sorption equilibrium below capacity. A higher source concentration can change this conclusion.
+
+For the baseline Pb/Hg core, the Darcy-based P\'eclet number is $vL/(\theta D)=3$. Unretarded advective residence is $\theta L/v=1.93$ days and the diffusive scale $L^2/D=5.79$ days. The clean linear-equilibrium retardation factors $1+\rho_bK/\theta$ are $361$, $721$ and $13.8$ for Pb, Hg and Cu. These quantities explain why chemical loading can evolve much more slowly than a coastal plume. They do not predict service life once finite kinetics, boundary resistances, bypass and changing source conditions are included.
+
+\subsection{Boundary conditions and carrier geotextiles}
+\label{sec:boundary_conditions}
+
+Cell-centred columns use $N$ equal finite volumes and $\Delta z=L/N$. Sediment concentration $C_{\mathrm{sed}}$ is prescribed half a cell below the first node; bottom-water concentration $C_w$ is supplied at the upper external boundary. The bare half-cell and upper film conductances are
+\begin{equation}
+ g_b^0=\frac{2\theta D_f}{\Delta z},\qquad
+ g_t^0=\left(\frac{\Delta z}{2\theta D_f}+\frac{1}{k_f}\right)^{-1}.
+ \label{eq:conductances}
+\end{equation}
+The carrier defaults are $L_g=0.003\,\mathrm{m}$, $\theta_g=0.55$, molecular diffusivity $D_m=7\times10^{-10}\,\mathrm{m^2\,s^{-1}}$ and hydraulic conductivity $1.5\times10^{-3}\,\mathrm{m\,s^{-1}}$. In the actual executable formula,
+\begin{equation}
+ D_g=\theta_g^{1.5}D_m,\qquad
+ R_g=\frac{L_g}{\theta_g D_g}
+ =\frac{L_g}{\theta_g^{2.5}D_m}
+ \simeq1.91\times10^7\,\mathrm{s\,m^{-1}}.
+ \label{eq:textile_resistance}
+\end{equation}
+The additional porosity in $R_g$ matters: some repository prose abbreviates the resistance as $L_g/(\theta_g^{1.5}D_m)$, which is not the implemented expression. With burial depth $d$, the conductances used in the column matrix are
+\begin{equation}
+ g_b=\left((g_b^0)^{-1}+R_g\right)^{-1},\qquad
+ g_t=\left((g_t^0)^{-1}+R_g+r_bd\right)^{-1}.
+ \label{eq:encapsulated}
+\end{equation}
+Here $r_b$ must have units $\mathrm{s\,m^{-2}}$ because $r_bd$ is a resistance in $\mathrm{s\,m^{-1}}$. Carrier layers have no storage nodes or sorption capacity. Their hydraulic conductivity is $50\,000$ times the baseline prescribed seepage; accordingly the code leaves advection unchanged and represents only a diffusive series resistance. This comparison does not solve pressure gradients or verify behaviour after clogging.
+
+The geotextile diagnostic reports $vL_g/D_g\simeq0.315$. A Darcy-consistent ratio including pore volume, as in the core equation, is $vL_g/(\theta_gD_g)\simeq0.573$. Both are below unity at baseline; with triple seepage they become $0.946$ and $1.72$, respectively. The approximation is consequently less secure in the undersized/high-seepage case. It should not be interpreted as a resolved advection--diffusion solution inside the carrier.
+
+Boundary fluxes evaluated at the new time level are
+\begin{equation}
+ J_{\mathrm{in}}=vC_{\mathrm{sed}}+g_b(C_{\mathrm{sed}}-C_1),\qquad
+ J_{\mathrm{out}}=vC_N+g_t(C_N-C_w).
+ \label{eq:boundary_fluxes}
+\end{equation}
+The no-mat reference is implemented as
+\begin{equation}
+ J_{\mathrm{bare}}=\max\{0,(v+k_f)(C_{\mathrm{sed}}-C_w)\},\qquad
+ A_{\mathrm{col}}=1-\frac{J_{\mathrm{out}}}{J_{\mathrm{bare}}}.
+ \label{eq:bare_attenuation}
+\end{equation}
+The attenuation is undefined when the reference flux is zero. The reference's advective term is $v(C_{\mathrm{sed}}-C_w)$, whereas the column's sediment-side advective input is $vC_{\mathrm{sed}}$. This distinction disappears for clean bottom water, which is the condition used in the long timelines and at the start of each plume window. A reverse sediment-to-water gradient is clipped in the reference rather than modelled as deposition.
+
+\subsection{Implicit finite-volume solution and numerical evidence}
+\label{sec:column_numerics}
+
+Transport and sorption are solved simultaneously with backward Euler. Diffusion uses centred face differences, and upward advection uses upwind concentrations. For an interior node $i$,
+\begin{equation}
+ \theta\frac{C_i^{n+1}-C_i^n}{\Delta t}
+ +\rho_b\frac{q_i^{n+1}-q_i^n}{\Delta t}
+ =\frac{\theta D_f}{\Delta z^2}
+ (C_{i+1}^{n+1}-2C_i^{n+1}+C_{i-1}^{n+1})
+ -\frac{v}{\Delta z}(C_i^{n+1}-C_{i-1}^{n+1}).
+ \label{eq:discrete_column}
+\end{equation}
+For an unlocked cell, the reaction unknown is eliminated analytically:
+\begin{equation}
+ q_i^{n+1}=\frac{q_i^n+\Delta t\,k_f^{\mathrm{rxn}}q_{\mathrm{eq},i}^{n+1}}
+ {1+\Delta t\,k_f^{\mathrm{rxn}}}.
+ \label{eq:implicit_q}
+\end{equation}
+In the unsaturated branch the sorption term becomes $A_iC_i^{n+1}-B_i$, where
+\begin{equation}
+ A_i=\frac{\rho_b k_f^{\mathrm{rxn}}K}{1+\Delta t k_f^{\mathrm{rxn}}},\qquad
+ B_i=\frac{\rho_b k_f^{\mathrm{rxn}}q_i^n}{1+\Delta t k_f^{\mathrm{rxn}}}.
+\end{equation}
+In the saturated branch it is the positive uptake rate
+$\rho_b k_f^{\mathrm{rxn}}(Q_f-q_i^n)/(1+\Delta t k_f^{\mathrm{rxn}})$.
+These terms enter one tridiagonal linear system solved by SciPy's banded direct solver. A Picard iteration updates the saturated/unsaturated mask until unchanged, with six sweeps allowed by the current constant. The sorbed update uses exactly the converged mask used by the matrix. Failure to stabilise the mask within the allowed sweeps raises an error; an unconverged state is not exported as a successful time step.
+
+The discrete inventory per square metre is
+\begin{equation}
+ I=\Delta z\sum_{i=1}^{N}(\theta C_i+\rho_bq_i),\qquad
+ I^{n+1}-I^n=(J_{\mathrm{in}}-J_{\mathrm{out}})\Delta t
+ \label{eq:column_inventory}
+\end{equation}
+before numerical corrections. A sorbed-capacity overshoot in an unlocked cell is returned to its porewater, conserving total inventory. Negative dissolved concentration clipping adds mass and is reported separately. Capacity-locked cells are exempt from the capacity clip. Equality of flux and inventory discretisations is necessary for conservation but does not establish accuracy or validate the governing assumptions.
+
+The unit-level refinement benchmark is a separate reference column with $K=5\,\mathrm{m^3\,kg^{-1}}$, $Q=10^{-3}\,\mathrm{kg\,kg^{-1}}$, and no carrier geotextiles. It defines breakthrough as $J_{\mathrm{out}}/J_{\mathrm{bare}}>0.05$ and tests time steps of $12$, $6$, $3$ and $1$ h over $3.4$ years. Its acceptance criteria require breakthrough spread below five days, final-loading spread below $10^{-3}$, flux-ratio spread below $0.002$ at selected times and relative mass residual below $10^{-9}$. The familiar approximately $3.09$-year breakthrough belongs to \emph{that benchmark}; it is not the service life of the current Pb/Hg/Cu configuration.\cite{repository}
+
+The revision additionally checks the stationary non-sorbing solution against an exact recurrence for the same finite-volume equations, tests unequal and equal nonzero boundary concentrations, and exercises time and spatial refinement. In an eight-cell, 14-day accelerated verification column with capacity $10^{-5}$~kg\,kg$^{-1}$, normalised maximum profile errors against an independent BDF integration decrease from 0.09473 to 0.05349 to 0.03128 as the step decreases from 6 to 3 to 1.5~h. Concentration and loading are normalised by $10^{-3}$~kg\,m$^{-3}$ and $10^{-5}$~kg\,kg$^{-1}$, respectively. This is a solver test, not a change to scenario chemistry. Stationary continuum flux errors decrease from 1.1269\% to 0.5648\%, 0.2825\% and 0.1412\% for 20, 40, 80 and 160 cells. These errors distinguish spatial accuracy from mass closure.
+
+A deliberately insufficient Picard iteration budget must fail explicitly. Geometry and event tests verify footprint area, zero-duration inventory and discontinuities separately. These checks distinguish accuracy, conservation and scenario integration; none establishes chemical validity of the assumed parameter set. The regenerated numerical audit accompanies the report rather than reusing an archived attenuation value after changing the source-mixing diagnostic.
+
+\subsection{Four degradation mechanisms and source mixing}
+\label{sec:degradation_methods}
+
+Chemical loading is obtained from the profiles, while the other degradation variables evolve independently. Fouling grows as $f^{n+1}=\min(1,f^n+r_f\Delta t)$ and burial as $d^{n+1}=d^n+r_d\Delta t$. The timeline applies these increments after the column solve. It splits the integration grid at each source change, degradation event and decision time, so events are applied at their declared timestamps. Before/after states at a discontinuity share a timestamp; a plotted vertical jump therefore represents an event rather than a smoothed transition. The four model categories are:
+\begin{enumerate}
+ \item \textbf{Loading, saturation and breakthrough.} Sorbed mass and residual flux change through equations~\eqref{eq:column_balance}--\eqref{eq:sorption}. Saturation cannot be imposed as an event; a stress test can instead declare an initial preload.
+ \item \textbf{Fouling and pore blockage.} Fouling lowers reaction rate and diffusivity, and optionally accessible capacity. The default capacity sensitivity is zero. The bypass fraction grows according to
+ \begin{equation}b_j=\operatorname{clip}_{[0,1]}(b_{0,j}+\beta f_j).\label{eq:bypass}\end{equation}
+ This empirical relation represents diversion around a clogged mat. No pressure or seepage redistribution calculation establishes $\beta$.
+ \item \textbf{Position change and burial.} A fully displaced or inactive tile has zero effective coverage and stops exchanging mass, while retaining its existing inventory. Burial adds the resistance in equation~\eqref{eq:encapsulated}; a lower observed flux can therefore indicate burial. In the event API a displacement magnitude at least $1$ marks complete displacement; a smaller offset is recorded but does not geometrically translate the footprint or reduce its area.
+ \item \textbf{Local damage.} Integrity $i_j\in[0,1]$ is the remaining intact area fraction. A damage event subtracts its magnitude from $i_j$; the remainder emits the bare reference flux. Damage does not automatically spill or dissolve previously retained metal. A separate explicit release function exists, but is not invoked by the standard displacement/damage scenario.
+\end{enumerate}
+
+Let $w_{pj}$ be the fraction of coastal cell $p$ covered by tile $j$, calculated from exact rectangular intersection area divided by cell area. Let $h_j=i_j$ for an active, undisplaced tile and zero otherwise. For non-overlapping tiles on a hotspot cell, the implemented source is
+\begin{equation}
+ J_{e,p}=\sum_j w_{pj}h_j(1-b_j)J_{e,j}^{\mathrm{out}}
+ +\left[1-\sum_j w_{pj}h_j(1-b_j)\right]J_{e,p}^{\mathrm{bare}}.
+ \label{eq:source_mixing}
+\end{equation}
+Outside the hotspot the source is zero. The output partitions this flux into covered, uncovered, damaged, displaced and bypass contributions. Bypass is distributed across each tile's footprint by the mixing formula; it is not confined to an explicitly resolved seam. Excess overlapping footprint weights can be rescaled with a diagnostic, while a dedicated layout check can reject excessive overlap. The standard tile constructor uses the same lower-left coordinate convention as the coastal mapper and preserves the hotspot aspect ratio when constructing a smaller centred mat.
+
+The column may yield a small downward flux when the overlying water is contaminated. The source mapper accepts negative values only up to $10^{-3}$ of the reference magnitude and then records and clamps them to zero; larger negative fluxes are refused. Hence this coupling represents a non-negative source to the water, not a general two-way depositional exchange.
+
+\subsection{Consistent geometry and the meaning of attenuation}
+\label{sec:geometry_discrepancy}
+
+Hotspot and tile coordinates both denote lower-left corners. For hotspot dimensions $W\times H_s$ and nominal coverage $f_c$, the installed mat has dimensions $W\sqrt{f_c}\times H_s\sqrt{f_c}$ and is centred inside the hotspot. The default nine tiles therefore cover exactly $[260,340]\times[180,260]\,\mathrm{m}$, as illustrated in Figure~\ref{fig:geometry}. Their overlap is
+\begin{equation}
+ A_{\mathrm{overlap}}=6400\,\mathrm{m^2},\qquad
+ \frac{A_{\mathrm{overlap}}}{A_{\mathrm{hotspot}}}=1.
+ \label{eq:geometry_overlap}
+\end{equation}
+The undersized configuration covers 0.45 of the hotspot, including fractional coastal-cell intersections. The displacement/damage scenario's targeted tiles now intersect the source footprint, so their loss can change the residual-source field. This corrects the earlier inconsistent-coordinate experiment; its results are not reused as the present geometry.
+
+The headline timeline flux is the area-weighted, covered-plus-bypass-plus-exposed source over the whole hotspot, calculated with equation~\eqref{eq:source_mixing}. Its attenuation and barrier reference use those same weights. Separate column attenuation remains available and describes the intrinsic transport calculation. It must not be confused with hotspot attenuation: a displaced tile has no active column exchange, while its exposed hotspot area emits the bare source. Nominal occupancy still averages tile sorbed fractions and includes retained mass in tiles that are displaced but not retrieved.
+
+At deployment, a perfectly retaining, fully covering core with the assumed 0.02 bypass fraction could suppress at most 98\% of this mixed source. This is an algebraic source bound, not a prediction of the concentration maximum downstream. The full-column inventory and area-mixed emission also retain distinct accounting scopes. The mixing approximation does not scale the stored column profiles by the remaining intact/non-bypass area; a single globally coupled sediment/mat/water budget is therefore not claimed.
+
+\subsection{Coastal advection--diffusion solver}
+\label{sec:coastal_solver}
+
+For each element the depth-averaged coastal equation is
+\begin{equation}
+ \frac{\partial c_e}{\partial t}+\nabla\!\cdot(\boldsymbol{u}c_e)
+ =\nabla\!\cdot(D_h\nabla c_e)+\frac{J_e(x,y)}{H}.
+ \label{eq:coastal}
+\end{equation}
+Dividing areal seabed flux by mixing depth produces a volumetric concentration source in $\mathrm{kg\,m^{-3}\,s^{-1}}$. There is no decay or settling term. FiPy supplies a Cartesian finite-volume mesh, implicit transient and diffusion terms, power-law convection and a SciPy direct LU solver.\citep{fipy2009} Cell velocities are averaged to faces; velocity and diffusivity are set to zero on every face touching land. Land concentrations start and remain zero. The default forcing is
+\begin{equation}
+ u_x(t)=0.04+0.18\sin\left(\frac{2\pi t}{44\,712}\right),
+ \qquad u_y(t)=0,
+ \label{eq:tidal_forcing}
+\end{equation}
+in $\mathrm{m\,s^{-1}}$. There is no momentum or continuity solution. Masking a prescribed current around arbitrary land can create non-zero discrete velocity divergence and local accumulation; the engine reports that divergence. Maps with real coastlines remain illustrative unless independent hydrodynamics support the chosen forcing.
+
+Open exterior faces are represented by implicit sinks against clean exterior water. For cell volume $V=H\Delta x\Delta y$ and exterior face area $A_f$, the rates are
+\begin{equation}
+ s_p^{\mathrm{adv}}=\sum_{f\in\partial p}\frac{\max(\boldsymbol{u}_f\!\cdot\boldsymbol{n}_f,0)A_f}{V},\qquad
+ s_p^{\mathrm{diff}}=\sum_{f\in\partial p}\frac{D_hA_f}{d_{pf}V}.
+ \label{eq:exterior_sinks}
+\end{equation}
+The sink $(s_p^{\mathrm{adv}}+s_p^{\mathrm{diff}})c_p^{n+1}$ exports dissolved metal; incoming water has zero contaminant concentration. A closed domain can be represented by surrounding water cells with land. Prescribing a clean exterior means that concentration imported from outside the computational region and return of a previously exported plume are not represented.
+
+At maximum default speed, the advective Courant number is $0.22(600)/10=13.2$ and the diffusion number is $0.6(600)/10^2=3.6$. Implicit solution permits these values without an explicit stability restriction, but temporal and numerical diffusion can affect the resolved plume. A conservative water ledger is not a substitute for grid and time-step convergence of concentration peaks.
+
+For each step, the engine calculates the mass source $M_{\mathrm{src}}$, raw concentration change $\Delta M_w$ and inferred net export $M_{\mathrm{src}}-\Delta M_w$. It separately integrates the exterior sinks at the new time level and reports their difference from the inferred export as a closure diagnostic. Thus a near-zero ledger imbalance alone partly follows from the bookkeeping definition; the independent face-flux closure is the stronger check. Negative-concentration clipping is applied after the raw balance, and its added mass is recorded.
+
+\subsection{Two time scales, source freezing and output timestamps}
+\label{sec:time_coupling}
+
+The implemented coupling is one-way and episodic. During the multi-year timeline, the coastal field is held at its initial clean-water state. Each mat therefore sees clean bottom water, irrespective of contaminant released previously. At a requested in-horizon mat age, a separate plume experiment begins from clean water, evaluates the stored column state without advancing it, and freezes that residual source while the coastal field advances for 24 hours. The no-mat comparison uses the same forcing and duration. The evolving plume is not fed back into the long-term columns.\cite{repository}
+
+The window spans approximately 1.93 tidal periods. A terminal concentration maximum is consequently a phase-specific transient, not a cycle average or converged steady state. Implicit transport and conservative budgets do not make different terminal windows interchangeable. Comparisons use identical windows and phases, and the numerical audit varies window duration and temporal resolution. Cycle-integrated exposure would be a different endpoint requiring an explicitly defined averaging interval.
+
+The timeline integrates exactly $[0,T]$. Its initial sample represents the untouched initial state, and a shorter final interval is used when a regular step does not divide the required boundary. Source changes, physical events, decisions and requested sample ages are included explicitly in that boundary set. A source diagnostic at a stored state uses a zero-duration evaluation rather than an additional six-hour solve. Plume windows similarly use exact final transport substeps when necessary.
+
+Requested sample ages outside $[0,T]$ are omitted and the actual final age is always included. Thus the one-year scenario has windows at zero and one year; a three-year label is not attached to its final one-year inventory. The returned field timestamp is the beginning of the selected window plus its actual integrated duration. These rules allow before/after events and final inventories to be compared without a hidden extra reaction step.
+
+\subsection{Conservation domains and interpretation of the barrier comparison}
+\label{sec:ledger_scope}
+
+The layer budget accumulates inputs and outputs over each constructed column's full footprint. Replacement transfers its dissolved and sorbed inventory to a retrieved-media record. Initial preload is recorded separately and clipping corrections retain an explicit sign. The identity is
+\begin{equation}
+ M_{\mathrm{initial,mat}}+M_{\mathrm{in,mat}}
+ =M_{\mathrm{active}}+M_{\mathrm{retrieved}}+M_{\mathrm{out,mat}}
+ +M_{\mathrm{correction}}.
+ \label{eq:mat_ledger}
+\end{equation}
+The active and retrieved inventories are separate fields, so retrieval is not added to both. The signed correction is negative for mass added by clipping; an internal transfer from sorbed loading back to porewater is not an external source or sink.
+
+Two additional timeline quantities have different meanings. The exported bare-hotspot reference integrates $J_{\mathrm{bare}}$ across the wet-cell hotspot. The exported hotspot-into-water quantity integrates the mixed residual source from equation~\eqref{eq:source_mixing}, including uncovered, damaged, displaced and bypass contributions. Neither is silently substituted for column output in equation~\eqref{eq:mat_ledger}. Full-column profiles remain an approximation for partially effective tiles, so these quantities do not close a single coupled global budget.
+
+Each short plume window has its own accounting identity:
+\begin{equation}
+ M_{w,0}+M_{\mathrm{src,window}}+M_{\mathrm{boundary,in}}
+ =M_{w,\mathrm{final}}+M_{\mathrm{boundary,out}}+M_{\mathrm{correction}}.
+ \label{eq:water_ledger}
+\end{equation}
+It contains only that window's fixed residual source, not all releases or all sorption since installation. Equivalently, supplied mass plus positive clipping mass equals water storage plus export. Different time horizons and control volumes must remain explicit when comparing kilograms retained with kilograms prevented from entering the water.
+
+The non-sorbing reference now solves the \emph{same discrete stationary equations} as the transient core. Put $h=\theta D_f/\Delta z$ and write the steady concentrations as $C_i=a_iJ+b_iC_w$. Starting at the top cell,
+\begin{align}
+ a_N&=(v+g_t)^{-1}, &b_N&=g_t(v+g_t)^{-1},\\
+ a_i&=\frac{1+h a_{i+1}}{v+h}, &b_i&=\frac{h b_{i+1}}{v+h},\quad i=N-1,\ldots,1.
+\end{align}
+The bottom flux law then gives
+\begin{equation}
+ J_{\mathrm{barrier}}=
+ \frac{(v+g_b)C_{\mathrm{sed}}-g_bb_1C_w}{1+g_ba_1}.
+ \label{eq:barrier_limit}
+\end{equation}
+For zero seepage the corresponding resistance is
+$g_b^{-1}+(N-1)/h+g_t^{-1}$. This reference includes the same textile, burial and half-cell conductances as the numerical column. It removes a previous discrepancy between an approximate continuum comparator and the actual discrete barrier.
+
+An independent continuum helper remains available for refinement checks. With external bottom resistance $R_b$, external top conductance $g$ and $r=\exp[-vL/(\theta D_f)]$, it evaluates
+\begin{equation}
+ J_{\mathrm{continuum}}=
+ \frac{(1+vR_b)C_{\mathrm{sed}}-rgC_w/(v+g)}
+ {R_b+(1-r)/v+r/(v+g)}.
+\end{equation}
+The continuum conductances exclude discrete half-cell resistance to avoid counting it twice. Retaining absolute boundary concentrations preserves advective transport even when they are equal. The discrete barrier is a matched numerical comparator, not independent physical validation. The difference between a reactive trajectory and this stationary reference includes transient dissolved storage as well as sorption, especially immediately after installation or a source change. It is therefore an incremental model diagnostic, not a direct measurement of chemical capture efficiency.

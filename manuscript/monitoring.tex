@@ -1,0 +1,131 @@
+\section{Monitoring, uncertainty and maintenance decisions}
+\label{sec:monitoring}
+
+The monitoring component asks what an operator could infer from a limited, delayed and imperfect observation programme. Its most useful conceptual separation is between the hidden simulated state, observation records, and estimates. The observation generator may read the simulated layer history; the estimator receives records and the operator's knowledge of the installed geometry and accepted servicing events. A laboratory acquisition pathway does not make an artificial observation a field measurement: generated records retain the provenance label \texttt{synthetic\_demo}. The implementation reviewed here is an interval-based demonstrator, rather than a calibrated statistical estimator or a validated operational monitoring system.
+
+\subsection{Measurement quantities and data contract}
+
+Each record identifies its station, sample or instrument, mat tile where applicable, measured parameter, analytical fraction, sampling matrix, acquisition method, unit, quality flag and provenance. Sampling time and availability time are separate UTC fields. A result is visible to a decision only when its availability time has arrived; the original sampling time remains attached to the evidence. Integrated deployments also carry start and end times, and a benthic-chamber flux requires a positive enclosed area. Depth carries an explicit reference datum. These distinctions avoid interpreting a concentration above the mat as a sediment concentration beneath it, or an assay of removed media as the loading of freshly installed media.
+
+The unit system separates aqueous concentration (kg\,m$^{-3}$), solid loading (kg\,kg$^{-1}$), accumulated mass (kg), areal flux (kg\,m$^{-2}$\,s$^{-1}$), length (m) and velocity (m\,s$^{-1}$). In particular, ng\,g$^{-1}$ is not interchangeable with ng\,L$^{-1}$, and a chamber flux cannot be recovered from a bottom-water concentration without an additional transport model. Chamber methods can measure sediment--water exchange, but their experimental conditions and applicability require separate validation; the USGS chamber study cited here is methodological precedent in shallow freshwater, not validation of this marine deployment.\cite{benthicFluxMonitoring}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Intended evidence channels and their physical interpretation. The coupled estimator applies the observation operator and selects compatible matrix/fraction channels before reconstruction.}
+\label{tab:monitoring-channels}
+\begin{tabular}{p{0.24\linewidth}p{0.34\linewidth}p{0.32\linewidth}}
+\toprule
+Channel & Quantity represented & Interpretation limit \\
+\midrule
+Sediment-face porewater & Boundary concentration driving the layer & Pb filtered-dissolved and Hg dissolved-inorganic fractions are distinct from labile water-column channels. \\
+Bottom-water chemistry & Concentration above the mat & Does not directly establish residual areal flux or sorbent loading. \\
+Benthic chamber & Residual flux over a deployment window & Reduced flux may reflect burial or source change as well as sorption. \\
+DGT sampler & Accumulated mass over an exposure & Retained as evidence; no calibrated sampler operator converts it to a point concentration. \\
+Media assay & Mass loading of an identified batch & Removed batches cannot constrain the loading of their replacements. \\
+Survey and inspection & Coverage, position, burial and damage class & Constrain physical condition; do not measure chemical capacity. \\
+Pressure and context & Head loss, currents and water conditions & Support interpretation and instrument health; do not infer Pb or Hg concentration. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The observation operator distinguishes assimilable observations, evidence retained without assimilation, and rejected interpretations. The coupled estimator now admits only records classified as assimilable, time-gates them again and requires an installed tile identifier. It keeps DGT-labile, methylmercury and other incompatible operational fractions separate. For source reconstruction, Pb porewater must be filtered dissolved and Hg porewater dissolved inorganic; chamber fractions are total recoverable for Pb and dissolved inorganic for Hg. A methylmercury record therefore cannot replace inorganic-Hg source chemistry. Its optional total-recoverable to model-fraction ratio is disabled by default and, when enabled, creates an uncertain interval. This is a classification capability: the repository does not thereby demonstrate a fitted likelihood or posterior distribution. Copper is present in the physical model, but the default observation generator produces a Pb probe and Pb/Hg laboratory chemistry, and the shared metal-observation set still contains only Pb and Hg. Consequently, three-element simulation should not be described as three-element monitored control.
+
+\subsection{Synthetic sampling and quality control}
+
+Table~\ref{tab:monitoring-defaults} records the nominal monitoring configuration. All detection limits, noise levels, sampling frequencies and delays are demonstration assumptions rather than verified instrument specifications. The laboratory path adds 2\% sample loss, while the probe uses 3\% random missingness. A missing result has no value or censoring bounds. A result below detection or quantification retains a finite interval and is not replaced by zero. Above-range observations carry a lower bound in the data contract.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Synthetic observation defaults. Campaigns retain a global run clock across decision windows; availability delays remain separate from sampling cadence.}
+\label{tab:monitoring-defaults}
+\begin{tabular}{p{0.31\linewidth}p{0.21\linewidth}p{0.38\linewidth}}
+\toprule
+Channel & Nominal period; delay & Noise and analytical bounds \\
+\midrule
+Environmental station & 1 h; immediate & 2\% relative noise; omitted from coupled maintenance runs. \\
+Pb bottom-water probe & 6 h; immediate & 20\% relative noise; LOD 12, LOQ 40 and range ceiling 5,000 ng\,L$^{-1}$. \\
+Porewater laboratory & 90 d; 21 d & 8\% relative noise; LOD 1.5 and LOQ 5 ng\,L$^{-1}$. \\
+Benthic chamber & 180 d; laboratory delay & 35\% relative noise; LOD 0.05 and LOQ 0.20 $\mu$g\,m$^{-2}$\,d$^{-1}$; 0.196 m$^2$ chamber, 24 h deployment. \\
+DGT & 180 d; laboratory delay & 3 d exposure; 15\% relative noise; uptake rate $2.8\times10^{-10}$ m$^3$\,s$^{-1}$; capacity 50,000 ng. \\
+Condition survey & 180 d; 1 d & 10\% adjacent-class misclassification; 4\% aborted survey legs. \\
+Differential head & Daily; immediate & 8\% relative noise. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The generator uses a single deployment origin. Windowed generation evaluates the global schedule and emits completed samples or exposures in the requested interval; splitting a run into monthly decisions does not create additional 90- or 180-day campaigns. Random draws are keyed by the run seed, channel, asset, sample time and element, so a changed window partition or another channel's dropout does not reassign unrelated noise. Record identifiers are stable. Chamber and DGT exposures can cross a decision boundary, while the availability gate still withholds their results until completion and reporting delay.
+
+Additional survey noise assumptions are 0.03 absolute coverage fraction, 0.010 m burial or scour depth, 0.25 m displacement, and $0.8^\circ$ tilt. The damage vocabulary is ordinal: intact, abraded, punctured, torn and lost imply integrity intervals $[0.98,1]$, $[0.85,0.99]$, $[0.50,0.90]$, $[0.10,0.60]$ and $[0,0.10]$, respectively. These overlapping intervals are conventions for visual interpretation, not measured probabilities. Other synthetic chemical conventions include a labile-to-dissolved factor of 1, a total-recoverable-to-labile factor of 1.6, and a methylmercury channel nominally equal to 4\% of porewater Hg. That last channel is not a mechanistic methylation model.
+
+The coupled runner screens only records available at the decision time using a quality-control module that adopts QARTOD-inspired flag names: passed (1), not evaluated (2), suspect (3), failed (4) and missing (9). It is not QARTOD certification.\cite{qartod} Checks comprise gross range, a two-neighbour spike test, repeated values and categorical vocabulary, followed by asset-age summaries. Spike limits take the greater of an absolute floor and a fraction of the neighbour mean. Physical step changes such as displacement and damage are deliberately exempt from spike thresholds. Five consecutive equal values within the configured tolerance trigger the repeated-value check for channels where it is applicable. Non-sensor condition surveys, including repeated physical zeros, are exempt from this flatline rule; stability is not itself survey failure. Channel identity includes matrix, analytical fraction and tile, so unrelated series are not pooled into a spike or repeat test. Flags preserve upstream concerns and do not silently repair or delete data.
+
+Censoring support in the record and interval estimator must be distinguished from acceptance by this coupled QC gate. The current QC skips the scalar range test for a censored result and cannot perform a scalar spike test without values. If no check applies, it assigns not evaluated (2), even when the input flag was passed (1). The estimator accepts only passed post-QC records. Generated non-detects and above-range results therefore retain their bounds in the evidence archive but do not automatically enter the coupled reconstruction. No validated QC rule for censoring intervals is implemented. In scenario A, the available Hg chamber results at days 1 and 181 are respectively below LOD, $[0,0.05]$, and below LOQ, $[0.05,0.20]$ $\mu$g\,m$^{-2}$\,d$^{-1}$; both become not evaluated. The quantified day-361 result becomes available on day 382, beyond the one-year horizon. The final estimate consequently has no usable Hg chamber age and an Hg attenuation interval $[0,1]$. Its twelve sampling recommendations reflect this evidence limitation as well as the policy's channel requirements.
+
+Range checks are specific to both quantity and matrix. For example, the Pb upper bound is 5,000 ng\,L$^{-1}$ in bottom water and 5,000 $\mu$g\,L$^{-1}$ in porewater; Hg bounds are 500 ng\,L$^{-1}$ and 50 $\mu$g\,L$^{-1}$, respectively. Flux bounds are 200,000 $\mu$g\,m$^{-2}$\,d$^{-1}$ for Pb and 2,000 for Hg. These are instrument-plausibility assumptions, not environmental criteria. Default age limits are six hours for ordinary channels, 250 days for porewater and 400 days for flux and surveys. Asset summaries aggregate records by instrument, tile or station; the current summary regards any non-missing record as a latest usable contact, including a failed record. It therefore complements, rather than replaces, explicit channel-level validity checks.
+
+\subsection{Interval reconstruction of flux, loading and remaining capacity}
+
+For a quantified chemical record, the implemented estimator uses
+\begin{equation}
+I_C=[\max(0,C-2\sigma),\ C+2\sigma].
+\end{equation}
+For records admitted to the interval estimator, non-detects retain their supplied bounds and above-range records remain $[C_{\min},+\infty)$ rather than acquiring an invented finite upper limit. This standalone interval capability does not override the coupled QC limitation described above: only compatible records with a passed post-QC flag enter the reconstruction. If a quantified chemical record omits its uncertainty, the estimator assumes a relative standard deviation of 0.50 and records that convention, giving $[0,2C]$ for a non-negative value. This fallback is not a measured error model. Numeric physical anomalies require a reported uncertainty before the two-standard-deviation resolution rule can be applied; categorical damage uses the stated class bands.
+
+The estimated source interval is the product of the latest porewater interval and an assumed seepage band,
+\begin{equation}
+I_{J_s}=I_{C_s}\,[0.4v_0,2.5v_0],
+\label{eq:estimated-source}
+\end{equation}
+where $v_0$ is the initial design seepage velocity. This approximation does not reconstruct the complete diffusive and advective source exchange used by the physical simulator, and it does not assimilate measured seepage. A source increase after installation can therefore remain confounded with performance loss. Without usable porewater chemistry the implementation stores a zero source interval and marks insufficient data; this is an internal unknown-data convention, not evidence of a zero source.
+
+The latest usable chamber interval gives $I_{J_r}$. Without a chamber, residual flux spans zero to the source upper bound. With positive source bounds, attenuation is reconstructed by endpoint arithmetic:
+\begin{equation}
+I_A=\left[\mathcal{C}\!\left(1-\frac{J_r^+}{J_s^-}\right),\,
+\mathcal{C}\!\left(1-\frac{J_r^-}{J_s^+}\right)\right],\qquad
+\mathcal{C}(x)=\min\{1,\max\{0,x\}\}.
+\end{equation}
+If the denominator interval includes zero, attenuation becomes $[0,1]$. Clipping each endpoint maps an entirely negative interval to $[0,0]$, rather than taking a set intersection. It prevents estimated attenuation from representing negative net-release attenuation, although the simulated-truth plots retain that possibility. Captured flux is bounded by
+\begin{equation}
+I_{J_c}=\big[\max(J_s^- -J_r^+,0),\ \max(J_s^+-J_r^-,0)\big].
+\end{equation}
+Loading is integrated over the observed history using a zero-order hold between measurements. The first measurement is also held backwards to installation. That back-extrapolation, gaps between campaigns, and unmeasured spatial heterogeneity are substantive assumptions. After replacement, integration starts at the latest accepted installation event. Chamber and condition observations at or before replacement describe the outgoing media and are excluded from current-media reconstruction; an integrated chamber sample must also have started at or after installation. Sediment porewater measurements remain available because source conditions do not reset with the media.
+
+Where a tile lacks its own chemistry, the estimator borrows the mat-wide record pool and widens its interval. For a positive interval $[a,b]$, geometric widening uses
+\begin{equation}
+g=\sqrt{ab},\qquad
+I'=\left[g(b/a)^{-(1+w)/2},\ g(b/a)^{(1+w)/2}\right].
+\end{equation}
+The widening parameter is 0.35 per year of record age, with an additional 0.5 for borrowed chemistry. These are assumed penalties, not measured variability. For intervals touching zero, arithmetic widening is used instead. An unbounded interval retains its infinite upper endpoint, with lower bound divided by $1+w$. Exported JSON represents non-finite endpoints as null with explicit path metadata; null is not a zero or a finite analytical bound.
+
+The operator capacity interval is $I_Q=L_s f_e I_{q_{\max,e}}$, where $L_s$ is sorbent loading per area and $f_e$ the allocation to element $e$. A configured commissioning interval supersedes the broader material range. The default commissioning intervals are hypothetical commissioning knowledge, not results of an experiment in this repository. The integrated retained-loading interval is clipped to the configured capacity upper bound. This finite-stock constraint is a material assumption, not an upper bound supplied by an above-range measurement. Remaining capacity is
+\begin{equation}
+I_R=[\max(Q^- -L^+,0),\ \max(Q^+ -L^-,0)],
+\end{equation}
+and the remaining-time interval is $[R^-/J_c^+,R^+/J_c^-]$ only when $J_c^->0$. Otherwise no time is forecast. Although snapshots carry \texttt{interval\_level=0.9}, no coverage calibration supports a 90\% confidence interpretation: these are deterministic uncertainty bounds, and the ensemble size is zero. Fouling, effective permeability and model--data compatibility remain unestimated fields.
+
+\subsection{Maintenance rules, accounting and interpretation}
+
+The three policies are a bare-seabed reference with no mat, fixed servicing, and evidence-informed servicing. The fixed policy replaces all tiles after two years since the previous service. Decisions are checked every 30 days, so actual dates follow that decision grid. The evidence policy requires at least three chemical evidence identifiers and recent porewater and chamber results for every supported monitored element, Pb and Hg. Each required channel must be present and no older than 200 days. A recent survey or Pb record cannot refresh an old Hg result. Cu has no default chemical observation channel and is not used to demand an impossible Cu sampling cadence. Recent severe physical failure is evaluated before these chemistry conditions, allowing condition evidence to prompt service without an unrelated laboratory result.
+
+For each element, saturation is bounded by $[L^-/Q^+,L^+/Q^-]$, with the upper endpoint capped at one. The default decision value is the interval midpoint; lower and upper choices are configurable risk postures. Inspection and replacement thresholds are 0.55 and 0.80. An attenuation interval whose upper endpoint falls below 0.70 also prompts inspection. A damage-class integrity upper bound strictly below 0.90 prompts inspection and replacement. With the default class mapping, this automatically catches torn and lost classes, but not punctured at its upper bound of exactly 0.90. These are demonstration triggers, not engineering acceptance criteria.
+
+Cause attribution starts with equal weights for saturation, fouling, displacement and local damage. The latest non-intact damage class, including punctured, adds three weight units to local damage. A coverage upper bound below 0.98, or displacement/uplift/tilt resolved beyond two standard deviations, adds evidence for displacement. A resolved head increase or permeability decrease against the earliest comparable available baseline can support fouling; the presence of a channel alone does not. The latest burial lower bound must be positive after length conversion and two-standard-deviation uncertainty before burial is flagged. An unburied or noise-consistent-zero survey consequently does not imply a buried mat.
+
+Only elements with compatible measured porewater and chamber records and a computable attenuation ratio enter performance-loss attribution. An unmonitored Cu channel or an unknown source cannot itself create evidence of saturation or source change. Chemistry consistent with reduced attenuation, together with physical evidence, can add one unit to saturation, while missing discriminating physical evidence retains source-change and seepage-change explanations. The normalised weights are explanatory heuristics, not posterior probabilities. Source-side ambiguity or resolved burial blocks replacement attributed to saturation and requests further evidence. The exact policy thresholds remain distinct from the class-to-integrity mapping: a punctured class can support a damage explanation without automatically satisfying the strict integrity-upper-bound replacement trigger.
+
+Every recommendation is labelled simulation-only and requires human confirmation in its exported contract. The demonstrator automatically accepts replacement recommendations to simulate an operator following the policy. Sampling and inspection recommendations do not modify the future observation programme; additional sampling cost is therefore not an executed adaptive campaign in these runs. Replacement resets the selected tiles and transfers their retained contaminant to the retrieved-media ledger. Removed media are treated as waste with a handling cost, never as a saleable metal product.
+
+Assumed prices are EUR 240\,m$^{-2}$ material, EUR 6,500 per vessel visit/day, EUR 1,900 tile replacement handling and EUR 12\,kg$^{-1}$ used-media handling. Additional configured prices are EUR 4,200 per ROV survey, EUR 2,800 per chamber deployment, EUR 180 per porewater sample, EUR 210 per Hg laboratory sample, EUR 260 per DGT deployment and EUR 350 per sensor check. The recorded servicing total includes accepted replacements; it does not include every possible monitoring, permitting or initial-installation cost. Hence cost per retained kilogram is not a complete life-cycle or exposure-reduction cost.
+
+\subsection{Limits of the demonstrated control loop}
+\label{sec:control-limitations}
+
+The revised run uses availability gating, QC and analytical-fraction classification before estimation. Raw observations, estimate histories, recommendation evidence identifiers and accepted service events are exported to support reconstruction of the evidence available at each decision. The exported final QC report is a retrospective screen; replay must apply the original availability gate before QC. Recommendations that request data or follow a fixed schedule can have empty evidence-identifier lists. Campaign cadence and scenario-E dropout/drift follow elapsed time since deployment: the configured dropout is from 1.0 to 1.25 years, drift begins at 1.25 years and laboratory latency is 75 days. These are simulated disruptions, not observed instrument behaviour or evidence of a commercially available monitoring system.
+
+Several modelling limits remain. Porewater and an assumed seepage band reconstruct only an advective source estimate, while the physical reference also includes diffusive exchange. Synthetic chamber values follow local column flux, whereas reported whole-hotspot emission additionally includes uncovered, damaged and bypass contributions. A chamber's spatial representativeness therefore requires explicit assessment. The generator's layer-history adapter has no dynamic hydraulic-head or tilt model; these channels are marked missing rather than manufactured as exact zeros. Separate scripted scenes may provide such values, but do not validate their physical relationship to fouling or displacement.
+
+Station placement also remains fixed. Scenario F contains only four tiles and omits \texttt{tile\_2\_2}, to which the default chamber station is assigned. The runner filters out that station rather than relocating it. Consequently, F generates no Pb or Hg chamber records and records 48 requests for chemical sampling without a service. This is a limitation of the configured monitoring layout and its lack of adaptive sampling, not evidence that the undersized mat remained chemically effective.
+
+Cu is simulated but unmonitored. Without usable source chemistry, the legacy snapshot stores zero source bounds alongside an insufficient-data flag, returns attenuation $[0,1]$ and makes no remaining-time forecast. Those stored zeros denote unavailable information, not a measured absence of source, loading or risk. Missing-data flags must therefore accompany any operational interpretation of the numeric fields. Borrowed chemistry, backward holding of the first sample and assumed material bounds add uncertainty beyond instrument noise.
+
+The estimator is a deterministic interval reconstruction without a calibrated observation likelihood, particle ensemble or demonstrated interval coverage. Recommendation-level \texttt{data\_age\_s} remains null; per-channel ages are available in the estimate snapshots. Fouling, permeability and compatibility fields remain unestimated, and estimated attenuation is clipped to $[0,1]$. The configured maximum relative interval width and partial-replacement switch remain unused by the current policy; trend-count and indistinguishability parameters likewise do not alter the current estimator. Sampling and inspection recommendations do not adapt future campaigns in this demonstrator, and assumed service expenditure omits a complete lifecycle accounting. Consequently, changed recommendations and costs after these repairs establish software behaviour under explicit assumptions, not operational superiority or a validated maintenance optimum.
